@@ -1,3 +1,11 @@
+// Import the video files
+import chandonVideo from '../assets/video/Chandon 10sek website.mp4';
+import dt5Video from '../assets/video/DT5 P5 10sek website.mp4';
+import manishaVideo from '../assets/video/Manisha 10sek website.mp4';
+
+// Video configuration - you can change the default video here
+const DEFAULT_VIDEO = chandonVideo; // Options: chandonVideo, dt5Video, manishaVideo
+
 function ImageSection() {
   return (
     <div className="absolute contents inset-0" data-name="Image section">
@@ -9,9 +17,12 @@ function ImageSection() {
           loop 
           muted
           playsInline
+          src={DEFAULT_VIDEO}
         >
-          <source src="/assets/video/hero-video.mp4" type="video/mp4" />
-          <source src="/assets/video/hero-video.webm" type="video/webm" />
+          {/* Fallback sources for better browser compatibility */}
+          <source src={chandonVideo} type="video/mp4" />
+          <source src={dt5Video} type="video/mp4" />
+          <source src={manishaVideo} type="video/mp4" />
           {/* Fallback message */}
           Your browser does not support the video tag.
         </video>
