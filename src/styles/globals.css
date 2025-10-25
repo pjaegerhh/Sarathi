@@ -1,0 +1,463 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  /* Desktop Typography */
+  --text-desktop-hero: 64px;
+  --text-desktop-hero-lh: 66px;
+  --text-desktop-h1: 40px;
+  --text-desktop-h1-lh: 60px;
+  --text-desktop-h2: 32px;
+  --text-desktop-h2-lh: 40px;
+  --text-desktop-h3: 22px;
+  --text-desktop-h3-lh: 32px;
+  --text-desktop-body-lg: 18px;
+  --text-desktop-body-lg-lh: 28px;
+  --text-desktop-label: 16px;
+  --text-desktop-label-lh: 24px;
+  --text-desktop-body: 14px;
+  --text-desktop-body-lh: 22px;
+  /* Mobile Typography */
+  --text-mobile-h1: 24px;
+  --text-mobile-h1-lh: 30px;
+  --text-mobile-h2: 16px;
+  --text-mobile-h2-lh: 24px;
+  --text-mobile-label: 14px;
+  --text-mobile-label-lh: 20px;
+  --text-mobile-body: 14px;
+  --text-mobile-body-lh: 20px;
+  --text-mobile-small: 12px;
+  --text-mobile-small-lh: 16px;
+  /* Spacing scale */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+  --spacing-4xl: 64px;
+  --spacing-5xl: 96px;
+  --spacing-6xl: 138px;
+  /* The default background color for the application. */
+  --background: rgba(255, 255, 255, 1);
+  /* The default color for elements or text that appears on top of the background. */
+  --foreground: rgba(0, 0, 0, 1);
+  /* The background color for cards, modals, and other containers. */
+  --card: rgba(255, 255, 255, 1);
+  /* The default color for text or elements that appear on top of cards, modals and other background containers. */
+  --card-foreground: rgba(0, 0, 0, 1);
+  /* The background color for dropdowns and tooltips. */
+  --popover: rgba(255, 255, 255, 1);
+  /* The default color for text or elements that appear on top of dropdowns and tooltips. */
+  --popover-foreground: rgba(151, 151, 151, 1);
+  /* The primary color used for buttons, links, and other interactive elements. */
+  --primary: rgba(56, 136, 150, 1);
+  /* The default color for text or elements that appear on top of primary colored elements. */
+  --primary-foreground: rgba(255, 255, 255, 1);
+  /* The secondary color used for secondary(but NOT-DESTRUCTIVE) buttons and interactive elements. */
+  --secondary: rgba(105, 181, 124, 1);
+  /* The default color for text or elements that appear on top of secondary colored elements. */
+  --secondary-foreground: rgba(255, 255, 255, 1);
+  /* The muted color used for less prominent elements, such as disabled buttons or disabled text. */
+  --muted: rgba(138, 192, 173, 1);
+  /* The default color for text or elements that appear on top of muted colored elements. */
+  --muted-foreground: rgba(255, 255, 255, 1);
+  /* The accent color used for highlights, links, and other interactive elements. */
+  --accent: rgba(138, 192, 173, 1);
+  /* The default color for text or elements that appear on top of accent colored elements. */
+  --accent-foreground: rgba(255, 255, 255, 1);
+  /* The color used for background in destructive actions, such as delete buttons or error messages. */
+  --destructive: rgba(242, 90, 60, 1);
+  /* The default color for text or elements that appear on top of destructive colored elements. */
+  --destructive-foreground: rgba(255, 255, 255, 1);
+  /* The default border color for elements such as inputs, buttons, and other containers. */
+  --border: rgba(199, 200, 213, 1);
+  /* The default background color for input fields once the text has been filled. Should be either transparent or match the input-background. */
+  --input: rgba(255, 255, 255, 1);
+  /* The default background color for input fields, text areas, and other input elements. */
+  --input-background: rgba(255, 255, 255, 1);
+  /* Font weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  /* The color for focus rings, outlines, and other focus indicators. */
+  --ring: rgba(56, 136, 150, 1);
+  /* Brand Colors - Core palette from design system */
+  --color-primary: rgba(56, 136, 150, 1);
+  --color-secondary: rgba(105, 181, 124, 1);
+  --color-gradient-start: rgba(105, 181, 124, 1);
+  --color-gradient-end: rgba(56, 136, 150, 1);
+  /* Grey Scale - From design system */
+  --color-black: rgba(25, 33, 38, 1);
+  --color-sub-dark: rgba(80, 80, 80, 1);
+  --color-sub-heading: rgba(151, 151, 151, 1);
+  --color-sub-icons: rgba(199, 200, 213, 1);
+  --color-white: rgba(255, 255, 255, 1);
+  /* State Colors - From design system */
+  --color-error: rgba(242, 90, 60, 1);
+  --color-disabled-primary: rgba(138, 192, 173, 1);
+  --color-disabled-secondary: rgba(95, 156, 166, 1);
+  --color-light-secondary: rgba(224, 235, 227, 1);
+  --color-bg-variation: rgba(242, 242, 247, 1);
+  --color-bg-blur-dark: rgba(0, 0, 0, 0.2);
+  --color-bg-blur-light: rgba(255, 255, 255, 0.1);
+  /* Additional text colors for semantic usage */
+  --text-heading: rgba(25, 33, 38, 1);
+  --text-body: rgba(80, 80, 80, 1);
+  --text-tertiary: rgba(199, 200, 213, 1);
+  /* Icon colors for different states */
+  --icon-inactive: rgba(199, 200, 213, 1);
+  --icon-active: rgba(105, 181, 124, 1);
+  /* Shadow color for elevation effects */
+  --shadow-color: rgba(221, 221, 221, 1);
+  /* Shadow for small elevations, such as cards or modals. */
+  --elevation-sm: 0px 0px 10px 0px rgba(221, 221, 221, 1);
+  /* The color for chart elements, such as a bar or line in a chart. */
+  --chart-1: rgba(56, 136, 150, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-2: rgba(105, 181, 124, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-3: rgba(138, 192, 173, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-4: rgba(95, 156, 166, 1);
+  /* The color for another chart element, such as a bar or line in a chart. */
+  --chart-5: rgba(224, 235, 227, 1);
+  /* The default border radius for elements such as buttons, tooltip, and other containers. */
+  --radius: 10px;
+  /* The border radius for button elements. */
+  --radius-button: 24px;
+  /* The border radius for card elements. */
+  --radius-card: 15px;
+  /* The background color for sidebars, navigation menus, and other persistent elements. */
+  --sidebar: rgba(255, 255, 255, 1);
+  /* The default color for text or elements that appear on top of sidebars, navigation menus, and other persistent elements. */
+  --sidebar-foreground: rgba(151, 151, 151, 1);
+  /* The primary color used for buttons, links, and other interactive elements in sidebars and navigation menus. */
+  --sidebar-primary: rgba(56, 136, 150, 1);
+  /* The default color for text or elements that appear on top of primary colored elements in sidebars and navigation menus. */
+  --sidebar-primary-foreground: rgba(255, 255, 255, 1);
+  /* The accent color used for highlights, links, and other interactive elements in sidebars and navigation menus. */
+  --sidebar-accent: rgba(138, 192, 173, 1);
+  /* The default color for text or elements that appear on top of accent colored elements in sidebars and navigation menus. */
+  --sidebar-accent-foreground: rgba(255, 255, 255, 1);
+  /* The default border color for elements in sidebars and navigation menus. */
+  --sidebar-border: rgba(199, 200, 213, 1);
+  /* The default color for focus rings, outlines, and other focus indicators in sidebars and navigation menus. */
+  --sidebar-ring: rgba(56, 136, 150, 1);
+}
+
+.dark {
+  --background: rgba(0, 0, 0, 1);
+  --foreground: rgba(255, 255, 255, 1);
+  --card: rgba(0, 0, 0, 1);
+  --card-foreground: rgba(255, 255, 255, 1);
+  --popover: rgba(0, 0, 0, 1);
+  --popover-foreground: rgba(255, 255, 255, 1);
+  --primary: rgba(56, 136, 150, 1);
+  --primary-foreground: rgba(255, 255, 255, 1);
+  --secondary: rgba(105, 181, 124, 1);
+  --secondary-foreground: rgba(255, 255, 255, 1);
+  --muted: rgba(138, 192, 173, 1);
+  --muted-foreground: rgba(255, 255, 255, 1);
+  --accent: rgba(138, 192, 173, 1);
+  --accent-foreground: rgba(255, 255, 255, 1);
+  --destructive: rgba(242, 90, 60, 1);
+  --destructive-foreground: rgba(255, 255, 255, 1);
+  --border: rgba(199, 200, 213, 1);
+  --input: rgba(0, 0, 0, 1);
+  --ring: rgba(56, 136, 150, 1);
+  /* Brand Colors - Core palette from design system */
+  --color-primary: rgba(56, 136, 150, 1);
+  --color-secondary: rgba(105, 181, 124, 1);
+  --color-gradient-start: rgba(105, 181, 124, 1);
+  --color-gradient-end: rgba(56, 136, 150, 1);
+  /* Grey Scale - From design system (adjusted for dark mode) */
+  --color-black: rgba(255, 255, 255, 1);
+  --color-sub-dark: rgba(200, 200, 200, 1);
+  --color-sub-heading: rgba(150, 150, 150, 1);
+  --color-sub-icons: rgba(100, 100, 100, 1);
+  --color-white: rgba(25, 33, 38, 1);
+  /* State Colors - From design system */
+  --color-error: rgba(242, 90, 60, 1);
+  --color-disabled-primary: rgba(138, 192, 173, 1);
+  --color-disabled-secondary: rgba(95, 156, 166, 1);
+  --color-light-secondary: rgba(224, 235, 227, 1);
+  --color-bg-variation: rgba(30, 30, 30, 1);
+  --color-bg-blur-dark: rgba(255, 255, 255, 0.2);
+  --color-bg-blur-light: rgba(0, 0, 0, 0.1);
+  --text-heading: rgba(255, 255, 255, 1);
+  --text-body: rgba(200, 200, 200, 1);
+  --text-tertiary: rgba(150, 150, 150, 1);
+  --icon-inactive: rgba(150, 150, 150, 1);
+  --icon-active: rgba(105, 181, 124, 1);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --chart-1: rgba(56, 136, 150, 1);
+  --chart-2: rgba(105, 181, 124, 1);
+  --chart-3: rgba(138, 192, 173, 1);
+  --chart-4: rgba(95, 156, 166, 1);
+  --chart-5: rgba(224, 235, 227, 1);
+  --sidebar: rgba(0, 0, 0, 1);
+  --sidebar-foreground: rgba(255, 255, 255, 1);
+  --sidebar-primary: rgba(56, 136, 150, 1);
+  --sidebar-primary-foreground: rgba(255, 255, 255, 1);
+  --sidebar-accent: rgba(138, 192, 173, 1);
+  --sidebar-accent-foreground: rgba(255, 255, 255, 1);
+  --sidebar-border: rgba(199, 200, 213, 1);
+  --sidebar-ring: rgba(56, 136, 150, 1);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+  --color-text-heading: var(--text-heading);
+  --color-text-body: var(--text-body);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-icon-inactive: var(--icon-inactive);
+  --color-icon-active: var(--icon-active);
+  --color-shadow: var(--shadow-color);
+  /* Design System Brand Colors */
+  --brand-primary: var(--color-primary);
+  --brand-secondary: var(--color-secondary);
+  --brand-gradient-start: var(--color-gradient-start);
+  --brand-gradient-end: var(--color-gradient-end);
+  /* Design System Grey Scale */
+  --grey-black: var(--color-black);
+  --grey-sub-dark: var(--color-sub-dark);
+  --grey-sub-heading: var(--color-sub-heading);
+  --grey-sub-icons: var(--color-sub-icons);
+  --grey-white: var(--color-white);
+  /* Design System State Colors */
+  --state-error: var(--color-error);
+  --state-disabled-primary: var(--color-disabled-primary);
+  --state-disabled-secondary: var(--color-disabled-secondary);
+  --state-light-secondary: var(--color-light-secondary);
+  --state-bg-variation: var(--color-bg-variation);
+  --state-bg-blur-dark: var(--color-bg-blur-dark);
+  --state-bg-blur-light: var(--color-bg-blur-light);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --spacing-xs: var(--spacing-xs);
+  --spacing-sm: var(--spacing-sm);
+  --spacing-md: var(--spacing-md);
+  --spacing-lg: var(--spacing-lg);
+  --spacing-xl: var(--spacing-xl);
+  --spacing-2xl: var(--spacing-2xl);
+  --spacing-3xl: var(--spacing-3xl);
+  --spacing-4xl: var(--spacing-4xl);
+  --spacing-5xl: var(--spacing-5xl);
+  --spacing-6xl: var(--spacing-6xl);
+  --font-size-desktop-hero: var(--text-desktop-hero);
+  --font-size-desktop-h1: var(--text-desktop-h1);
+  --font-size-desktop-h2: var(--text-desktop-h2);
+  --font-size-desktop-h3: var(--text-desktop-h3);
+  --font-size-desktop-body-lg: var(--text-desktop-body-lg);
+  --font-size-desktop-label: var(--text-desktop-label);
+  --font-size-desktop-body: var(--text-desktop-body);
+  --font-size-mobile-h1: var(--text-mobile-h1);
+  --font-size-mobile-h2: var(--text-mobile-h2);
+  --font-size-mobile-label: var(--text-mobile-label);
+  --font-size-mobile-body: var(--text-mobile-body);
+  --font-size-mobile-small: var(--text-mobile-small);
+  --line-height-desktop-hero: var(--text-desktop-hero-lh);
+  --line-height-desktop-h1: var(--text-desktop-h1-lh);
+  --line-height-desktop-h2: var(--text-desktop-h2-lh);
+  --line-height-desktop-h3: var(--text-desktop-h3-lh);
+  --line-height-desktop-body-lg: var(--text-desktop-body-lg-lh);
+  --line-height-desktop-label: var(--text-desktop-label-lh);
+  --line-height-desktop-body: var(--text-desktop-body-lh);
+  --line-height-mobile-h1: var(--text-mobile-h1-lh);
+  --line-height-mobile-h2: var(--text-mobile-h2-lh);
+  --line-height-mobile-label: var(--text-mobile-label-lh);
+  --line-height-mobile-body: var(--text-mobile-body-lh);
+  --line-height-mobile-small: var(--text-mobile-small-lh);
+  --font-weight-regular: var(--font-weight-regular);
+  --font-weight-medium: var(--font-weight-medium);
+  --font-weight-semibold: var(--font-weight-semibold);
+  --font-weight-bold: var(--font-weight-bold);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-button: var(--radius-button);
+  --radius-card: var(--radius-card);
+  --shadow-sm: var(--elevation-sm);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Roboto', sans-serif;
+  }
+}
+
+/**
+ * Base typography for desktop. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    /* Desktop Typography (default - applies to viewport >= 768px) */
+    h1 {
+      font-size: var(--text-desktop-h1);
+      font-weight: var(--font-weight-semibold);
+      line-height: var(--text-desktop-h1-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    h2 {
+      font-size: var(--text-desktop-h2);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--text-desktop-h2-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    h3 {
+      font-size: var(--text-desktop-h3);
+      font-weight: var(--font-weight-regular);
+      line-height: var(--text-desktop-h3-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    h4 {
+      font-size: var(--text-desktop-body-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--text-desktop-body-lg-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    p {
+      font-size: var(--text-desktop-body);
+      font-weight: var(--font-weight-regular);
+      line-height: var(--text-desktop-body-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    label {
+      font-size: var(--text-desktop-label);
+      font-weight: var(--font-weight-bold);
+      line-height: var(--text-desktop-label-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    button {
+      font-size: var(--text-desktop-body);
+      font-weight: var(--font-weight-medium);
+      line-height: var(--text-desktop-body-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    input, textarea {
+      font-size: var(--text-desktop-body);
+      font-weight: var(--font-weight-regular);
+      line-height: var(--text-desktop-body-lh);
+      font-family: 'Roboto', sans-serif;
+    }
+  }
+}
+
+/**
+ * Mobile typography overrides
+ */
+@layer base {
+  @media (max-width: 767px) {
+    :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+      h1 {
+        font-size: var(--text-mobile-h1);
+        font-weight: var(--font-weight-bold);
+        line-height: var(--text-mobile-h1-lh);
+      }
+
+      h2 {
+        font-size: var(--text-mobile-h2);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--text-mobile-h2-lh);
+      }
+
+      h3 {
+        font-size: var(--text-mobile-h2);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--text-mobile-h2-lh);
+      }
+
+      h4 {
+        font-size: var(--text-mobile-body);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--text-mobile-body-lh);
+      }
+
+      p {
+        font-size: var(--text-mobile-body);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--text-mobile-body-lh);
+      }
+
+      label {
+        font-size: var(--text-mobile-label);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--text-mobile-label-lh);
+      }
+
+      button {
+        font-size: var(--text-mobile-body);
+        font-weight: var(--font-weight-medium);
+        line-height: var(--text-mobile-body-lh);
+      }
+
+      input, textarea {
+        font-size: var(--text-mobile-body);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--text-mobile-body-lh);
+      }
+
+      small {
+        font-size: var(--text-mobile-small);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--text-mobile-small-lh);
+      }
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
