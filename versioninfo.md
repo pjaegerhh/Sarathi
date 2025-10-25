@@ -1,4 +1,14 @@
-# Sarathi Project - Version History
+# 
+## Version 1.1.0
+**Date:** 25.10.2025
+**Branch:** main
+
+### Changes
+- [Add description of changes here]
+
+---
+
+Sarathi Project - Version History
 
 ## Version 1.0.0 - Initial Release
 **Date:** December 2024
@@ -30,6 +40,16 @@
 - Asset management for images and videos
 
 ---
+## Version 1.2.0
+**Date:** 25.10.2025
+**Branch:** main
+
+### Changes
+- [Add description of changes here]
+
+---
+
+
 
 ## Version Management Rules
 
