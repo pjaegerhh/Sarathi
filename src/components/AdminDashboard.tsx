@@ -7,7 +7,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Shield, Users, CheckCircle, XCircle } from 'lucide-react';
 
 interface AdminDashboardProps {

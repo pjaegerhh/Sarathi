@@ -1,12 +1,12 @@
 import svgPaths from "./svg-rjm8pbzjz8";
-import imgHealingCardImage from "figma:asset/4038b380ca66816e136f836132bca1b8cc0db251.png";
-import imgHealingCardImage1 from "figma:asset/dc47787b499eb83f6a39d48d318b9dac108c4c7d.png";
-import imgRectangle71 from "figma:asset/4769aeb444c6cbe05dc0663fb5c35a853e49584c.png";
-import imgRectangle72 from "figma:asset/ceb4eb08f4449d6be9cb7d76be55ca0ad330384c.png";
-import imgStatisticsCardImage from "figma:asset/617b3f3d9b67780e89a5c8d624b5d8b0f13ea0bf.png";
-import imgCommunityCardImageContent from "figma:asset/9e46f3be7b5472cd8a3b304c1ba73356f2cd2099.png";
-import imgCommunityCardImageContent1 from "figma:asset/8fb8fc34b439a14d915eca2570a2d283a90cabb5.png";
-import imgCommunityCardImageContent2 from "figma:asset/14532ada289a40c010c9ed2d41fc6fc11a3aae7f.png";
+import imgHealingCardImage from '/src/assets/4038b380ca66816e136f836132bca1b8cc0db251.png';
+import imgHealingCardImage1 from '/src/assets/dc47787b499eb83f6a39d48d318b9dac108c4c7d.png';
+import imgRectangle71 from '/src/assets/4769aeb444c6cbe05dc0663fb5c35a853e49584c.png';
+import imgRectangle72 from '/src/assets/ceb4eb08f4449d6be9cb7d76be55ca0ad330384c.png';
+import imgStatisticsCardImage from '/src/assets/617b3f3d9b67780e89a5c8d624b5d8b0f13ea0bf.png';
+import imgCommunityCardImageContent from '/src/assets/9e46f3be7b5472cd8a3b304c1ba73356f2cd2099.png';
+import imgCommunityCardImageContent1 from '/src/assets/8fb8fc34b439a14d915eca2570a2d283a90cabb5.png';
+import imgCommunityCardImageContent2 from '/src/assets/14532ada289a40c010c9ed2d41fc6fc11a3aae7f.png';
 
 function HeroOverlay() {
   return (
