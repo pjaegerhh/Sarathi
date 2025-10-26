@@ -74,6 +74,24 @@ jobs:
       - name: Copy static web app config to dist
         run: cp staticwebapp.config.json dist/
 
+      - name: Copy public folder contents to dist
+        run: |
+          if [ -d "public" ]; then
+            echo "Copying public folder contents to dist..."
+            cp -r public/* dist/ 2>/dev/null || echo "No files in public folder or already copied"
+          fi
+
+      - name: Verify dist folder contents
+        run: |
+          echo "Contents of dist folder:"
+          ls -la dist/
+          echo "Checking for manifest.json:"
+          if [ -f dist/manifest.json ]; then
+            echo "✅ manifest.json found in dist"
+          else
+            echo "❌ manifest.json NOT found in dist"
+          fi
+
       - name: Clean up unnecessary files before deployment
         run: |
           # Remove only the most problematic files to reduce deployment size
