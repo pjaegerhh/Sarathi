@@ -71,6 +71,9 @@ jobs:
         env:
           VITE_APP_ENVIRONMENT: testing
 
+      - name: Copy static web app config to dist
+        run: cp staticwebapp.config.json dist/
+
       - name: Clean up unnecessary files before deployment
         run: |
           # Remove only the most problematic files to reduce deployment size
@@ -99,9 +102,9 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_TEST }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/"
+          app_location: "./dist"
           api_location: ""
-          output_location: "dist"
+          output_location: ""
           skip_app_build: true
         env:
           VITE_APP_ENVIRONMENT: testing
