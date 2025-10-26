@@ -34,5 +34,9 @@
   },
   "platform": {
     "apiRuntime": "node:18"
+  },
+  "compression": {
+    "enabled": true,
+    "types": ["text/plain", "text/css", "application/javascript", "application/json", "text/html"]
   }
 }
