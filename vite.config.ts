@@ -12,6 +12,7 @@
         fastRefresh: true,
       })
     ],
+    publicDir: 'public', // Ensure public folder is copied to dist
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
