@@ -1,18 +1,31 @@
 {
-  "routes": [
-    {
-      "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
-    }
-  ],
+  "routes": [],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,jpeg,gif,svg,ico}", "/css/*", "/js/*", "/assets/*", "/*.{js,css,png,jpg,jpeg,gif,svg,ico,woff,woff2,ttf,eot}"]
+    "exclude": [
+      "/assets/*",
+      "/*.js",
+      "/*.mjs",
+      "/*.css",
+      "/*.json",
+      "/*.png",
+      "/*.jpg",
+      "/*.jpeg",
+      "/*.gif",
+      "/*.svg",
+      "/*.ico",
+      "/*.woff",
+      "/*.woff2",
+      "/*.ttf",
+      "/*.eot",
+      "/*.mp4",
+      "/*.webm"
+    ]
   },
   "mimeTypes": {
     ".json": "application/json",
     ".js": "application/javascript",
+    ".mjs": "application/javascript",
     ".css": "text/css",
     ".html": "text/html",
     ".png": "image/png",
