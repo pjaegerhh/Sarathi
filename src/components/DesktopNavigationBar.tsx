@@ -1,4 +1,5 @@
 import { useLanguage } from '../contexts/LanguageContext';
+import { useState, useEffect } from 'react';
 import svgPaths from "../imports/svg-zth38xejxm";
 
 interface DesktopNavigationBarProps {
@@ -7,7 +8,7 @@ interface DesktopNavigationBarProps {
 
 function ProfileNavItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center relative shrink-0 w-[45px] cursor-pointer group">
+    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center relative shrink-0 w-[60px] cursor-pointer group">
       <div className="relative shrink-0 size-[24px]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
           <g>
@@ -15,7 +16,7 @@ function ProfileNavItem({ label, onClick }: { label: string; onClick: () => void
           </g>
         </svg>
       </div>
-      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
+      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors whitespace-nowrap" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
         <p style={{ lineHeight: 'var(--text-desktop-body-lh)' }}>{label}</p>
       </div>
     </button>
@@ -24,13 +25,13 @@ function ProfileNavItem({ label, onClick }: { label: string; onClick: () => void
 
 function CommunityNavItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center relative shrink-0 w-[72px] cursor-pointer group">
+    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center relative shrink-0 w-[80px] cursor-pointer group">
       <div className="h-[24px] relative shrink-0 w-[26px]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 26 24">
           <path d={svgPaths.p3983d80} fill="var(--icon-inactive)" className="group-hover:fill-secondary transition-colors" />
         </svg>
       </div>
-      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
+      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors whitespace-nowrap" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
         <p style={{ lineHeight: 'var(--text-desktop-body-lh)' }}>{label}</p>
       </div>
     </button>
@@ -39,7 +40,7 @@ function CommunityNavItem({ label, onClick }: { label: string; onClick: () => vo
 
 function DailyTipsNavItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center justify-center relative shrink-0 w-[61px] cursor-pointer group">
+    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center justify-center relative shrink-0 w-[85px] cursor-pointer group">
       <div className="relative shrink-0 size-[24px]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
           <g>
@@ -47,7 +48,7 @@ function DailyTipsNavItem({ label, onClick }: { label: string; onClick: () => vo
           </g>
         </svg>
       </div>
-      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
+      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors whitespace-nowrap" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
         <p style={{ lineHeight: 'var(--text-desktop-body-lh)' }}>{label}</p>
       </div>
     </button>
@@ -56,7 +57,7 @@ function DailyTipsNavItem({ label, onClick }: { label: string; onClick: () => vo
 
 function HelpCenterNavItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center justify-center relative shrink-0 w-[74px] cursor-pointer group">
+    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center justify-center relative shrink-0 w-[100px] cursor-pointer group">
       <div className="relative shrink-0 size-[24px]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
           <g>
@@ -64,7 +65,7 @@ function HelpCenterNavItem({ label, onClick }: { label: string; onClick: () => v
           </g>
         </svg>
       </div>
-      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
+      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors whitespace-nowrap" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
         <p style={{ lineHeight: 'var(--text-desktop-body-lh)' }}>{label}</p>
       </div>
     </button>
@@ -73,7 +74,7 @@ function HelpCenterNavItem({ label, onClick }: { label: string; onClick: () => v
 
 function TutorialNavItem({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center relative shrink-0 w-[72px] cursor-pointer group">
+    <button onClick={onClick} className="content-stretch flex flex-col gap-[4px] h-[50px] items-center relative shrink-0 w-[90px] cursor-pointer group">
       <div className="relative shrink-0 size-[24px]">
         <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
           <g>
@@ -81,7 +82,7 @@ function TutorialNavItem({ label, onClick }: { label: string; onClick: () => voi
           </g>
         </svg>
       </div>
-      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
+      <div className="flex flex-col justify-center leading-[0] min-w-full relative shrink-0 text-icon-inactive text-center w-[min-content] group-hover:text-secondary transition-colors whitespace-nowrap" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-regular)', fontSize: 'var(--text-desktop-body)', fontVariationSettings: "'wdth' 100" }}>
         <p style={{ lineHeight: 'var(--text-desktop-body-lh)' }}>{label}</p>
       </div>
     </button>
@@ -116,60 +117,86 @@ function LanguageToggle({ currentLanguage, onToggle }: { currentLanguage: string
   const isEnglish = currentLanguage === 'en';
   
   return (
-    <button onClick={onToggle} className="bg-secondary box-border content-stretch flex gap-[4px] h-[50px] items-center leading-[0] p-[4px] relative rounded-[25px] shrink-0 cursor-pointer">
-      {isEnglish ? (
-        <>
-          <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid place-items-start relative shrink-0">
-            <div className="[grid-area:1_/_1] h-[42.857px] ml-0 mt-0 relative w-[42.667px]">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 43 43">
-                <ellipse cx="21.3333" cy="21.4286" fill="var(--background)" rx="21.3333" ry="21.4286" />
-              </svg>
-            </div>
-            <div className="[grid-area:1_/_1] flex flex-col h-[23.256px] justify-center leading-[0] ml-[21.392px] mt-[21.47px] relative text-secondary text-center translate-x-[-50%] translate-y-[-50%] w-[20.784px]" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--text-desktop-label)', fontVariationSettings: "'wdth' 100" }}>
-              <p style={{ lineHeight: 'var(--text-desktop-label-lh)' }}>EN</p>
-            </div>
-          </div>
-          <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid place-items-start relative shrink-0">
-            <div className="[grid-area:1_/_1] h-[42.857px] ml-0 mt-0 relative w-[42.667px]">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 43 43">
-                <ellipse cx="21.3333" cy="21.4286" fill="var(--secondary)" rx="21.3333" ry="21.4286" />
-              </svg>
-            </div>
-            <div className="[grid-area:1_/_1] flex flex-col h-[18.605px] justify-center leading-[0] ml-[21.333px] mt-[21.47px] relative text-muted text-center translate-x-[-50%] translate-y-[-50%] w-[42.667px]" style={{ fontFamily: "'Roboto', 'Noto Sans Devanagari', sans-serif", fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--text-desktop-label)', fontVariationSettings: "'wdth' 100" }}>
-              <p style={{ lineHeight: 'var(--text-desktop-label-lh)' }}>हि</p>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid place-items-start relative shrink-0">
-            <div className="[grid-area:1_/_1] h-[42.857px] ml-0 mt-0 relative w-[42.667px]">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 43 43">
-                <ellipse cx="21.3333" cy="21.4286" fill="var(--secondary)" rx="21.3333" ry="21.4286" />
-              </svg>
-            </div>
-            <div className="[grid-area:1_/_1] flex flex-col h-[23.256px] justify-center leading-[0] ml-[21.392px] mt-[21.47px] relative text-muted text-center translate-x-[-50%] translate-y-[-50%] w-[20.784px]" style={{ fontFamily: "'Roboto', sans-serif", fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--text-desktop-label)', fontVariationSettings: "'wdth' 100" }}>
-              <p style={{ lineHeight: 'var(--text-desktop-label-lh)' }}>EN</p>
-            </div>
-          </div>
-          <div className="grid-cols-[max-content] grid-rows-[max-content] inline-grid place-items-start relative shrink-0">
-            <div className="[grid-area:1_/_1] h-[42.857px] ml-0 mt-0 relative w-[42.667px]">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 43 43">
-                <ellipse cx="21.3333" cy="21.4286" fill="var(--background)" rx="21.3333" ry="21.4286" />
-              </svg>
-            </div>
-            <div className="[grid-area:1_/_1] flex flex-col h-[18.605px] justify-center leading-[0] ml-[21.333px] mt-[21.47px] relative text-secondary text-center translate-x-[-50%] translate-y-[-50%] w-[42.667px]" style={{ fontFamily: "'Roboto', 'Noto Sans Devanagari', sans-serif", fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--text-desktop-label)', fontVariationSettings: "'wdth' 100" }}>
-              <p style={{ lineHeight: 'var(--text-desktop-label-lh)' }}>हि</p>
-            </div>
-          </div>
-        </>
-      )}
+    <button 
+      onClick={onToggle} 
+      style={{ 
+        width: 97.33,
+        height: 50, 
+        padding: 4, 
+        background: '#69B57C', 
+        borderRadius: 25, 
+        display: 'flex',
+        alignItems: 'center', 
+        gap: 4, 
+        border: 'none',
+        cursor: 'pointer',
+        position: 'relative'
+      }}
+    >
+      <div style={{ 
+        width: 42.67, 
+        height: 42.86, 
+        background: isEnglish ? 'white' : '#69B57C', 
+        borderRadius: 9999,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <span style={{ 
+          color: isEnglish ? '#69B57C' : '#8AC0AD', 
+          fontSize: 16, 
+          fontFamily: 'Roboto', 
+          fontWeight: 700, 
+          lineHeight: '24px'
+        }}>EN</span>
+      </div>
+      <div style={{ 
+        width: 42.67, 
+        height: 42.86, 
+        background: isEnglish ? '#69B57C' : 'white', 
+        borderRadius: 9999,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <span style={{ 
+          color: isEnglish ? '#8AC0AD' : '#69B57C', 
+          fontSize: 16, 
+          fontFamily: 'Roboto', 
+          fontWeight: 700, 
+          lineHeight: '24px'
+        }}>हि</span>
+      </div>
     </button>
   );
 }
 
 export function DesktopNavigationBar({ onNavigate }: DesktopNavigationBarProps) {
   const { language, setLanguage, t } = useLanguage();
+  const [logoGap, setLogoGap] = useState(138);
+
+  useEffect(() => {
+    const updateLogoGap = () => {
+      const containerWidth = window.innerWidth;
+      // At 1280px and above: use 138px gap
+      // Below 1280px: reduce gap proportionally
+      if (containerWidth >= 1280) {
+        setLogoGap(138);
+      } else if (containerWidth >= 1025) {
+        // Scale gap from 138px down to 60px as width goes from 1280px to 1025px
+        const ratio = (containerWidth - 1025) / (1280 - 1025);
+        setLogoGap(Math.floor(60 + ratio * 78)); // 60 + ratio * (138 - 60)
+      } else {
+        setLogoGap(60);
+      }
+    };
+
+    updateLogoGap();
+    window.addEventListener('resize', updateLogoGap);
+    return () => window.removeEventListener('resize', updateLogoGap);
+  }, []);
 
   const handleLanguageToggle = () => {
     setLanguage(language === 'en' ? 'hi' : 'en');
@@ -177,9 +204,9 @@ export function DesktopNavigationBar({ onNavigate }: DesktopNavigationBarProps) 
 
   return (
     <div className="bg-background overflow-clip relative rounded-[50px] size-full" style={{ boxShadow: 'var(--elevation-sm)' }}>
-      <div className="absolute content-stretch flex items-center justify-between left-[31px] top-[11px] w-[962.333px]">
-        <div className="content-stretch flex gap-[138px] items-center relative shrink-0">
-          <div className="content-stretch flex gap-[24px] items-center relative shrink-0">
+      <div className="absolute content-stretch flex items-center left-[31px] top-[11px]" style={{ width: 'calc(100% - 63px)' }} data-node-id="321:15375">
+        <div className="content-stretch flex items-center relative shrink-0" style={{ gap: `${logoGap}px` }} data-node-id="321:15376">
+          <div className="content-stretch flex gap-[24px] items-center relative shrink-0" data-node-id="321:15377">
             <ProfileNavItem label={t.nav.profile} onClick={() => onNavigate('profile')} />
             <CommunityNavItem label={t.nav.community} onClick={() => onNavigate('community')} />
             <DailyTipsNavItem label={t.nav.dailyTips} onClick={() => onNavigate('daily-tips')} />
@@ -187,7 +214,8 @@ export function DesktopNavigationBar({ onNavigate }: DesktopNavigationBarProps) 
           </div>
           <Logo onClick={() => onNavigate('home')} />
         </div>
-        <div className="content-stretch flex gap-[24px] items-center justify-center relative shrink-0">
+        <div className="flex-1" />
+        <div className="content-stretch flex gap-[24px] items-center justify-center relative shrink-0" data-node-id="321:15383">
           <TutorialNavItem label={t.nav.tutorial} onClick={() => onNavigate('tutorial')} />
           <LanguageToggle currentLanguage={language} onToggle={handleLanguageToggle} />
         </div>

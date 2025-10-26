@@ -3,8 +3,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
-import { HomePageDesktop } from './components/HomePageDesktop';
-import { HomePageMobile } from './components/HomePageMobile';
+import { HomePageDesktop, HomePageMobile } from './components/homepage';
 import { AuthPage } from './components/AuthPage';
 import { CommunityPage } from './components/CommunityPage';
 import { StoriesPage } from './components/StoriesPage';
@@ -45,11 +44,11 @@ export default function App() {
     themeColorMeta.content = primaryColor || 'rgba(56, 136, 150, 1)';
     document.head.appendChild(themeColorMeta);
 
-    // Add apple mobile web app capable
-    const appleMeta = document.createElement('meta');
-    appleMeta.name = 'apple-mobile-web-app-capable';
-    appleMeta.content = 'yes';
-    document.head.appendChild(appleMeta);
+    // Add mobile web app capable (updated from deprecated apple-mobile-web-app-capable)
+    const mobileWebAppMeta = document.createElement('meta');
+    mobileWebAppMeta.name = 'mobile-web-app-capable';
+    mobileWebAppMeta.content = 'yes';
+    document.head.appendChild(mobileWebAppMeta);
 
     // Add viewport meta
     const viewportMeta = document.querySelector('meta[name="viewport"]');
@@ -63,7 +62,7 @@ export default function App() {
     return () => {
       document.head.removeChild(manifestLink);
       document.head.removeChild(themeColorMeta);
-      document.head.removeChild(appleMeta);
+      document.head.removeChild(mobileWebAppMeta);
     };
   }, []);
 

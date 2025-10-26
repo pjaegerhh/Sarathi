@@ -1,0 +1,124 @@
+name: Deploy to Testing Environment
+
+on:
+  push:
+    branches:
+      - testing
+  workflow_dispatch:
+
+env:
+  AZURE_STATIC_WEB_APP_NAME: 'sarathi-test'
+  AZURE_RESOURCE_GROUP: 'sarathi-test-rg'
+  NODE_VERSION: '22'
+
+jobs:
+  # Job 0: Detect Changes
+  detect_changes:
+    name: Detect Changed Components
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check changed paths
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'src/**'
+              - 'components/**'
+              - 'contexts/**'
+              - 'styles/**'
+              - 'assets/**'
+              - 'index.html'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.ts'
+              - 'tsconfig.json'
+              - 'staticwebapp.config.json'
+
+  # Job 1: Build and Deploy Static Web App
+  deploy_static_web_app:
+    name: Deploy Static Web App (Testing)
+    runs-on: ubuntu-latest
+    needs: detect_changes
+    if: needs.detect_changes.outputs.frontend == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          VITE_APP_ENVIRONMENT: testing
+
+      - name: Deploy to Azure Static Web App (Testing)
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_TEST }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"
+          api_location: ""
+          output_location: "dist"
+          skip_app_build: true
+        env:
+          VITE_APP_ENVIRONMENT: testing
+          VITE_AZURE_STORAGE_ACCOUNT_NAME: sarathitest
+          VITE_AZURE_STORAGE_CONTAINER: documents
+
+  # Job 2: Deployment Summary
+  deployment_summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [detect_changes, deploy_static_web_app]
+    if: always()
+    
+    steps:
+      - name: Summary
+        run: |
+          echo "## 🚀 Testing Environment Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Change Detection:" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend changes: ${{ needs.detect_changes.outputs.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed Components:" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.detect_changes.outputs.frontend }}" == "true" ]; then
+            if [ "${{ needs.deploy_static_web_app.result }}" == "success" ]; then
+              echo "- ✅ Static Web App: ${{ env.AZURE_STATIC_WEB_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ❌ Static Web App: Deployment failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "- ⏭️ Static Web App: Skipped (no changes)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment:" >> $GITHUB_STEP_SUMMARY
+          echo "- Resource Group: ${{ env.AZURE_RESOURCE_GROUP }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: testing" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Access:" >> $GITHUB_STEP_SUMMARY
+          echo "- URL: https://${{ env.AZURE_STATIC_WEB_APP_NAME }}.azurestaticapps.net" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Only components with changes were deployed" >> $GITHUB_STEP_SUMMARY

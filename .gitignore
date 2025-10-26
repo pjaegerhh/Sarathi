@@ -108,3 +108,4 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+setup-infra/*-deployment-token.txt

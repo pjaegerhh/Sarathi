@@ -1,8 +1,17 @@
 import { useState, useEffect } from 'react';
-import { DesktopNavigationBar } from './DesktopNavigationBar';
-import HeroSection from '../imports/HeroSection';
-import Group56612Complete from '../imports/Group56612-1-8138';
-import Group56613 from '../imports/Group56613';
+import { DesktopNavigationBar } from '../DesktopNavigationBar';
+import HeroSection from './HeroSection';
+import {
+  QuoteSectionDesktop,
+  ServicesSectionDesktop,
+  ProsthesisSectionDesktop,
+  ServiceCentersSectionDesktop,
+  HelpCenterSectionDesktop,
+  SharingSectionDesktop,
+  CommunitySectionDesktop,
+  ClosingCTASectionDesktop,
+  FooterSectionDesktop
+} from './ContentSections';
 
 interface HomePageDesktopProps {
   onNavigate: (page: string) => void;
@@ -34,6 +43,13 @@ export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
         </div>
       </div>
 
+      {/* Hero Section - Max 1280px width, centered, 100% width on smaller screens */}
+      <div className="w-full flex justify-center">
+        <section className="w-full max-w-[1280px] h-[840px] relative">
+          <HeroSection />
+        </section>
+      </div>
+
       {/* Main Canvas Container - 1280px centered, scales down on smaller viewports */}
       <div className="w-full overflow-hidden flex justify-center">
         <div 
@@ -43,22 +59,25 @@ export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
             transformOrigin: 'top center',
           }}
         >
-          {/* Hero Section */}
-          <section className="w-full h-[840px]">
-            <HeroSection />
-          </section>
-
           {/* Main Content Sections - Quote, Services, Prosthesis, Help Center, Service Centers */}
           <section className="relative w-full h-[2322.72px]">
-            <Group56612Complete />
+            <QuoteSectionDesktop />
+            <ServicesSectionDesktop />
+            <ProsthesisSectionDesktop />
+            <ServiceCentersSectionDesktop />
+            <HelpCenterSectionDesktop />
           </section>
 
           {/* Story Sharing, Statistics, Community, Closing CTA, Footer */}
           <section className="relative w-full h-[2322.72px]">
-            <Group56613 />
+            <SharingSectionDesktop />
+            <CommunitySectionDesktop />
+            <ClosingCTASectionDesktop />
+            <FooterSectionDesktop />
           </section>
         </div>
       </div>
     </div>
   );
 }
+

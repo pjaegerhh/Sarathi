@@ -1,0 +1,360 @@
+/**
+ * Sarathi Design System Utilities
+ * 
+ * This file contains utility classes that map to design tokens
+ * defined in globals.css and index.css
+ * 
+ * Usage: Import this file in your main.tsx or index.css
+ */
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+
+/* Hero Text - 64px/66px, Semibold */
+.text-hero {
+  font-size: var(--text-desktop-hero);
+  line-height: var(--text-desktop-hero-lh);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Heading 1 - 40px/60px, Semibold */
+.text-h1 {
+  font-size: var(--text-desktop-h1);
+  line-height: var(--text-desktop-h1-lh);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Heading 2 - 32px/40px, Semibold */
+.text-h2 {
+  font-size: var(--text-desktop-h2);
+  line-height: var(--text-desktop-h2-lh);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Heading 3 / Title - 22px/32px, Regular */
+.text-h3 {
+  font-size: var(--text-desktop-h3);
+  line-height: var(--text-desktop-h3-lh);
+  font-weight: var(--font-weight-regular);
+}
+
+/* Body Large / Medium Text - 18px/28px, Medium */
+.text-body-lg {
+  font-size: var(--text-desktop-body-lg);
+  line-height: var(--text-desktop-body-lg-lh);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Label / Button Text - 16px/24px, Bold */
+.text-label {
+  font-size: var(--text-desktop-label);
+  line-height: var(--text-desktop-label-lh);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Body / Small Text - 14px/22px, Regular */
+.text-body {
+  font-size: var(--text-desktop-body);
+  line-height: var(--text-desktop-body-lh);
+  font-weight: var(--font-weight-regular);
+}
+
+/* ============================================
+   TEXT COLOR UTILITIES
+   ============================================ */
+
+/* Primary brand color - Blue (#388896) */
+.text-primary {
+  color: var(--color-primary);
+}
+
+/* Secondary brand color - Green (#69B57C) */
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+/* Heading text color - Black (#192126) */
+.text-heading {
+  color: var(--color-black);
+}
+
+/* Body text color - Dark grey (#505050) */
+.text-body-color {
+  color: var(--color-sub-dark);
+}
+
+/* Tertiary/caption text - Medium grey (#979797) */
+.text-tertiary {
+  color: var(--color-sub-heading);
+}
+
+/* Icon/border text color - Light grey (#C7C8D5) */
+.text-sub-icons {
+  color: var(--color-sub-icons);
+}
+
+/* Disabled primary state color */
+.text-disabled-primary {
+  color: var(--color-disabled-primary);
+}
+
+/* Disabled secondary state color */
+.text-disabled-secondary {
+  color: var(--color-disabled-secondary);
+}
+
+/* Error state color */
+.text-error {
+  color: var(--color-error);
+}
+
+/* ============================================
+   BACKGROUND COLOR UTILITIES
+   ============================================ */
+
+/* Primary background - Blue (#388896) */
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+/* Secondary background - Green (#69B57C) */
+.bg-secondary {
+  background-color: var(--color-secondary);
+}
+
+/* Light secondary background - Light green (#E0EBE3) */
+.bg-light-secondary {
+  background-color: var(--color-light-secondary);
+}
+
+/* Background variation - Light grey (#F2F2F7) */
+.bg-variation {
+  background-color: var(--color-bg-variation);
+}
+
+/* Disabled primary background */
+.bg-disabled-primary {
+  background-color: var(--color-disabled-primary);
+}
+
+/* Disabled secondary background */
+.bg-disabled-secondary {
+  background-color: var(--color-disabled-secondary);
+}
+
+/* White background */
+.bg-white {
+  background-color: var(--color-white);
+}
+
+/* Black background */
+.bg-black {
+  background-color: var(--color-black);
+}
+
+/* ============================================
+   GRADIENT UTILITIES
+   ============================================ */
+
+/* Brand gradient background - Green to Blue */
+.bg-gradient-brand {
+  background: linear-gradient(
+    180deg,
+    var(--color-gradient-start) 0%,
+    var(--color-gradient-end) 100%
+  );
+}
+
+/* Brand gradient text - Green to Blue with clip */
+.text-gradient-brand {
+  background: linear-gradient(
+    180deg,
+    var(--color-gradient-start) 0%,
+    var(--color-gradient-end) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Reverse gradient - Blue to Green */
+.bg-gradient-brand-reverse {
+  background: linear-gradient(
+    180deg,
+    var(--color-gradient-end) 0%,
+    var(--color-gradient-start) 100%
+  );
+}
+
+/* ============================================
+   BORDER UTILITIES
+   ============================================ */
+
+/* Border with sub-icons color */
+.border-sub-icons {
+  border-color: var(--color-sub-icons);
+}
+
+/* Border with primary color */
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+/* Border with secondary color */
+.border-secondary {
+  border-color: var(--color-secondary);
+}
+
+/* ============================================
+   SHADOW UTILITIES
+   ============================================ */
+
+/* Standard elevation shadow */
+.shadow-elevation {
+  box-shadow: var(--elevation-sm);
+}
+
+/* Darker shadow for images and overlays */
+.shadow-image {
+  box-shadow: 0px 0px 10px 0px rgba(20, 20, 20, 0.35);
+}
+
+/* ============================================
+   SPACING UTILITIES (if not using Tailwind)
+   ============================================ */
+
+/* Gap utilities using design tokens */
+.gap-xs { gap: var(--spacing-xs); }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+.gap-2xl { gap: var(--spacing-2xl); }
+.gap-3xl { gap: var(--spacing-3xl); }
+.gap-4xl { gap: var(--spacing-4xl); }
+
+/* Padding utilities using design tokens */
+.p-xs { padding: var(--spacing-xs); }
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+.p-2xl { padding: var(--spacing-2xl); }
+.p-3xl { padding: var(--spacing-3xl); }
+.p-4xl { padding: var(--spacing-4xl); }
+
+/* Margin utilities using design tokens */
+.m-xs { margin: var(--spacing-xs); }
+.m-sm { margin: var(--spacing-sm); }
+.m-md { margin: var(--spacing-md); }
+.m-lg { margin: var(--spacing-lg); }
+.m-xl { margin: var(--spacing-xl); }
+.m-2xl { margin: var(--spacing-2xl); }
+.m-3xl { margin: var(--spacing-3xl); }
+.m-4xl { margin: var(--spacing-4xl); }
+
+/* ============================================
+   COMPONENT UTILITIES
+   ============================================ */
+
+/* Button Primary - matches design system primary button */
+.btn-primary {
+  @apply bg-primary text-white text-label;
+  @apply px-6 py-2 rounded-[24px];
+  @apply shadow-elevation;
+  @apply transition-colors duration-200;
+  @apply hover:bg-primary/90;
+}
+
+/* Button Secondary - matches design system secondary button */
+.btn-secondary {
+  @apply bg-white text-primary text-label;
+  @apply px-6 py-2 rounded-[24px];
+  @apply shadow-elevation;
+  @apply transition-colors duration-200;
+  @apply hover:bg-gray-50;
+}
+
+/* Card - standard card styling */
+.card {
+  @apply bg-white rounded-[30px];
+  @apply shadow-elevation;
+  @apply overflow-hidden;
+}
+
+/* Input field - standard input styling */
+.input-field {
+  @apply bg-white border border-sub-icons;
+  @apply rounded-[10px] px-4 py-3;
+  @apply text-body text-body-color;
+  @apply focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary;
+}
+
+/* Tag/Chip - small tag styling */
+.tag {
+  @apply border border-sub-icons;
+  @apply rounded-[20px] px-2 py-1;
+  @apply text-body text-sub-icons;
+  @apply inline-flex items-center;
+}
+
+/* Icon button - circular button with icon */
+.btn-icon {
+  @apply bg-white rounded-full p-3;
+  @apply shadow-elevation;
+  @apply flex items-center justify-center;
+  @apply transition-colors duration-200;
+  @apply hover:bg-gray-50;
+}
+
+/* ============================================
+   UTILITY HELPERS
+   ============================================ */
+
+/* Remove font variation settings for cleaner code */
+.no-font-variation {
+  font-variation-settings: normal;
+}
+
+/* Gradient overlay for hero sections */
+.gradient-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 1) 18.103%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Blur backdrop for overlays */
+.backdrop-blur-soft {
+  backdrop-filter: blur(1.5px);
+}
+
+/* ============================================
+   RESPONSIVE TYPOGRAPHY (Mobile)
+   ============================================ */
+
+@media (max-width: 768px) {
+  .text-h1 {
+    font-size: var(--text-mobile-h1);
+    line-height: var(--text-mobile-h1-lh);
+  }
+
+  .text-h2, .text-h3 {
+    font-size: var(--text-mobile-h2);
+    line-height: var(--text-mobile-h2-lh);
+  }
+
+  .text-label {
+    font-size: var(--text-mobile-label);
+    line-height: var(--text-mobile-label-lh);
+  }
+
+  .text-body, .text-body-lg {
+    font-size: var(--text-mobile-body);
+    line-height: var(--text-mobile-body-lh);
+  }
+}
+
