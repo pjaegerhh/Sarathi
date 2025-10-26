@@ -73,7 +73,7 @@ jobs:
 
       - name: Clean up unnecessary files before deployment
         run: |
-          # Remove unnecessary files to reduce deployment size
+          # Remove only the most problematic files to reduce deployment size
           rm -rf node_modules
           rm -rf .git
           rm -rf .github
@@ -83,16 +83,14 @@ jobs:
           rm -rf .documentation
           rm -rf .prompt
           rm -f *.md
-          rm -f *.json
-          rm -f *.ts
-          rm -f *.js
           rm -f *.ps1
           rm -f *.backup
           rm -f .gitignore
           rm -f .cursorignore
           rm -f tsconfig*.json
           rm -f vite.config.ts
-          # Keep only the dist folder and essential files
+          # Keep essential files: index.html, package.json, staticwebapp.config.json, and dist folder
+          echo "Files remaining after cleanup:"
           ls -la
 
       - name: Deploy to Azure Static Web App (Production)
