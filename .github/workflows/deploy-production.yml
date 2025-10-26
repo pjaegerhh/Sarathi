@@ -162,6 +162,6 @@ jobs:
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Access:" >> $GITHUB_STEP_SUMMARY
-          echo "- URL: https://${{ env.AZURE_STATIC_WEB_APP_NAME }}.azurestaticapps.net" >> $GITHUB_STEP_SUMMARY
+          echo "- URL: https://jolly-bush-0d2030500.3.azurestaticapps.net" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Note:** Only components with changes were deployed" >> $GITHUB_STEP_SUMMARY
