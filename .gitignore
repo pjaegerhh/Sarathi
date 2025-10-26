@@ -89,7 +89,7 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
+# public folder should NOT be ignored in Vite projects
 
 # Storybook build outputs
 .out
