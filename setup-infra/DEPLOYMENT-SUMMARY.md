@@ -7,7 +7,7 @@
 - **Storage Account**: `sarathidocs` (Central India)
   - Container: `documents`
   - Key: `[REDACTED - See token files]`
-- **Static Web App**: `sarathi` (East Asia)
+- **Static Web App**: `sarathi` (East Asia) - **Standard Plan**
   - URL: https://jolly-bush-0d2030500.3.azurestaticapps.net
   - Deployment Token: `789b0eaf6f8ff6d7cb2c39d24793222116ab2c656a0f9f583b4b35c93dbd143603-34befd57-cc0b-4995-8773-65d36ecbc92500021300d2030500`
 
@@ -16,7 +16,7 @@
 - **Storage Account**: `sarathitest` (Central India)
   - Container: `documents`
   - Key: `[REDACTED - See token files]`
-- **Static Web App**: `sarathi-test` (East Asia)
+- **Static Web App**: `sarathi-test` (East Asia) - **Standard Plan**
   - URL: https://zealous-beach-09b974100.3.azurestaticapps.net
   - Deployment Token: `69aa171ce358cbf59a5e901739e4dfab651d9fa090791686ee4adefa3a01fe3403-14f4fe20-2bfc-403f-b06f-977eb617ad93000310209b974100`
 

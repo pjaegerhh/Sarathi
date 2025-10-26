@@ -40,6 +40,16 @@ Sarathi Project - Version History
 - Asset management for images and videos
 
 ---
+## Version 1.4.0
+**Date:** 26.10.2025
+**Branch:** main
+
+### Changes
+- [Add description of changes here]
+
+---
+
+
 ## Version 1.3.0
 **Date:** 25.10.2025
 **Branch:** main
