@@ -3,12 +3,12 @@ import {
   ServicesSectionMobile,
   ProsthesisSectionMobile,
   ServiceCentersSectionMobile,
-  HelpCenterSectionMobile,
-  SharingSectionMobile,
+  HelpCenterFinderSectionMobile,
+  ShareStorySectionMobile,
   CommunitySectionMobile,
   ClosingCTASectionMobile,
   FooterSectionMobile
-} from './ContentSections';
+} from './contentsections';
 
 interface HomePageMobileProps {
   onNavigate: (page: string) => void;
@@ -25,9 +25,9 @@ export function HomePageMobile({ onNavigate }: HomePageMobileProps) {
       <QuoteSectionMobile />
       <ServicesSectionMobile />
       <ProsthesisSectionMobile />
+      <HelpCenterFinderSectionMobile />
       <ServiceCentersSectionMobile />
-      <HelpCenterSectionMobile />
-      <SharingSectionMobile />
+      <ShareStorySectionMobile />
       <CommunitySectionMobile />
       <ClosingCTASectionMobile />
       <FooterSectionMobile />

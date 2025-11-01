@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { DesktopNavigationBar } from '../DesktopNavigationBar';
-import HeroSection from './HeroSection';
 import {
+  HeroSection,
   QuoteSectionDesktop,
   ServicesSectionDesktop,
   ProsthesisSectionDesktop,
+  HelpCenterFinderSectionDesktop,
   ServiceCentersSectionDesktop,
-  HelpCenterSectionDesktop,
-  SharingSectionDesktop,
+  ShareStorySectionDesktop,
   CommunitySectionDesktop,
   ClosingCTASectionDesktop,
   FooterSectionDesktop
-} from './ContentSections';
+} from './contentsections';
 
 interface HomePageDesktopProps {
   onNavigate: (page: string) => void;
@@ -43,13 +43,6 @@ export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
         </div>
       </div>
 
-      {/* Hero Section - Max 1280px width, centered, 100% width on smaller screens */}
-      <div className="w-full flex justify-center">
-        <section className="w-full max-w-[1280px] h-[840px] relative">
-          <HeroSection />
-        </section>
-      </div>
-
       {/* Main Canvas Container - 1280px centered, scales down on smaller viewports */}
       <div className="w-full overflow-hidden flex justify-center">
         <div 
@@ -59,22 +52,96 @@ export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
             transformOrigin: 'top center',
           }}
         >
-          {/* Main Content Sections - Quote, Services, Prosthesis, Help Center, Service Centers */}
-          <section className="relative w-full h-[2322.72px]">
-            <QuoteSectionDesktop />
-            <ServicesSectionDesktop />
-            <ProsthesisSectionDesktop />
-            <ServiceCentersSectionDesktop />
-            <HelpCenterSectionDesktop />
-          </section>
+          {/* All Sections - Centered on 1280px canvas with 75px vertical gap */}
+          <div className="flex flex-col items-center w-full">
+            {/* 1. HeroSection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] h-[840px] relative">
+                <HeroSection />
+              </div>
+            </section>
 
-          {/* Story Sharing, Statistics, Community, Closing CTA, Footer */}
-          <section className="relative w-full h-[2322.72px]">
-            <SharingSectionDesktop />
-            <CommunitySectionDesktop />
-            <ClosingCTASectionDesktop />
-            <FooterSectionDesktop />
-          </section>
+            <div style={{ height: '75px' }} />
+
+            {/* 2. QuoteSection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <QuoteSectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 3. ServicesSection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <ServicesSectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 4. ProsthesisSection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <ProsthesisSectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 5. HelpCenterFinderSection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <HelpCenterFinderSectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 6. ServiceCenters */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <ServiceCentersSectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 7. ShareStorySection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <ShareStorySectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 8. CommunitySection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <CommunitySectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 9. ClosingCTASection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <ClosingCTASectionDesktop />
+              </div>
+            </section>
+
+            <div style={{ height: '75px' }} />
+
+            {/* 10. FooterSection */}
+            <section className="w-full flex justify-center">
+              <div className="w-full max-w-[1280px] flex items-center justify-center">
+                <FooterSectionDesktop />
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>
