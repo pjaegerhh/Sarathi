@@ -1,10 +1,39 @@
 # 
-## Version 1.1.0
-**Date:** 25.10.2025
-**Branch:** main
+## Version 1.4.14
+**Date:** 01.11.2025
+**Branch:** testing
 
 ### Changes
-- [Add description of changes here]
+- **Major Homepage Refactor**: Split monolithic ContentSections into individual modular components
+  - Created `contentsections/` subfolder with separate files for each section
+  - Extracted HeroSection, QuoteSection, ServicesSection, ProsthesisSection, HelpCenterFinderSection, ServiceCentersSection, ShareStorySection, CommunitySection, ClosingCTASection, FooterSection
+  - Updated HomePageDesktop and HomePageMobile to use new modular structure
+- **Complete Translation System**: Added comprehensive English and Hindi translations for all homepage content
+  - Added 50+ new translation keys for all sections
+  - Ensured Hindi translations don't break layouts with proper wrapping
+  - All hardcoded text replaced with translation keys
+- **Layout Improvements**:
+  - Fixed section dimensions and centering (1146px width, specific heights)
+  - Improved spacing between sections (75px vertical gap)
+  - Fixed footer layout to handle longer Hindi text with flexible wrapping
+  - Updated ProsthesisSection to allow text wrapping for Hindi
+- **Component Enhancements**:
+  - Added hover effects to buttons (color inversion on hover)
+  - Updated ServicesSection cards with proper images (training.png, rehabilitation.png)
+  - Aligned TrainingCard and RehabilitationCard layouts
+  - Added hover effects that change card background colors
+  - Improved carousel implementations with proper infinite scrolling
+- **Asset Management**:
+  - Organized images into `assets/images/` folder
+  - Organized SVGs into `assets/svg/` folder
+  - Added new images and SVG icons for all sections
+  - Removed old hash-based asset files
+
+### Technical Improvements
+- Improved code organization and maintainability
+- Better separation of concerns with individual component files
+- Enhanced TypeScript type safety
+- Optimized component structure for better performance
 
 ---
 
