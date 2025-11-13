@@ -1,3 +1,5 @@
+Sarathi Project - Version History
+
 # 
 ## Version 1.4.14
 **Date:** 01.11.2025
@@ -34,39 +36,6 @@
 - Better separation of concerns with individual component files
 - Enhanced TypeScript type safety
 - Optimized component structure for better performance
-
----
-
-Sarathi Project - Version History
-
-## Version 1.0.0 - Initial Release
-**Date:** December 2024
-**Branch:** main
-
-### Initial Features
-- Complete React application setup with TypeScript
-- Multi-language support with internationalization
-- Authentication system with Supabase integration
-- Responsive design for desktop and mobile
-- Community features and user profiles
-- Admin dashboard functionality
-- Story management system
-- Modern UI components with Radix UI and Tailwind CSS
-
-### Technical Stack
-- React 18 with TypeScript
-- Vite for build tooling
-- Supabase for backend services
-- Tailwind CSS for styling
-- Radix UI for accessible components
-- React Router for navigation
-
-### Project Structure
-- Organized component architecture
-- Context-based state management
-- Modular styling system
-- Comprehensive design system guidelines
-- Asset management for images and videos
 
 ---
 ## Version 1.4.13
@@ -223,9 +192,31 @@ Sarathi Project - Version History
 **Date:** 25.10.2025
 **Branch:** main
 
-### Changes
-- [Add description of changes here]
 
+### Initial Features
+- Complete React application setup with TypeScript
+- Multi-language support with internationalization
+- Authentication system with Supabase integration
+- Responsive design for desktop and mobile
+- Community features and user profiles
+- Admin dashboard functionality
+- Story management system
+- Modern UI components with Radix UI and Tailwind CSS
+
+### Technical Stack
+- React 18 with TypeScript
+- Vite for build tooling
+- Supabase for backend services
+- Tailwind CSS for styling
+- Radix UI for accessible components
+- React Router for navigation
+
+### Project Structure
+- Organized component architecture
+- Context-based state management
+- Modular styling system
+- Comprehensive design system guidelines
+- Asset management for images and videos
 ---
 
 

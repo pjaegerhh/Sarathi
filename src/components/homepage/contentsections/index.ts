@@ -1,5 +1,5 @@
 // Export HeroSection
-export { default as HeroSection } from './HeroSection';
+export { default as HeroSection, HeroSectionMobile } from './HeroSection';
 
 // Export QuoteSection
 export { QuoteSectionDesktop, QuoteSectionMobile } from './QuoteSection';

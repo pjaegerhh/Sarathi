@@ -415,23 +415,230 @@ export function CommunitySectionDesktop() {
 
 export function CommunitySectionMobile() {
   const { t } = useLanguage();
-  
+
+  // Base cards data - 4 user profiles
+  const baseCards = [
+    {
+      image: manishaImage,
+      name: t.home.communityCard1Name,
+      location: t.home.communityCard1Location,
+      verified: true,
+      tags: [t.home.tagSkincare, t.home.tagFatigue, t.home.tagPhantomPain, '+5'],
+      achievement: t.home.communityCard1Achievement,
+      profileType: t.home.communityCard1ProfileType
+    },
+    {
+      image: rameshImage,
+      name: t.home.communityCard2Name,
+      location: t.home.communityCard2Location,
+      verified: false,
+      tags: [t.home.tagDailyTips, t.home.tagSkinCare, t.home.tagAthletics, '+2'],
+      achievement: t.home.communityCard2Achievement,
+      profileType: t.home.communityCard2ProfileType
+    },
+    {
+      image: hakimImage,
+      name: t.home.communityCard3Name,
+      location: t.home.communityCard3Location,
+      verified: false,
+      tags: [t.home.tagRehabilitation, t.home.tagSports, t.home.tagCommunity, '+3'],
+      achievement: t.home.communityCard3Achievement,
+      profileType: t.home.communityCard3ProfileType
+    },
+    {
+      image: rajImage,
+      name: t.home.communityCard4Name,
+      location: t.home.communityCard4Location,
+      verified: false,
+      tags: [t.home.tagSkincare, t.home.tagArt, t.home.tagAccessibility, '+2'],
+      achievement: t.home.communityCard4Achievement,
+      profileType: t.home.communityCard4ProfileType
+    }
+  ];
+
+  function UserCardMobile({ card }: { card: typeof baseCards[0] }) {
+    const [viewProfileHovered, setViewProfileHovered] = React.useState(false);
+    const [connectHovered, setConnectHovered] = React.useState(false);
+    
+    return (
+      <div 
+        className="flex flex-col items-start relative shrink-0 rounded-[15px] w-full"
+        data-name="User Card Mobile"
+      >
+        {/* Image Section */}
+        <div 
+          className="relative rounded-tl-[15px] rounded-tr-[15px] shadow-[0px_0px_10px_0px_rgba(20,20,20,0.35)] shrink-0 overflow-hidden w-full" 
+          style={{ 
+            height: '163px'
+          }}
+          data-name="Image"
+        >
+          <img 
+            alt="" 
+            className="w-full h-full object-cover pointer-events-none rounded-tl-[15px] rounded-tr-[15px]"
+            style={{ 
+              objectPosition: 'center center'
+            }}
+            src={card.image} 
+          />
+        </div>
+        
+        {/* Bottom Card Section */}
+        <div className="bg-white box-border flex flex-col gap-[10px] items-start px-3 py-4 relative rounded-bl-[15px] rounded-br-[15px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-full" data-name="Bottom frame">
+          <div className="flex flex-col gap-[11px] items-start relative shrink-0 w-full" data-name="Information section">
+            <div className="flex flex-col gap-[12px] items-start relative shrink-0 w-full" data-name="User Information">
+              {/* Name, Location, Badge */}
+              <div className="flex gap-[8px] items-start relative shrink-0" data-name="Name, Location, Badge">
+                <div className="flex flex-col gap-[4px] items-start justify-center leading-[0] relative shrink-0 w-[calc(100%-32px)]" data-name="Name, Location">
+                  <div className="flex flex-col justify-center relative shrink-0 text-heading text-[16px]">
+                    <p className="leading-[24px]">{card.name}</p>
+                  </div>
+                  <div className="flex flex-col justify-center relative shrink-0 text-[#979797] text-[12px]">
+                    <p className="leading-[16px]">{card.location}</p>
+                  </div>
+                </div>
+                {card.verified && (
+                  <div className="relative shrink-0 w-[20px] h-[20px]" data-name="Verified badge">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#388896"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              
+              {/* User Details */}
+              <div className="flex flex-col gap-[12px] items-start relative shrink-0 w-full" data-name="User details">
+                {/* Tags */}
+                <div className="flex gap-[12px] items-center relative shrink-0 flex-wrap" data-name="Tags">
+                  {card.tags.slice(0, 3).map((tag, idx) => (
+                    <div 
+                      key={idx}
+                      className="border-[#c7c8d5] border-[0.5px] border-solid box-border flex gap-[10px] items-center justify-center px-[8px] py-[4px] relative rounded-[20px] shrink-0" 
+                      data-name="Tag"
+                    >
+                      <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-[#c7c8d5] text-[12px] text-nowrap">
+                        <p className="leading-[16px] whitespace-pre">{tag}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {card.tags.length > 3 && (
+                    <div className="border-[#c7c8d5] border-[0.5px] border-solid box-border flex gap-[10px] items-center justify-center p-[4px] relative rounded-[100px] shrink-0 w-[30px]" data-name="Tag">
+                      <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-[#c7c8d5] text-[12px] text-nowrap">
+                        <p className="leading-[16px] whitespace-pre">{card.tags[3]}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Achievement */}
+                <div className="flex gap-[8px] items-center relative shrink-0 w-full" data-name="Profession">
+                  <div className="relative shrink-0 w-[20px] h-[20px]" data-name="Achievement icon">
+                    <img 
+                      src={occupationIcon} 
+                      alt="" 
+                      className="w-5 h-5 shrink-0" 
+                      style={{ 
+                        display: 'block',
+                        filter: 'brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)'
+                      }} 
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-body-color text-[12px]">
+                    <p className="leading-[16px]">{card.achievement}</p>
+                  </div>
+                </div>
+                
+                {/* Profile Type */}
+                <div className="flex gap-[8px] items-center relative shrink-0 w-full" data-name="Profile type">
+                  <div className="relative shrink-0 w-[20px] h-[20px]" data-name="People icon">
+                    <img 
+                      src={peopleIcon} 
+                      alt="" 
+                      className="w-5 h-5 shrink-0" 
+                      style={{ 
+                        display: 'block',
+                        filter: 'brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)'
+                      }} 
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-body-color text-[12px]">
+                    <p className="leading-[16px]">{card.profileType}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Buttons */}
+            <div className="box-border flex gap-[12px] items-center relative shrink-0 w-full" data-name="Buttons">
+              <button 
+                className="box-border flex gap-[8px] h-[36px] items-center justify-center px-[24px] py-[8px] relative rounded-[28px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 cursor-pointer transition-colors"
+                style={{ 
+                  backgroundColor: viewProfileHovered ? '#388896' : '#388896',
+                  transition: 'background-color 300ms'
+                }}
+                onMouseEnter={() => setViewProfileHovered(true)}
+                onMouseLeave={() => setViewProfileHovered(false)}
+                onTouchStart={() => setViewProfileHovered(true)}
+                onTouchEnd={() => setViewProfileHovered(false)}
+                data-name="Primary button mobile"
+              >
+                <div 
+                  className="flex flex-col justify-center leading-[0] relative shrink-0 text-[14px] text-nowrap text-white"
+                >
+                  <p className="leading-[20px] whitespace-pre">{t.home.viewProfile}</p>
+                </div>
+              </button>
+              <button 
+                className="box-border flex gap-[8px] h-[36px] items-center px-[24px] py-[8px] relative rounded-[20px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 cursor-pointer transition-colors"
+                style={{ 
+                  backgroundColor: connectHovered ? '#388896' : '#ffffff',
+                  transition: 'background-color 300ms'
+                }}
+                onMouseEnter={() => setConnectHovered(true)}
+                onMouseLeave={() => setConnectHovered(false)}
+                onTouchStart={() => setConnectHovered(true)}
+                onTouchEnd={() => setConnectHovered(false)}
+                data-name="text button mobile"
+              >
+                <div 
+                  className="flex flex-col justify-center leading-[0] relative shrink-0 text-[14px] text-nowrap"
+                  style={{ 
+                    color: connectHovered ? '#ffffff' : '#388896',
+                    transition: 'color 300ms'
+                  }}
+                >
+                  <p className="leading-[20px] whitespace-pre">{t.home.connect}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 items-start justify-center w-full px-4" data-name="User profiles">
       <div className="flex flex-col gap-4 items-start leading-[0] relative shrink-0 w-full" data-name="Quote + Onboarding option">
         <div className="flex flex-col gap-3 items-start leading-[0] relative shrink-0 w-full" data-name="Quote">
           <div className="flex flex-col text-h1 justify-center relative shrink-0 text-heading w-full">
-            <p className="leading-[60px]">{t.home.communityTitle}</p>
+            <p className="leading-[30px]">{t.home.communityTitle}</p>
           </div>
           <div className="flex flex-col text-h3 justify-center relative shrink-0 text-body-color w-full">
-            <p className="leading-[32px]">{t.home.communitySubtext}</p>
+            <p className="leading-[24px]">{t.home.communitySubtext}</p>
           </div>
         </div>
         <div className="text-disabled-primary text-[16px] underline">
           {t.home.joinCommunity}
         </div>
       </div>
-      <div className="text-body-color text-body">User Profile Cards Grid - Mobile TBD</div>
+      
+      {/* Cards Container - Vertical stack for mobile */}
+      <div className="flex flex-col gap-4 items-start w-full">
+        {baseCards.map((card, index) => (
+          <UserCardMobile key={`${card.name}-${index}`} card={card} />
+        ))}
+      </div>
     </div>
   );
 }

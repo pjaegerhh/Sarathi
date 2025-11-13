@@ -167,17 +167,165 @@ export function ServicesSectionDesktop() {
 export function ServicesSectionMobile() {
   const { t } = useLanguage();
   
+  // Training Card Component for Mobile
+  function TrainingCardMobile() {
+    const [isHovered, setIsHovered] = React.useState(false);
+    
+    return (
+      <div className="relative w-full rounded-[30px] overflow-hidden shadow-elevation" style={{ height: '280px' }} data-name="category card mobile">
+        {/* Image Section */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-light-secondary rounded-tl-[30px] rounded-tr-[30px]" />
+          <img 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-cover object-center rounded-tl-[30px] rounded-tr-[30px]" 
+            src={trainingImage} 
+          />
+        </div>
+        
+        {/* Content Section */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 box-border flex flex-col items-start px-4 py-4 rounded-tl-[30px] rounded-tr-[30px]"
+          style={{ 
+            background: isHovered ? 'linear-gradient(to bottom, #69b57c, #388896)' : '#ffffff',
+            minHeight: '120px'
+          }}
+        >
+          <div 
+            className="flex flex-col text-h3 justify-center mb-3 w-full"
+            style={{
+              color: isHovered ? '#ffffff' : '#192126'
+            }}
+          >
+            <p className="leading-[24px]">{t.home.trainingDesc}</p>
+          </div>
+          <button
+            className="box-border flex gap-2 h-[40px] items-center justify-center px-4 py-2 relative rounded-[24px] shadow-elevation cursor-pointer transition-colors"
+            style={{ 
+              backgroundColor: isHovered ? '#ffffff' : '#8AC0AD',
+              transition: 'background-color 300ms'
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onTouchStart={() => setIsHovered(true)}
+            onTouchEnd={() => setIsHovered(false)}
+            data-name="secondary button icon text mobile"
+          >
+            <div 
+              className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
+              style={{ 
+                color: isHovered ? '#8AC0AD' : '#ffffff',
+                transition: 'color 300ms'
+              }}
+            >
+              <p className="leading-[20px] whitespace-pre">{t.home.trainingTitle}</p>
+            </div>
+            <div className="relative shrink-0 size-[18px]" data-name="Component">
+              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
+                <g id="Component">
+                  <path 
+                    d={svgPaths.p602f900} 
+                    id="Vector" 
+                    stroke={isHovered ? '#8AC0AD' : '#ffffff'} 
+                    strokeWidth="2"
+                    style={{ transition: 'stroke 300ms' }}
+                  />
+                </g>
+              </svg>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Rehabilitation Card Component for Mobile
+  function RehabilitationCardMobile() {
+    const [isHovered, setIsHovered] = React.useState(false);
+    
+    return (
+      <div className="relative w-full rounded-[30px] overflow-hidden shadow-elevation" style={{ height: '280px' }} data-name="category card mobile">
+        {/* Image Section */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-light-secondary rounded-tl-[30px] rounded-tr-[30px]" />
+          <img 
+            alt="" 
+            className="absolute inset-0 w-full h-full object-cover object-center rounded-tl-[30px] rounded-tr-[30px]" 
+            src={rehabilitationImage} 
+          />
+        </div>
+        
+        {/* Content Section */}
+        <div 
+          className="absolute bottom-0 left-0 right-0 box-border flex flex-col items-start px-4 py-4 rounded-tl-[30px] rounded-tr-[30px]"
+          style={{ 
+            background: isHovered ? 'linear-gradient(to bottom, #69b57c, #388896)' : '#ffffff',
+            minHeight: '120px'
+          }}
+        >
+          <div 
+            className="flex flex-col text-h3 justify-center mb-3 w-full"
+            style={{
+              color: isHovered ? '#ffffff' : '#192126'
+            }}
+          >
+            <p className="leading-[24px]">{t.home.rehabilitationDesc}</p>
+          </div>
+          <button
+            className="box-border flex gap-2 h-[40px] items-center justify-center px-4 py-2 relative rounded-[24px] shadow-elevation cursor-pointer transition-colors"
+            style={{ 
+              backgroundColor: isHovered ? '#ffffff' : '#8AC0AD',
+              transition: 'background-color 300ms'
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onTouchStart={() => setIsHovered(true)}
+            onTouchEnd={() => setIsHovered(false)}
+            data-name="primary button icon text mobile"
+          >
+            <div 
+              className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
+              style={{ 
+                color: isHovered ? '#8AC0AD' : '#ffffff',
+                transition: 'color 300ms'
+              }}
+            >
+              <p className="leading-[20px] whitespace-pre">{t.home.rehabilitationTitle}</p>
+            </div>
+            <div className="relative shrink-0 size-[18px]" data-name="Component">
+              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
+                <g id="Component">
+                  <path 
+                    d={svgPaths.p602f900} 
+                    id="Vector" 
+                    stroke={isHovered ? '#8AC0AD' : '#ffffff'} 
+                    strokeWidth="2"
+                    style={{ transition: 'stroke 300ms' }}
+                  />
+                </g>
+              </svg>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col gap-6 items-center justify-center w-full px-4" data-name="Service categories">
       <div className="flex flex-col gap-3 items-start leading-[0] relative shrink-0 w-full" data-name="Section title, intro text">
         <div className="flex flex-col text-h1 justify-center relative shrink-0 text-heading w-full">
-          <p className="leading-[60px]">{t.home.redefiningHealing}</p>
+          <p className="leading-[30px]">{t.home.redefiningHealing}</p>
         </div>
         <div className="flex flex-col text-h3 justify-center relative shrink-0 text-body-color w-full">
-          <p className="leading-[32px]">{t.home.redefiningSubtext}</p>
+          <p className="leading-[24px]">{t.home.redefiningSubtext}</p>
         </div>
       </div>
-      <div className="text-body-color text-body">Services Cards - Mobile TBD</div>
+      <div className="flex flex-col gap-4 items-center relative shrink-0 w-full" data-name="Content Cards">
+        <TrainingCardMobile />
+        <RehabilitationCardMobile />
+      </div>
     </div>
   );
 }
+

@@ -148,10 +148,26 @@ function ImageSection() {
 
   // Reset video when index changes
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play();
+    const video = videoRef.current;
+    if (video) {
+      video.currentTime = 0;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          // Video play was interrupted (e.g., component unmounted or video removed)
+          // This is expected behavior and can be safely ignored
+          if (error.name !== 'AbortError') {
+            console.debug('Video play interrupted:', error);
+          }
+        });
+      }
     }
+    // Cleanup: pause video if component unmounts
+    return () => {
+      if (video) {
+        video.pause();
+      }
+    };
   }, [currentVideoIndex]);
 
   return (
@@ -234,6 +250,293 @@ export default function HeroSection() {
             {t.home.heroTextRedefining}
           </span>
           <span style={{ fontVariationSettings: "'wdth' 100" }}> </span>
+          <span className="bg-clip-text bg-gradient-to-b from-[#69b57c] to-[#388896]" style={{ WebkitTextFillColor: "transparent", fontVariationSettings: "'wdth' 100" }}>
+            {t.home.heroTextLimitlessPossibilities}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Mobile Hero Section
+function ImageSectionMobile() {
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [showLeftChevron, setShowLeftChevron] = useState(false);
+  const [showRightChevron, setShowRightChevron] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  // Minimum swipe distance (in pixels)
+  const minSwipeDistance = 50;
+
+  // Handle video end - go to next video
+  const handleVideoEnd = () => {
+    setCurrentVideoIndex((prev) => (prev + 1) % VIDEOS.length);
+  };
+
+  // Navigate to next video
+  const goToNext = () => {
+    setCurrentVideoIndex((prev) => (prev + 1) % VIDEOS.length);
+  };
+
+  // Navigate to previous video
+  const goToPrevious = () => {
+    setCurrentVideoIndex((prev) => (prev - 1 + VIDEOS.length) % VIDEOS.length);
+  };
+
+  // Handle dot click
+  const handleDotClick = (index: number) => {
+    setCurrentVideoIndex(index);
+  };
+
+  // Touch handlers for swipe
+  const onTouchStart = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+    // Show chevrons when user starts touching
+    setShowLeftChevron(true);
+    setShowRightChevron(true);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    if ((e.target as HTMLElement).closest('button')) {
+      touchStartX.current = null;
+      touchEndX.current = null;
+      return;
+    }
+    
+    if (!touchStartX.current || !touchEndX.current) {
+      // Hide chevrons after a delay if no swipe
+      setTimeout(() => {
+        setShowLeftChevron(false);
+        setShowRightChevron(false);
+      }, 2000);
+      return;
+    }
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNext();
+    } else if (isRightSwipe) {
+      goToPrevious();
+    }
+    
+    // Hide chevrons after swipe
+    setTimeout(() => {
+      setShowLeftChevron(false);
+      setShowRightChevron(false);
+    }, 2000);
+    
+    // Reset touch tracking
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
+  // Reset video when index changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.currentTime = 0;
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          // Video play was interrupted (e.g., component unmounted or video removed)
+          // This is expected behavior and can be safely ignored
+          if (error.name !== 'AbortError') {
+            console.debug('Video play interrupted:', error);
+          }
+        });
+      }
+    }
+    // Cleanup: pause video if component unmounts
+    return () => {
+      if (video) {
+        video.pause();
+      }
+    };
+  }, [currentVideoIndex]);
+
+  return (
+    <div 
+      className="relative w-full h-full z-30" 
+      data-name="Image section mobile"
+      ref={containerRef}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="absolute inset-0" data-name="Background Image">
+        <video 
+          ref={videoRef}
+          className="absolute max-w-none object-cover size-full" 
+          controlsList="nodownload" 
+          muted
+          playsInline
+          src={VIDEOS[currentVideoIndex].src}
+          onEnded={handleVideoEnd}
+          autoPlay
+        >
+          {/* Fallback message */}
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      {/* Video Controls - Mobile: Always clickable, show on touch */}
+      <div 
+        className="absolute z-40"
+        style={{ left: '12px', top: '50%', transform: 'translateY(-50%)' }}
+      >
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            goToPrevious();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            setShowLeftChevron(true);
+            setShowRightChevron(true);
+            setTimeout(() => {
+              setShowLeftChevron(false);
+              setShowRightChevron(false);
+            }, 2000);
+          }}
+          className={`bg-black/60 active:bg-black/80 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-lg transition-opacity ${
+            showLeftChevron ? 'opacity-100' : 'opacity-60'
+          }`}
+          style={{ pointerEvents: 'auto' }}
+          aria-label="Previous video"
+        >
+          <svg width="20" height="20" fill="none" stroke="white" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      </div>
+
+      <div 
+        className="absolute z-40"
+        style={{ right: '12px', top: '50%', transform: 'translateY(-50%)' }}
+      >
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            goToNext();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            setShowLeftChevron(true);
+            setShowRightChevron(true);
+            setTimeout(() => {
+              setShowLeftChevron(false);
+              setShowRightChevron(false);
+            }, 2000);
+          }}
+          className={`bg-black/60 active:bg-black/80 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-lg transition-opacity ${
+            showRightChevron ? 'opacity-100' : 'opacity-60'
+          }`}
+          style={{ pointerEvents: 'auto' }}
+          aria-label="Next video"
+        >
+          <svg width="20" height="20" fill="none" stroke="white" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Video Navigation Dots - Positioned above text, matching desktop proportion */}
+      <div 
+        className="absolute left-1/2 flex items-center"
+        style={{ 
+          bottom: '140px', 
+          transform: 'translateX(-50%)', 
+          gap: '8px',
+          zIndex: 50,
+          pointerEvents: 'auto'
+        }}
+      >
+        {VIDEOS.map((_, index) => (
+          <button
+            key={index}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDotClick(index);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
+            aria-label={`Go to video ${index + 1}`}
+            style={{
+              width: index === currentVideoIndex ? '14px' : '10px',
+              height: index === currentVideoIndex ? '14px' : '10px',
+              borderRadius: '50%',
+              backgroundColor: index === currentVideoIndex ? '#FFFFFF' : '#C7C8D5',
+              boxShadow: index === currentVideoIndex ? '0 0 10px rgba(221,221,221,1)' : 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              border: 'none',
+              padding: 0,
+              pointerEvents: 'auto',
+              flexShrink: 0
+            }}
+            onMouseEnter={(e) => {
+              if (index !== currentVideoIndex) {
+                e.currentTarget.style.backgroundColor = '#a8a9b5';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (index !== currentVideoIndex) {
+                e.currentTarget.style.backgroundColor = '#C7C8D5';
+              }
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Gradient overlay - Mobile */}
+      <div className="pointer-events-none absolute bottom-0 flex items-center justify-center left-0 right-0 z-10">
+        <div className="flex-none h-[160px] scale-y-[-100%] w-full">
+          <div className="bg-gradient-to-b from-[#ffffff] from-[18.103%] size-full to-[rgba(255,255,255,0)]" data-name="Gradient overlay" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function HeroSectionMobile() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="relative w-full" data-name="Hero Section Mobile" style={{ height: '400px', minHeight: '400px' }}>
+      <ImageSectionMobile />
+      <div 
+        className="absolute flex flex-col font-['Roboto:Bold',_sans-serif] font-bold justify-center leading-[0] left-[17px] text-[#192126] text-[0px] w-[285px] h-[90px]" 
+        style={{ 
+          fontVariationSettings: "'wdth' 100",
+          bottom: '29px',
+          zIndex: 50
+        }}
+      >
+        <p className="leading-[30px] mb-0 text-[24px] whitespace-nowrap" style={{ fontVariationSettings: "'wdth' 100" }}>{t.home.heroTextWithYou}</p>
+        <p className="leading-[30px] text-[24px] whitespace-nowrap">
+          <span style={{ fontVariationSettings: "'wdth' 100" }}>{t.home.heroTextRedefining}</span>
           <span className="bg-clip-text bg-gradient-to-b from-[#69b57c] to-[#388896]" style={{ WebkitTextFillColor: "transparent", fontVariationSettings: "'wdth' 100" }}>
             {t.home.heroTextLimitlessPossibilities}
           </span>

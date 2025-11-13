@@ -7,6 +7,7 @@ import imgWheelchair from '../../../assets/images/wheelchair.png';
 // ===========================================
 // SECTION 4: PROSTHESIS CATEGORY
 // ===========================================
+
 export function ProsthesisSectionDesktop() {
   const [currentIndex, setCurrentIndex] = React.useState(1); // Start at 1 (middle of cloned array)
   const [isTransitioning, setIsTransitioning] = React.useState(false);
@@ -295,18 +296,201 @@ export function ProsthesisSectionDesktop() {
 
 export function ProsthesisSectionMobile() {
   const { t } = useLanguage();
-  
+
+  const baseCards = [
+    { image: imgBelowKnee, type: 'below' },
+    { image: imgAboveKnee, type: 'above' },
+    { image: imgWheelchair, type: 'wheelchair' }
+  ];
+
+  // Create infinite loop by cloning cards
+  const cards = [...baseCards, ...baseCards, ...baseCards];
+  const startIndex = baseCards.length; // Start in the middle set
+
+  const [currentIndex, setCurrentIndex] = React.useState(startIndex);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+
+  const goToPrevious = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
+  };
+
+  const goToNext = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
+  };
+
+  // Handle the infinite loop reset
+  React.useEffect(() => {
+    if (!isTransitioning) return;
+
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+
+      // Reset to equivalent position in the middle set
+      if (currentIndex < baseCards.length) {
+        setCurrentIndex(currentIndex + baseCards.length);
+      } else if (currentIndex >= baseCards.length * 2) {
+        setCurrentIndex(currentIndex - baseCards.length);
+      }
+    }, 500); // Match transition duration
+
+    return () => clearTimeout(timer);
+  }, [currentIndex, isTransitioning, baseCards.length]);
+
+  function KneeCardMobile({ image, type }: { image: string; type: string }) {
+    const cardLabels: { [key: string]: string } = {
+      'below': t.home.belowKnee,
+      'above': t.home.aboveKnee,
+      'wheelchair': t.home.wheelchair
+    };
+
+    return (
+      <div 
+        className="relative w-full rounded-[30px] overflow-hidden flex-shrink-0"
+        style={{ 
+          height: '200px',
+          width: 'calc(100% - 16px)',
+          margin: '0 8px'
+        }}
+      >
+        <img 
+          alt="" 
+          className="w-full h-full object-cover object-bottom rounded-[30px]"
+          src={image} 
+        />
+        <div className="absolute inset-0 bg-white opacity-20 rounded-[30px]" />
+        
+        {/* Arrow Button */}
+        <button
+          className="absolute flex items-center justify-center rounded-full cursor-pointer"
+          style={{
+            right: '12px',
+            bottom: '12px',
+            width: '40px',
+            height: '40px',
+            backgroundColor: 'white',
+            padding: '10px',
+            boxShadow: '0px 0px 10px 0px #dddddd',
+            zIndex: 10
+          }}
+        >
+          <svg style={{ width: '20px', height: '20px' }} fill="none" viewBox="0 0 24 24">
+            <path d="M8 4L16 12L8 20" stroke="#C7C8D5" strokeWidth="2" />
+          </svg>
+        </button>
+        
+        {/* Label */}
+        <div style={{ 
+          position: 'absolute',
+          bottom: '20px',
+          left: '16px',
+          color: 'white',
+          fontSize: '18px',
+          lineHeight: '24px',
+          fontWeight: '600',
+          zIndex: 100,
+          textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+        }}>
+          {cardLabels[type]}
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate which base card is currently centered (for indicators)
+  const activeIndicatorIndex = ((currentIndex % baseCards.length) + baseCards.length) % baseCards.length;
+
   return (
     <div className="flex flex-col gap-6 items-center justify-center w-full px-4" data-name="Prosthesis Category">
       <div className="flex flex-col gap-3 items-start leading-[0] relative shrink-0 w-full" data-name="Prosthesis Category">
-        <div className="flex flex-col text-h1 justify-center relative shrink-0 text-heading text-nowrap w-full">
-          <p className="leading-[60px] whitespace-pre">{t.home.findWhatFits}</p>
+        <div className="flex flex-col text-h1 justify-center relative shrink-0 text-heading w-full">
+          <p className="leading-[30px]">{t.home.findWhatFits}</p>
         </div>
         <div className="flex flex-col text-h3 justify-center relative shrink-0 text-body-color w-full">
-          <p className="leading-[32px]">{t.home.findWhatFitsDesc}</p>
+          <p className="leading-[24px]">{t.home.findWhatFitsDesc}</p>
         </div>
       </div>
-      <div className="text-body-color text-body">Prosthesis Cards - Mobile TBD</div>
+      
+      {/* Carousel Container */}
+      <div 
+        className="relative w-full"
+        style={{ height: '200px' }}
+        data-name="Category carousel"
+      >
+        {/* Carousel track */}
+        <div className="relative w-full h-full overflow-hidden">
+          <div 
+            className="flex items-center h-full"
+            style={{ 
+              width: `${cards.length * 100}%`,
+              transform: `translateX(-${(currentIndex * 100) / cards.length}%)`,
+              transition: isTransitioning ? 'transform 500ms ease-in-out' : 'none',
+            }}
+          >
+            {cards.map((card, index) => (
+              <div key={`${card.type}-${index}`} style={{ width: `${100 / cards.length}%`, flexShrink: 0 }}>
+                <KneeCardMobile image={card.image} type={card.type} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Left Chevron */}
+        <button
+          onClick={goToPrevious}
+          className="absolute z-50 bg-white hover:bg-gray-100 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-elevation transition-opacity"
+          style={{ left: '8px', top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="Previous card"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        {/* Right Chevron */}
+        <button
+          onClick={goToNext}
+          className="absolute z-50 bg-white hover:bg-gray-100 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-elevation transition-opacity"
+          style={{ right: '8px', top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="Next card"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Carousel Indicators */}
+        <div 
+          className="absolute left-1/2 z-40 flex items-center"
+          style={{ bottom: '-24px', transform: 'translateX(-50%)', gap: '8px' }}
+        >
+          {baseCards.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                if (isTransitioning) return;
+                setIsTransitioning(true);
+                setCurrentIndex(index + baseCards.length);
+              }}
+              aria-label={`Go to card ${index + 1}`}
+              style={{
+                width: index === activeIndicatorIndex ? '12px' : '8px',
+                height: index === activeIndicatorIndex ? '12px' : '8px',
+                borderRadius: '50%',
+                backgroundColor: index === activeIndicatorIndex ? '#388896' : '#C7C8D5',
+                boxShadow: index === activeIndicatorIndex ? '0 0 10px rgba(56,136,150,0.5)' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                border: 'none',
+                padding: 0
+              }}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
