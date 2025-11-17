@@ -167,163 +167,230 @@ export function ServicesSectionDesktop() {
 export function ServicesSectionMobile() {
   const { t } = useLanguage();
   
-  // Training Card Component for Mobile
-  function TrainingCardMobile() {
+  // Training Card Components - scaled from desktop
+  function TrainingCard() {
     const [isHovered, setIsHovered] = React.useState(false);
     
     return (
-      <div className="relative w-full rounded-[30px] overflow-hidden shadow-elevation" style={{ height: '280px' }} data-name="category card mobile">
-        {/* Image Section */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-light-secondary rounded-tl-[30px] rounded-tr-[30px]" />
-          <img 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-cover object-center rounded-tl-[30px] rounded-tr-[30px]" 
-            src={trainingImage} 
+      <div 
+        className="relative shadow-elevation shrink-0 flex-1 min-w-0" 
+        style={{ 
+          height: 'min(78vw, 300px)',
+          width: 'calc(50% - 6px)',
+          borderRadius: 'clamp(12px, 2.6vw, 30px)'
+        }}
+        data-name="category card mobile"
+      >
+        <div className="absolute bottom-[1.64%] contents left-0 right-0 top-0">
+          <div 
+            className="absolute bg-light-secondary bottom-[1.64%] left-0 right-0 shadow-elevation top-0" 
+            style={{ borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0' }}
           />
+          <div 
+            className="absolute bottom-[1.64%] left-0 right-0 top-[0.23%]"
+            style={{ borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0' }}
+          >
+            <img 
+              alt="" 
+              className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full" 
+              style={{ borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0' }}
+              src={trainingImage} 
+            />
+          </div>
         </div>
-        
-        {/* Content Section */}
         <div 
-          className="absolute bottom-0 left-0 right-0 box-border flex flex-col items-start px-4 py-4 rounded-tl-[30px] rounded-tr-[30px]"
+          className="absolute bottom-0 box-border flex flex-col items-start left-0 right-0 top-[59.95%]"
           style={{ 
             background: isHovered ? 'linear-gradient(to bottom, #69b57c, #388896)' : '#ffffff',
-            minHeight: '120px'
+            padding: 'clamp(6px, 1.7vw, 18px) clamp(8px, 2.2vw, 24px)',
+            borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0'
           }}
         >
-          <div 
-            className="flex flex-col text-h3 justify-center mb-3 w-full"
+          <div className="flex flex-col font-normal justify-center relative w-full text-[14px] tracking-[0.4px]"
             style={{
-              color: isHovered ? '#ffffff' : '#192126'
+              lineHeight: '18px',
+              color: isHovered ? '#ffffff' : '#192126',
+              paddingBottom: 'clamp(32px, 5vw, 50px)'
             }}
           >
-            <p className="leading-[24px]">{t.home.trainingDesc}</p>
+            <p className="leading-[18px]" style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}>{t.home.trainingDesc}</p>
           </div>
-          <button
-            className="box-border flex gap-2 h-[40px] items-center justify-center px-4 py-2 relative rounded-[24px] shadow-elevation cursor-pointer transition-colors"
-            style={{ 
-              backgroundColor: isHovered ? '#ffffff' : '#8AC0AD',
-              transition: 'background-color 300ms'
-            }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onTouchStart={() => setIsHovered(true)}
-            onTouchEnd={() => setIsHovered(false)}
-            data-name="secondary button icon text mobile"
-          >
-            <div 
-              className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
-              style={{ 
-                color: isHovered ? '#8AC0AD' : '#ffffff',
-                transition: 'color 300ms'
-              }}
-            >
-              <p className="leading-[20px] whitespace-pre">{t.home.trainingTitle}</p>
-            </div>
-            <div className="relative shrink-0 size-[18px]" data-name="Component">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
-                <g id="Component">
-                  <path 
-                    d={svgPaths.p602f900} 
-                    id="Vector" 
-                    stroke={isHovered ? '#8AC0AD' : '#ffffff'} 
-                    strokeWidth="2"
-                    style={{ transition: 'stroke 300ms' }}
-                  />
-                </g>
-              </svg>
-            </div>
-          </button>
         </div>
+        <button
+          className="absolute box-border flex items-center justify-center shadow-elevation cursor-pointer transition-colors z-10"
+          style={{ 
+            backgroundColor: isHovered ? '#ffffff' : '#8AC0AD',
+            transition: 'background-color 300ms',
+            gap: 'clamp(4px, 0.8vw, 12px)',
+            height: 'clamp(32px, 5vw, 50px)',
+            padding: 'clamp(6px, 1vw, 10px) clamp(10px, 2vw, 28px)',
+            borderRadius: 'clamp(12px, 2.2vw, 24px)',
+            bottom: '12px',
+            left: '12px'
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          data-name="secondary button icon text mobile"
+        >
+          <div 
+            className="flex flex-col justify-center leading-[0] relative shrink-0 text-nowrap"
+            style={{ 
+              color: isHovered ? '#8AC0AD' : '#ffffff',
+              transition: 'color 300ms',
+              fontSize: 'clamp(12px, 1.6vw, 18px)'
+            }}
+          >
+            <p style={{ lineHeight: 'clamp(16px, 2.4vw, 28px)' }} className="whitespace-pre">{t.home.trainingTitle}</p>
+          </div>
+          <div 
+            className="relative shrink-0" 
+            style={{ width: 'clamp(12px, 1.9vw, 20px)', height: 'clamp(12px, 1.9vw, 20px)' }}
+            data-name="Component"
+          >
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
+              <g id="Component">
+                <path 
+                  d={svgPaths.p602f900} 
+                  id="Vector" 
+                  stroke={isHovered ? '#8AC0AD' : '#ffffff'} 
+                  strokeWidth="2"
+                  style={{ transition: 'stroke 300ms' }}
+                />
+              </g>
+            </svg>
+          </div>
+        </button>
       </div>
     );
   }
 
-  // Rehabilitation Card Component for Mobile
-  function RehabilitationCardMobile() {
+  // Rehabilitation Card Components - scaled from desktop
+  function RehabilitationCard() {
     const [isHovered, setIsHovered] = React.useState(false);
     
     return (
-      <div className="relative w-full rounded-[30px] overflow-hidden shadow-elevation" style={{ height: '280px' }} data-name="category card mobile">
-        {/* Image Section */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-light-secondary rounded-tl-[30px] rounded-tr-[30px]" />
-          <img 
-            alt="" 
-            className="absolute inset-0 w-full h-full object-cover object-center rounded-tl-[30px] rounded-tr-[30px]" 
-            src={rehabilitationImage} 
+      <div 
+        className="relative shadow-elevation shrink-0 flex-1 min-w-0" 
+        style={{ 
+          height: 'min(78vw, 300px)',
+          width: 'calc(50% - 6px)',
+          borderRadius: 'clamp(12px, 2.6vw, 30px)'
+        }}
+        data-name="category card mobile"
+      >
+        <div className="absolute bottom-[1.64%] contents left-0 right-0 top-0">
+          <div 
+            className="absolute bg-light-secondary bottom-[1.64%] left-0 right-0 shadow-elevation top-0" 
+            style={{ borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0' }}
           />
+          <div 
+            className="absolute bottom-[1.64%] left-0 right-0 top-[0.23%]"
+            style={{ borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0' }}
+          >
+            <img 
+              alt="" 
+              className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full" 
+              style={{ borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0' }}
+              src={rehabilitationImage} 
+            />
+          </div>
         </div>
-        
-        {/* Content Section */}
         <div 
-          className="absolute bottom-0 left-0 right-0 box-border flex flex-col items-start px-4 py-4 rounded-tl-[30px] rounded-tr-[30px]"
+          className="absolute bottom-0 box-border flex flex-col items-start left-0 right-0 top-[59.95%]"
           style={{ 
             background: isHovered ? 'linear-gradient(to bottom, #69b57c, #388896)' : '#ffffff',
-            minHeight: '120px'
+            padding: 'clamp(6px, 1.7vw, 18px) clamp(8px, 2.2vw, 24px)',
+            borderRadius: 'clamp(12px, 2.6vw, 30px) clamp(12px, 2.6vw, 30px) 0 0'
           }}
         >
-          <div 
-            className="flex flex-col text-h3 justify-center mb-3 w-full"
+          <div className="flex flex-col font-normal justify-center relative w-full text-[14px] tracking-[0.4px]"
             style={{
-              color: isHovered ? '#ffffff' : '#192126'
+              lineHeight: '18px',
+              color: isHovered ? '#ffffff' : '#192126',
+              paddingBottom: 'clamp(32px, 5vw, 50px)'
             }}
           >
-            <p className="leading-[24px]">{t.home.rehabilitationDesc}</p>
+            <p className="leading-[18px]" style={{ wordBreak: 'normal', overflowWrap: 'break-word' }}>{t.home.rehabilitationDesc}</p>
           </div>
-          <button
-            className="box-border flex gap-2 h-[40px] items-center justify-center px-4 py-2 relative rounded-[24px] shadow-elevation cursor-pointer transition-colors"
-            style={{ 
-              backgroundColor: isHovered ? '#ffffff' : '#8AC0AD',
-              transition: 'background-color 300ms'
-            }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onTouchStart={() => setIsHovered(true)}
-            onTouchEnd={() => setIsHovered(false)}
-            data-name="primary button icon text mobile"
-          >
-            <div 
-              className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
-              style={{ 
-                color: isHovered ? '#8AC0AD' : '#ffffff',
-                transition: 'color 300ms'
-              }}
-            >
-              <p className="leading-[20px] whitespace-pre">{t.home.rehabilitationTitle}</p>
-            </div>
-            <div className="relative shrink-0 size-[18px]" data-name="Component">
-              <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
-                <g id="Component">
-                  <path 
-                    d={svgPaths.p602f900} 
-                    id="Vector" 
-                    stroke={isHovered ? '#8AC0AD' : '#ffffff'} 
-                    strokeWidth="2"
-                    style={{ transition: 'stroke 300ms' }}
-                  />
-                </g>
-              </svg>
-            </div>
-          </button>
         </div>
+        <button
+          className="absolute box-border flex items-center justify-center shadow-elevation cursor-pointer transition-colors z-10"
+          style={{ 
+            backgroundColor: isHovered ? '#ffffff' : '#8AC0AD',
+            transition: 'background-color 300ms',
+            gap: 'clamp(4px, 0.8vw, 12px)',
+            height: 'clamp(32px, 5vw, 50px)',
+            padding: 'clamp(6px, 1vw, 10px) clamp(10px, 2vw, 28px)',
+            borderRadius: 'clamp(12px, 2.2vw, 24px)',
+            bottom: '12px',
+            left: '12px'
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          data-name="primary button icon text mobile"
+        >
+          <div 
+            className="flex flex-col justify-center leading-[0] relative shrink-0 text-nowrap"
+            style={{ 
+              color: isHovered ? '#8AC0AD' : '#ffffff',
+              transition: 'color 300ms',
+              fontSize: 'clamp(12px, 1.6vw, 18px)'
+            }}
+          >
+            <p style={{ lineHeight: 'clamp(16px, 2.4vw, 28px)' }} className="whitespace-pre">{t.home.rehabilitationTitle}</p>
+          </div>
+          <div 
+            className="relative shrink-0" 
+            style={{ width: 'clamp(12px, 1.9vw, 20px)', height: 'clamp(12px, 1.9vw, 20px)' }}
+            data-name="Component"
+          >
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20 20">
+              <g id="Component">
+                <path 
+                  d={svgPaths.p602f900} 
+                  id="Vector" 
+                  stroke={isHovered ? '#8AC0AD' : '#ffffff'} 
+                  strokeWidth="2"
+                  style={{ transition: 'stroke 300ms' }}
+                />
+              </g>
+            </svg>
+          </div>
+        </button>
       </div>
     );
   }
-  
+
   return (
-    <div className="flex flex-col gap-6 items-center justify-center w-full px-4" data-name="Service categories">
-      <div className="flex flex-col gap-3 items-start leading-[0] relative shrink-0 w-full" data-name="Section title, intro text">
-        <div className="flex flex-col text-h1 justify-center relative shrink-0 text-heading w-full">
-          <p className="leading-[30px]">{t.home.redefiningHealing}</p>
+    <div 
+      className="w-full flex flex-col items-start" 
+      style={{ 
+        width: '100%',
+        paddingLeft: 'clamp(12px, 2vw, 20px)',
+        paddingRight: 'clamp(12px, 2vw, 20px)',
+        gap: 'clamp(20px, 4.4vw, 50px)'
+      }}
+      data-name="Service categories"
+    >
+      <div 
+        className="flex flex-col items-start relative shrink-0 w-full"
+        style={{ gap: '12px' }}
+        data-name="Section title, intro text"
+      >
+        <div className="flex flex-col font-medium justify-center relative shrink-0 text-[#192126] text-[18px] leading-[26px]">
+          <p className="whitespace-pre m-0">{t.home.redefiningHealing}</p>
         </div>
-        <div className="flex flex-col text-h3 justify-center relative shrink-0 text-body-color w-full">
-          <p className="leading-[24px]">{t.home.redefiningSubtext}</p>
+        <div className="flex flex-col font-normal justify-center relative shrink-0 text-[#505050] text-[16px] leading-[22px] tracking-[0.25px] w-full">
+          <p className="m-0">{t.home.redefiningSubtext}</p>
         </div>
       </div>
-      <div className="flex flex-col gap-4 items-center relative shrink-0 w-full" data-name="Content Cards">
-        <TrainingCardMobile />
-        <RehabilitationCardMobile />
+      <div 
+        className="flex items-center relative shrink-0 w-full" 
+        style={{ gap: 'clamp(8px, 1.3vw, 24px)' }}
+        data-name="Content Cards"
+      >
+        <TrainingCard />
+        <RehabilitationCard />
       </div>
     </div>
   );

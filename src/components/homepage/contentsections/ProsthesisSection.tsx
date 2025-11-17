@@ -341,6 +341,8 @@ export function ProsthesisSectionMobile() {
   }, [currentIndex, isTransitioning, baseCards.length]);
 
   function KneeCardMobile({ image, type }: { image: string; type: string }) {
+    const [isHovered, setIsHovered] = React.useState(false);
+    
     const cardLabels: { [key: string]: string } = {
       'below': t.home.belowKnee,
       'above': t.home.aboveKnee,
@@ -359,40 +361,75 @@ export function ProsthesisSectionMobile() {
         <img 
           alt="" 
           className="w-full h-full object-cover object-bottom rounded-[30px]"
+          style={{ 
+            opacity: isHovered ? 0.5 : 1, 
+            transition: 'opacity 300ms'
+          }}
           src={image} 
         />
         <div className="absolute inset-0 bg-white opacity-20 rounded-[30px]" />
+        
+        {/* White Circle Background */}
+        <div 
+          style={{ 
+            position: 'absolute', 
+            top: '142px', 
+            right: '-15px', 
+            width: '74px', 
+            height: '74px', 
+            cursor: 'pointer', 
+            zIndex: 10
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <svg 
+            style={{ 
+              width: '100%', 
+              height: '100%'
+            }} 
+            fill="none" 
+            viewBox="0 0 90 90"
+          >
+            <circle cx="45" cy="45" fill="white" r="45" stroke="none" />
+          </svg>
+        </div>
         
         {/* Arrow Button */}
         <button
           className="absolute flex items-center justify-center rounded-full cursor-pointer"
           style={{
-            right: '12px',
-            bottom: '12px',
-            width: '40px',
-            height: '40px',
-            backgroundColor: 'white',
+            top: '160px',
+            right: '2px',
+            width: '39px',
+            height: '39px',
+            backgroundColor: isHovered ? '#69B57C' : 'white',
             padding: '10px',
             boxShadow: '0px 0px 10px 0px #dddddd',
-            zIndex: 10
+            zIndex: 10,
+            transition: 'background-color 300ms'
           }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           <svg style={{ width: '20px', height: '20px' }} fill="none" viewBox="0 0 24 24">
-            <path d="M8 4L16 12L8 20" stroke="#C7C8D5" strokeWidth="2" />
+            <path d="M8 4L16 12L8 20" stroke={isHovered ? 'white' : '#C7C8D5'} strokeWidth="2" />
           </svg>
         </button>
         
-        {/* Label */}
+        {/* Label - Right aligned to circle */}
         <div style={{ 
           position: 'absolute',
           bottom: '20px',
-          left: '16px',
+          right: '86px',
           color: 'white',
           fontSize: '18px',
           lineHeight: '24px',
           fontWeight: '600',
           zIndex: 100,
-          textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+          textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+          textAlign: 'right',
+          whiteSpace: 'nowrap'
         }}>
           {cardLabels[type]}
         </div>

@@ -182,6 +182,9 @@ export function ServiceCentersSectionDesktop() {
 export function ServiceCentersSectionMobile() {
   const { t } = useLanguage();
   
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+  
   function LocationCardMobile({ image, location, title, subtitle, features }: {
     image: string;
     location: string;
@@ -328,6 +331,20 @@ export function ServiceCentersSectionMobile() {
     }
   ];
 
+  const goToPrevious = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => (prev === 0 ? centers.length - 1 : prev - 1));
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
+
+  const goToNext = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => (prev === centers.length - 1 ? 0 : prev + 1));
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
+
   return (
     <div className="flex flex-col gap-4 items-start justify-center w-full px-4" data-name="Service centers">
       <div className="flex items-center justify-between w-full" data-name="Selecting Category, Hyperlink">
@@ -337,11 +354,53 @@ export function ServiceCentersSectionMobile() {
         <div className="text-disabled-primary text-[16px] underline">{t.home.viewAll}</div>
       </div>
       
-      {/* Cards Container - Vertical stack for mobile */}
-      <div className="flex flex-col gap-4 items-start w-full">
-        {centers.map((center, idx) => (
-          <LocationCardMobile key={idx} {...center} />
-        ))}
+      {/* Carousel Container */}
+      <div 
+        className="relative w-full"
+        style={{ minHeight: '400px' }}
+        data-name="Service centers carousel"
+      >
+        {/* Carousel track */}
+        <div className="relative w-full overflow-hidden">
+          <div 
+            className="flex items-start"
+            style={{ 
+              width: `${centers.length * 100}%`,
+              transform: `translateX(-${(currentIndex * 100) / centers.length}%)`,
+              transition: isTransitioning ? 'transform 500ms ease-in-out' : 'none',
+            }}
+          >
+            {centers.map((center, index) => (
+              <div key={index} style={{ width: `${100 / centers.length}%`, flexShrink: 0 }}>
+                <LocationCardMobile {...center} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Left Chevron */}
+        <button
+          onClick={goToPrevious}
+          className="absolute z-50 bg-white hover:bg-gray-100 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-elevation transition-opacity"
+          style={{ left: '8px', top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="Previous card"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        {/* Right Chevron */}
+        <button
+          onClick={goToNext}
+          className="absolute z-50 bg-white hover:bg-gray-100 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-elevation transition-opacity"
+          style={{ right: '8px', top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="Next card"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </div>
   );
