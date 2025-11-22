@@ -456,6 +456,93 @@ export function CommunitySectionMobile() {
     }
   ];
 
+  // Create infinite loop by cloning cards
+  const cards = [...baseCards, ...baseCards, ...baseCards];
+  const startIndex = baseCards.length; // Start in the middle set
+
+  const [currentIndex, setCurrentIndex] = React.useState(startIndex);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+  const touchStartX = React.useRef<number | null>(null);
+  const touchEndX = React.useRef<number | null>(null);
+
+  // Minimum swipe distance (in pixels)
+  const minSwipeDistance = 50;
+
+  const goToPrevious = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
+  };
+
+  const goToNext = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
+  };
+
+  // Touch handlers for swipe
+  const onTouchStart = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    // Don't interfere with button clicks
+    if ((e.target as HTMLElement).closest('button')) {
+      touchStartX.current = null;
+      touchEndX.current = null;
+      return;
+    }
+    
+    if (!touchStartX.current || !touchEndX.current) {
+      return;
+    }
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      goToNext();
+    } else if (isRightSwipe) {
+      goToPrevious();
+    }
+    
+    // Reset touch tracking
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
+  // Handle the infinite loop reset
+  React.useEffect(() => {
+    if (!isTransitioning) return;
+
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+
+      // Reset to equivalent position in the middle set
+      if (currentIndex < baseCards.length) {
+        setCurrentIndex(currentIndex + baseCards.length);
+      } else if (currentIndex >= baseCards.length * 2) {
+        setCurrentIndex(currentIndex - baseCards.length);
+      }
+    }, 500); // Match transition duration
+
+    return () => clearTimeout(timer);
+  }, [currentIndex, isTransitioning, baseCards.length]);
+
   function UserCardMobile({ card }: { card: typeof baseCards[0] }) {
     const [viewProfileHovered, setViewProfileHovered] = React.useState(false);
     const [connectHovered, setConnectHovered] = React.useState(false);
@@ -469,7 +556,7 @@ export function CommunitySectionMobile() {
         <div 
           className="relative rounded-tl-[15px] rounded-tr-[15px] shadow-[0px_0px_10px_0px_rgba(20,20,20,0.35)] shrink-0 overflow-hidden w-full" 
           style={{ 
-            height: '163px'
+            height: '390px'
           }}
           data-name="Image"
         >
@@ -617,6 +704,8 @@ export function CommunitySectionMobile() {
     );
   }
 
+  const activeIndicatorIndex = ((currentIndex % baseCards.length) + baseCards.length) % baseCards.length;
+
   return (
     <div className="flex flex-col gap-6 items-start justify-center w-full px-4" data-name="User profiles">
       <div className="flex flex-col gap-4 items-start leading-[0] relative shrink-0 w-full" data-name="Quote + Onboarding option">
@@ -633,11 +722,94 @@ export function CommunitySectionMobile() {
         </div>
       </div>
       
-      {/* Cards Container - Vertical stack for mobile */}
-      <div className="flex flex-col gap-4 items-start w-full">
-        {baseCards.map((card, index) => (
-          <UserCardMobile key={`${card.name}-${index}`} card={card} />
-        ))}
+      {/* Carousel Container */}
+      <div 
+        className="relative w-full"
+        data-name="Community carousel"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Carousel track */}
+        <div className="relative w-full overflow-hidden">
+          <div 
+            className="flex items-start"
+            style={{ 
+              width: `${cards.length * 100}%`,
+              transform: `translateX(-${(currentIndex * 100) / cards.length}%)`,
+              transition: isTransitioning ? 'transform 500ms ease-in-out' : 'none',
+            }}
+          >
+            {cards.map((card, index) => (
+              <div key={`${card.name}-${index}`} style={{ width: `${100 / cards.length}%`, flexShrink: 0 }}>
+                <UserCardMobile card={card} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Left Chevron */}
+        <button
+          onClick={goToPrevious}
+          className="absolute z-50 bg-white hover:bg-gray-100 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-[0px_0px_10px_0px_#dddddd]"
+          style={{ left: '8px', top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="Previous card"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+
+        {/* Right Chevron */}
+        <button
+          onClick={goToNext}
+          className="absolute z-50 bg-white hover:bg-gray-100 text-gray-700 rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-[0px_0px_10px_0px_#dddddd]"
+          style={{ right: '8px', top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="Next card"
+        >
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Carousel Indicators */}
+        <div 
+          className="absolute left-1/2 z-40 flex items-center"
+          style={{ bottom: '-32px', transform: 'translateX(-50%)', gap: '8px' }}
+        >
+          {baseCards.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                if (isTransitioning) return;
+                setIsTransitioning(true);
+                setCurrentIndex(index + baseCards.length);
+              }}
+              aria-label={`Go to card ${index + 1}`}
+              style={{
+                width: index === activeIndicatorIndex ? '14px' : '10px',
+                height: index === activeIndicatorIndex ? '10px' : '10px',
+                borderRadius: '50%',
+                backgroundColor: index === activeIndicatorIndex ? '#388896' : '#C7C8D5',
+                boxShadow: index === activeIndicatorIndex ? '0 0 10px rgba(56,136,150,0.5)' : 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                border: 'none',
+                padding: 0
+              }}
+              onMouseEnter={(e) => {
+                if (index !== activeIndicatorIndex) {
+                  e.currentTarget.style.backgroundColor = '#a8a9b5';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (index !== activeIndicatorIndex) {
+                  e.currentTarget.style.backgroundColor = '#C7C8D5';
+                }
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
