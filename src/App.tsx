@@ -50,14 +50,15 @@ export default function App() {
     mobileWebAppMeta.content = 'yes';
     document.head.appendChild(mobileWebAppMeta);
 
-    // Add viewport meta
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    // Update viewport meta if it exists, or create it if it doesn't
+    let viewportMeta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement;
     if (!viewportMeta) {
-      const newViewportMeta = document.createElement('meta');
-      newViewportMeta.name = 'viewport';
-      newViewportMeta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
-      document.head.appendChild(newViewportMeta);
+      viewportMeta = document.createElement('meta');
+      viewportMeta.name = 'viewport';
+      document.head.appendChild(viewportMeta);
     }
+    // Ensure viewport has proper PWA settings
+    viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
 
     return () => {
       document.head.removeChild(manifestLink);

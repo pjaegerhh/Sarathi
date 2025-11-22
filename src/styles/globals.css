@@ -328,6 +328,14 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Roboto', sans-serif;
+    /* Prevent horizontal scrolling and overscroll on mobile PWA */
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y pinch-zoom;
   }
 }
 
@@ -460,4 +468,17 @@
 
 html {
   font-size: var(--font-size);
+  /* Prevent horizontal scrolling and overscroll on mobile PWA */
+  overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y pinch-zoom;
+}
+
+#root {
+  /* Ensure root container doesn't exceed viewport */
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  position: relative;
 }
