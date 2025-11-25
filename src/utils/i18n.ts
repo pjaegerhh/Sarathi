@@ -18,19 +18,112 @@ export interface Translations {
     login: string;
     register: string;
     signup: string;
+    signUp: string;
     email: string;
     password: string;
     mobileNumber: string;
+    phoneNumber: string;
+    telephone: string;
+    enterPhoneNumber: string;
+    enterEmail: string;
+    enterPassword: string;
+    loginSubtitle: string;
     magicLink: string;
     sendMagicLink: string;
     loginWithGoogle: string;
     loginWithFacebook: string;
     loginWithApple: string;
+    orLoginWith: string;
     forgotPassword: string;
+    rememberMe: string;
     dontHaveAccount: string;
     alreadyHaveAccount: string;
     logout: string;
     name: string;
+    firstName: string;
+    loginButton: string;
+    signupButton: string;
+    welcomeBack: string;
+    createAccount: string;
+    invalidCredentials: string;
+    loginSuccess: string;
+    signupSuccess: string;
+    registerNow: string;
+    fullName: string;
+    dateOfBirth: string;
+    confirmPassword: string;
+    createAccountSubtitle: string;
+    termsOfService: string;
+    privacyPolicy: string;
+    agreeToTerms: string;
+    continueButton: string;
+    backButton: string;
+    nextButton: string;
+    finishButton: string;
+    profileVerifiedSuccessfully: string;
+    profileVerifiedDescription: string;
+    exploreSarathi: string;
+  };
+
+  // Onboarding
+  onboarding: {
+    screen1Title: string;
+    screen1Description: string;
+    screen2Title: string;
+    screen2Description: string;
+    screen3Title: string;
+    screen3Description: string;
+    screen4Title: string;
+    screen4Description: string;
+    screen5Title: string;
+    screen5Description: string;
+    screen6Title: string;
+    screen6Description: string;
+    screen6Button: string;
+    next: string;
+    back: string;
+    skip: string;
+    getStarted: string;
+    stepOf: string;
+  };
+
+  // Registration
+  registration: {
+    title: string;
+    step: string;
+    of: string;
+    step1Title: string;
+    step1Subtitle: string;
+    step2Title: string;
+    step2Subtitle: string;
+    step3Title: string;
+    step3Subtitle: string;
+    step4Title: string;
+    step4Subtitle: string;
+    step5Title: string;
+    step5Subtitle: string;
+    step6Title: string;
+    step6Subtitle: string;
+    selectUserType: string;
+    amputee: string;
+    prosthetist: string;
+    caregiver: string;
+    doctor: string;
+    practitioner: string;
+    volunteer: string;
+    selectProsthesisType: string;
+    selectUsageDuration: string;
+    addYourChallenges: string;
+    addYourActivities: string;
+    typeChallenge: string;
+    typeActivity: string;
+    reviewYourInfo: string;
+    confirmAndCreate: string;
+    accountCreated: string;
+    accountCreatedMessage: string;
+    completeProfile: string;
+    skipForNow: string;
+    goToHome: string;
   };
   
   // Homepage
@@ -176,6 +269,45 @@ export interface Translations {
     edit: string;
     view: string;
   };
+
+  // Profile
+  profile: {
+    title: string;
+    accountInfo: string;
+    personalInfo: string;
+    prosthesisInfo: string;
+    challengesActivities: string;
+    editProfile: string;
+    saveChanges: string;
+    cancelEdit: string;
+    changePassword: string;
+    oldPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+    passwordChanged: string;
+    profileUpdated: string;
+    userType: string;
+    prosthesisType: string;
+    lengthUsage: string;
+    mainChallenge: string;
+    activities: string;
+    aboveKnee: string;
+    belowKnee: string;
+    lessThan6Months: string;
+    moreThan1Year: string;
+    moreThan5Years: string;
+    unsavedChanges: string;
+    unsavedChangesMessage: string;
+    leaveWithoutSaving: string;
+    stayOnPage: string;
+    addChallenge: string;
+    addActivity: string;
+    removeChallenge: string;
+    removeActivity: string;
+    passwordMismatch: string;
+    passwordTooShort: string;
+    oldPasswordRequired: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -193,19 +325,108 @@ export const translations: Record<Language, Translations> = {
       login: 'Login',
       register: 'Register',
       signup: 'Sign Up',
+      signUp: 'Sign Up',
       email: 'Email',
       password: 'Password',
       mobileNumber: 'Mobile Number',
+      phoneNumber: 'Phone Number',
+      telephone: 'Telephone',
+      enterPhoneNumber: 'Enter your phone number',
+      enterEmail: 'Enter your email',
+      enterPassword: 'Password',
+      loginSubtitle: 'Enter your phone number and password to log in',
       magicLink: 'Magic Link',
       sendMagicLink: 'Send Magic Link',
       loginWithGoogle: 'Login with Google',
       loginWithFacebook: 'Login with Facebook',
       loginWithApple: 'Login with Apple',
+      orLoginWith: 'Or login with',
       forgotPassword: 'Forgot Password?',
+      rememberMe: 'Remember me',
       dontHaveAccount: "Don't have an account?",
       alreadyHaveAccount: 'Already have an account?',
       logout: 'Logout',
       name: 'Name',
+      firstName: 'First Name',
+      loginButton: 'Login',
+      signupButton: 'Sign Up',
+      welcomeBack: 'Welcome Back',
+      createAccount: 'Create Account',
+      invalidCredentials: 'Invalid email or password',
+      loginSuccess: 'Successfully logged in',
+      signupSuccess: 'Account created successfully',
+      registerNow: 'Register Now',
+      fullName: 'Full name',
+      dateOfBirth: 'Date of Birth',
+      confirmPassword: 'Confirm Password',
+      createAccountSubtitle: 'Create an account to continue',
+      termsOfService: 'Terms of service',
+      privacyPolicy: 'Privacy Policy',
+      agreeToTerms: 'By continuing, you agree to our',
+      continueButton: 'Continue',
+      backButton: 'Back',
+      nextButton: 'Next',
+      finishButton: 'Finish',
+      profileVerifiedSuccessfully: 'Profile verified successfully!',
+      profileVerifiedDescription: 'Your email has been verified. You can now access all features of Sarathi.',
+      exploreSarathi: 'Explore Sarathi',
+    },
+    onboarding: {
+      screen1Title: 'Your trusted guide along the path',
+      screen1Description: 'Find guidance, share real stories, and join a community that supports you.',
+      screen2Title: 'Start small. Go far. We\'ll help.',
+      screen2Description: 'Start your journey step by step with us, while we guide you.',
+      screen3Title: 'Daily Guidance & Growth',
+      screen3Description: 'From guided exercises and training plans to daily tips and expert advice, we help you progress step by step.',
+      screen4Title: 'Your Tools & Resources',
+      screen4Description: 'Access the right devices and discover local support wherever you are.',
+      screen5Title: 'Together We Grow',
+      screen5Description: 'Your journey matters — connect, share your story, and find support in real people.',
+      screen6Title: 'You are Ready!',
+      screen6Description: 'Let\'s begin your journey with us.',
+      screen6Button: 'Explore Sarathi',
+      next: 'Next',
+      back: 'Back',
+      skip: 'Skip',
+      getStarted: 'Get Started',
+      stepOf: 'of',
+    },
+    registration: {
+      title: 'Create Your Account',
+      step: 'Step',
+      of: 'of',
+      step1Title: 'Account Credentials',
+      step1Subtitle: 'Create your login credentials',
+      step2Title: 'Personal Information',
+      step2Subtitle: 'Tell us about yourself',
+      step3Title: 'User Type',
+      step3Subtitle: 'Select your role in the community',
+      step4Title: 'Prosthesis Information',
+      step4Subtitle: 'Help us understand your needs',
+      step5Title: 'Challenges & Activities',
+      step5Subtitle: 'Share your journey and interests',
+      step6Title: 'Review & Confirm',
+      step6Subtitle: 'Review your information before creating account',
+      selectUserType: 'Select your user type',
+      amputee: 'Amputee',
+      prosthetist: 'Prosthetist',
+      caregiver: 'Caregiver',
+      doctor: 'Doctor',
+      practitioner: 'Practitioner',
+      volunteer: 'Volunteer',
+      selectProsthesisType: 'Select prosthesis type',
+      selectUsageDuration: 'How long have you been using it?',
+      addYourChallenges: 'What challenges do you face?',
+      addYourActivities: 'What activities do you enjoy?',
+      typeChallenge: 'Type a challenge and press Enter',
+      typeActivity: 'Type an activity and press Enter',
+      reviewYourInfo: 'Review your information',
+      confirmAndCreate: 'Confirm and create account',
+      accountCreated: 'Account Created!',
+      accountCreatedMessage: 'Your account has been created successfully.',
+      completeProfile: 'Complete your profile',
+      skipForNow: 'Skip for now',
+      goToHome: 'Go to Home',
     },
     home: {
       heroQuote: "It's time we shared the global knowledge of the developers of the prosthesis community and worked together on shared solutions to better and better help those in need",
@@ -341,6 +562,43 @@ export const translations: Record<Language, Translations> = {
       edit: 'Edit',
       view: 'View',
     },
+    profile: {
+      title: 'Profile',
+      accountInfo: 'Account Information',
+      personalInfo: 'Personal Information',
+      prosthesisInfo: 'Prosthesis Information',
+      challengesActivities: 'Challenges & Activities',
+      editProfile: 'Edit Profile',
+      saveChanges: 'Save Changes',
+      cancelEdit: 'Cancel',
+      changePassword: 'Change Password',
+      oldPassword: 'Current Password',
+      newPassword: 'New Password',
+      confirmPassword: 'Confirm New Password',
+      passwordChanged: 'Password changed successfully',
+      profileUpdated: 'Profile updated successfully',
+      userType: 'User Type',
+      prosthesisType: 'Prosthesis Type',
+      lengthUsage: 'Usage Duration',
+      mainChallenge: 'Main Challenges',
+      activities: 'Activities',
+      aboveKnee: 'Above Knee',
+      belowKnee: 'Below Knee',
+      lessThan6Months: 'Less than 6 months',
+      moreThan1Year: 'More than 1 year',
+      moreThan5Years: 'More than 5 years',
+      unsavedChanges: 'Unsaved Changes',
+      unsavedChangesMessage: 'You have unsaved changes. Are you sure you want to leave?',
+      leaveWithoutSaving: 'Leave without saving',
+      stayOnPage: 'Stay on page',
+      addChallenge: 'Add Challenge',
+      addActivity: 'Add Activity',
+      removeChallenge: 'Remove',
+      removeActivity: 'Remove',
+      passwordMismatch: 'Passwords do not match',
+      passwordTooShort: 'Password must be at least 6 characters',
+      oldPasswordRequired: 'Current password is required',
+    },
   },
   hi: {
     nav: {
@@ -356,19 +614,108 @@ export const translations: Record<Language, Translations> = {
       login: 'लॉग इन करें',
       register: 'रजिस्टर करें',
       signup: 'साइन अप करें',
+      signUp: 'साइन अप करें',
       email: 'ईमेल',
       password: 'पासवर्ड',
       mobileNumber: 'मोबाइल नंबर',
+      phoneNumber: 'फोन नंबर',
+      telephone: 'टेलीफोन',
+      enterPhoneNumber: 'अपना फोन नंबर दर्ज करें',
+      enterEmail: 'अपना ईमेल दर्ज करें',
+      enterPassword: 'पासवर्ड',
+      loginSubtitle: 'लॉग इन करने के लिए अपना फोन नंबर और पासवर्ड दर्ज करें',
       magicLink: 'मैजिक लिंक',
       sendMagicLink: 'मैजिक लिंक भेजें',
       loginWithGoogle: 'Google से लॉगिन करें',
       loginWithFacebook: 'Facebook से लॉगिन करें',
       loginWithApple: 'Apple से लॉगिन करें',
+      orLoginWith: 'या लॉगिन करें के साथ',
       forgotPassword: 'पासवर्ड भूल गए?',
+      rememberMe: 'मुझे याद रखें',
       dontHaveAccount: 'खाता नहीं है?',
       alreadyHaveAccount: 'पहले से खाता है?',
       logout: 'लॉग आउट',
       name: 'नाम',
+      firstName: 'प्रथम नाम',
+      loginButton: 'लॉग इन करें',
+      signupButton: 'साइन अप करें',
+      welcomeBack: 'फिर से स्वागत है',
+      createAccount: 'खाता बनाएं',
+      invalidCredentials: 'अमान्य ईमेल या पासवर्ड',
+      loginSuccess: 'सफलतापूर्वक लॉग इन',
+      signupSuccess: 'खाता सफलतापूर्वक बनाया गया',
+      registerNow: 'अभी रजिस्टर करें',
+      fullName: 'पूरा नाम',
+      dateOfBirth: 'जन्म तिथि',
+      confirmPassword: 'पासवर्ड की पुष्टि करें',
+      createAccountSubtitle: 'जारी रखने के लिए एक खाता बनाएं',
+      termsOfService: 'सेवा की शर्तें',
+      privacyPolicy: 'गोपनीयता नीति',
+      agreeToTerms: 'जारी रखकर, आप हमारी सहमति देते हैं',
+      continueButton: 'जारी रखें',
+      backButton: 'पीछे',
+      nextButton: 'अगला',
+      finishButton: 'समाप्त करें',
+      profileVerifiedSuccessfully: 'प्रोफ़ाइल सफलतापूर्वक सत्यापित हुआ!',
+      profileVerifiedDescription: 'आपका ईमेल सत्यापित हो गया है। अब आप Sarathi की सभी सुविधाओं का उपयोग कर सकते हैं।',
+      exploreSarathi: 'Sarathi का अन्वेषण करें',
+    },
+    onboarding: {
+      screen1Title: 'आपके साथ का विश्वसनीय मार्गदर्शक',
+      screen1Description: 'मार्गदर्शन प्राप्त करें, वास्तविक कहानियां साझा करें, और एक ऐसे समुदाय से जुड़ें जो आपका समर्थन करता है।',
+      screen2Title: 'छोटी शुरुआत। दूर तक जाएं। हम मदद करेंगे।',
+      screen2Description: 'हमारे साथ कदम दर कदम अपनी यात्रा शुरू करें, जबकि हम आपका मार्गदर्शन करते हैं।',
+      screen3Title: 'दैनिक मार्गदर्शन और विकास',
+      screen3Description: 'निर्देशित व्यायाम और प्रशिक्षण योजनाओं से लेकर दैनिक सुझाव और विशेषज्ञ सलाह तक, हम आपको कदम दर कदम आगे बढ़ने में मदद करते हैं।',
+      screen4Title: 'आपके उपकरण और संसाधन',
+      screen4Description: 'सही उपकरणों तक पहुंचें और जहां भी आप हों स्थानीय समर्थन खोजें।',
+      screen5Title: 'एक साथ हम बढ़ते हैं',
+      screen5Description: 'आपकी यात्रा महत्वपूर्ण है — जुड़ें, अपनी कहानी साझा करें, और वास्तविक लोगों में समर्थन पाएं।',
+      screen6Title: 'आप तैयार हैं!',
+      screen6Description: 'आइए हमारे साथ अपनी यात्रा शुरू करें।',
+      screen6Button: 'Sarathi का अन्वेषण करें',
+      next: 'अगला',
+      back: 'पीछे',
+      skip: 'छोड़ें',
+      getStarted: 'शुरू करें',
+      stepOf: 'का',
+    },
+    registration: {
+      title: 'अपना खाता बनाएं',
+      step: 'चरण',
+      of: 'का',
+      step1Title: 'खाता क्रेडेंशियल',
+      step1Subtitle: 'अपने लॉगिन क्रेडेंशियल बनाएं',
+      step2Title: 'व्यक्तिगत जानकारी',
+      step2Subtitle: 'हमें अपने बारे में बताएं',
+      step3Title: 'उपयोगकर्ता प्रकार',
+      step3Subtitle: 'समुदाय में अपनी भूमिका चुनें',
+      step4Title: 'कृत्रिम अंग जानकारी',
+      step4Subtitle: 'हमें अपनी आवश्यकताओं को समझने में मदद करें',
+      step5Title: 'चुनौतियाँ और गतिविधियाँ',
+      step5Subtitle: 'अपनी यात्रा और रुचियों को साझा करें',
+      step6Title: 'समीक्षा और पुष्टि करें',
+      step6Subtitle: 'खाता बनाने से पहले अपनी जानकारी की समीक्षा करें',
+      selectUserType: 'अपना उपयोगकर्ता प्रकार चुनें',
+      amputee: 'विच्छेदित',
+      prosthetist: 'प्रोस्थेटिस्ट',
+      caregiver: 'देखभालकर्ता',
+      doctor: 'डॉक्टर',
+      practitioner: 'चिकित्सक',
+      volunteer: 'स्वयंसेवक',
+      selectProsthesisType: 'कृत्रिम अंग प्रकार चुनें',
+      selectUsageDuration: 'आप इसे कितने समय से उपयोग कर रहे हैं?',
+      addYourChallenges: 'आपको कौन सी चुनौतियों का सामना है?',
+      addYourActivities: 'आपको कौन सी गतिविधियाँ पसंद हैं?',
+      typeChallenge: 'एक चुनौती टाइप करें और Enter दबाएं',
+      typeActivity: 'एक गतिविधि टाइप करें और Enter दबाएं',
+      reviewYourInfo: 'अपनी जानकारी की समीक्षा करें',
+      confirmAndCreate: 'पुष्टि करें और खाता बनाएं',
+      accountCreated: 'खाता बनाया गया!',
+      accountCreatedMessage: 'आपका खाता सफलतापूर्वक बनाया गया है।',
+      completeProfile: 'अपनी प्रोफ़ाइल पूरी करें',
+      skipForNow: 'अभी के लिए छोड़ें',
+      goToHome: 'होम पर जाएं',
     },
     home: {
       heroQuote: 'अब समय आ गया है कि हम प्रोस्थेसिस समुदाय के डेवलपर्स के वैश्विक ज्ञान को साझा करें और जरूरतमंदों की बेहतर मदद के लिए साझा समाधानों पर एक साथ काम करें',
@@ -503,6 +850,43 @@ export const translations: Record<Language, Translations> = {
       delete: 'हटाएं',
       edit: 'संपादित करें',
       view: 'देखें',
+    },
+    profile: {
+      title: 'प्रोफ़ाइल',
+      accountInfo: 'खाता जानकारी',
+      personalInfo: 'व्यक्तिगत जानकारी',
+      prosthesisInfo: 'कृत्रिम अंग जानकारी',
+      challengesActivities: 'चुनौतियाँ और गतिविधियाँ',
+      editProfile: 'प्रोफ़ाइल संपादित करें',
+      saveChanges: 'परिवर्तन सहेजें',
+      cancelEdit: 'रद्द करें',
+      changePassword: 'पासवर्ड बदलें',
+      oldPassword: 'वर्तमान पासवर्ड',
+      newPassword: 'नया पासवर्ड',
+      confirmPassword: 'नए पासवर्ड की पुष्टि करें',
+      passwordChanged: 'पासवर्ड सफलतापूर्वक बदल गया',
+      profileUpdated: 'प्रोफ़ाइल सफलतापूर्वक अपडेट हुआ',
+      userType: 'उपयोगकर्ता प्रकार',
+      prosthesisType: 'कृत्रिम अंग प्रकार',
+      lengthUsage: 'उपयोग अवधि',
+      mainChallenge: 'मुख्य चुनौतियाँ',
+      activities: 'गतिविधियाँ',
+      aboveKnee: 'घुटने के ऊपर',
+      belowKnee: 'घुटने के नीचे',
+      lessThan6Months: '6 महीने से कम',
+      moreThan1Year: '1 साल से अधिक',
+      moreThan5Years: '5 साल से अधिक',
+      unsavedChanges: 'असहेजे परिवर्तन',
+      unsavedChangesMessage: 'आपके पास असहेजे परिवर्तन हैं। क्या आप वाकई छोड़ना चाहते हैं?',
+      leaveWithoutSaving: 'बिना सहेजे छोड़ें',
+      stayOnPage: 'पेज पर रहें',
+      addChallenge: 'चुनौती जोड़ें',
+      addActivity: 'गतिविधि जोड़ें',
+      removeChallenge: 'हटाएं',
+      removeActivity: 'हटाएं',
+      passwordMismatch: 'पासवर्ड मेल नहीं खाते',
+      passwordTooShort: 'पासवर्ड कम से कम 6 वर्णों का होना चाहिए',
+      oldPasswordRequired: 'वर्तमान पासवर्ड आवश्यक है',
     },
   },
 };

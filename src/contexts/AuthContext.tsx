@@ -1,170 +1,327 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase, SarathiUser } from '../lib/supabase';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
-export type UserRole = 'Admin' | 'ContentModerator' | 'User' | 'Guest';
+export type UserRole = 'admin' | 'superadmin' | 'moderator' | 'amputee' | 'caregiver' | 'doctor' | 'practitioner' | 'volunteer';
 
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: UserRole;
-  status: 'pending' | 'active' | 'inactive';
-  createdAt: string;
+  name: string | null;
+  firstName: string | null;
+  telephone: string | null;
+  userType: UserRole;
+  prosthesisType: 'above_knee' | 'below_knee' | null;
+  lengthUsage: 'less_than_6_month' | 'more_than_1_year' | 'more_than_5_years' | null;
+  mainChallenge: string[] | null;
+  activities: string[] | null;
 }
 
 interface AuthContextType {
   user: User | null;
-  accessToken: string | null;
+  session: Session | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
-  sendMagicLink: (phone: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, firstName?: string) => Promise<void>;
+  loginWithProvider: (provider: 'google' | 'facebook' | 'apple') => Promise<void>;
   logout: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  updateProfile: (updates: Partial<SarathiUser>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
-  const refreshUser = async () => {
+  console.log('🔐 AuthProvider mounting...', { initialized, loading, hasUser: !!user });
+
+  // Function to convert Supabase user to our User type
+  const mapSupabaseUserToUser = async (supabaseUser: SupabaseUser): Promise<User | null> => {
     try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setUser(null);
-        setAccessToken(null);
-        setLoading(false);
-        return;
+      console.log('👤 Fetching user profile for:', supabaseUser.id);
+      
+      // Select exact columns that exist in the database
+      const { data: userData, error } = await supabase
+        .from('sarathi_user')
+        .select('uuid, name, first_name, email, telephone, user_type, prosthesis_type, length_usage, main_challenge, activities, created_at, updated_at, date_of_birth')
+        .eq('uuid', supabaseUser.id)
+        .single();
+
+      if (error) {
+        console.error('❌ Error fetching user profile:', error);
+        // Fallback to basic user
+        return {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.user_metadata?.full_name || null,
+          firstName: supabaseUser.user_metadata?.first_name || null,
+          telephone: supabaseUser.user_metadata?.telephone || null,
+          userType: 'amputee',
+          prosthesisType: null,
+          lengthUsage: null,
+          mainChallenge: null,
+          activities: null,
+        };
+      }
+      
+      if (!userData) {
+        console.warn('⚠️ No user data found for:', supabaseUser.id);
+        return null;
       }
 
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/auth/me`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
+      console.log('✅ User profile loaded from database:', userData);
 
-      if (!response.ok) {
-        localStorage.removeItem('accessToken');
-        setUser(null);
-        setAccessToken(null);
-        setLoading(false);
-        return;
-      }
-
-      const data = await response.json();
-      setUser(data.user);
-      setAccessToken(token);
-      setLoading(false);
+      return {
+        id: userData.uuid,
+        email: userData.email,
+        name: userData.name,
+        firstName: userData.first_name,
+        telephone: userData.telephone,
+        userType: userData.user_type,
+        prosthesisType: userData.prosthesis_type,
+        lengthUsage: userData.length_usage,
+        mainChallenge: userData.main_challenge,
+        activities: userData.activities,
+      };
     } catch (error) {
-      console.error('Error refreshing user:', error);
-      localStorage.removeItem('accessToken');
-      setUser(null);
-      setAccessToken(null);
-      setLoading(false);
+      console.error('❌ Exception in mapSupabaseUserToUser:', error);
+      
+      // Ultimate fallback
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: null,
+        firstName: null,
+        telephone: null,
+        userType: 'amputee',
+        prosthesisType: null,
+        lengthUsage: null,
+        mainChallenge: null,
+        activities: null,
+      };
     }
   };
 
+  // Initialize auth state
   useEffect(() => {
-    refreshUser();
-  }, []);
+    if (initialized) {
+      console.log('⏭️ Already initialized, skipping');
+      return;
+    }
+    
+    console.log('🚀 Auth initialization starting...');
+    let isMounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          setLoading(false);
+          setInitialized(true);
+          return;
+        }
+        
+        console.log('📦 Initial session:', session ? 'Found' : 'None');
+        setSession(session);
+        
+        if (session?.user) {
+          console.log('👤 Has user in session, fetching profile...');
+          const mappedUser = await mapSupabaseUserToUser(session.user);
+          
+          if (!isMounted) return;
+          
+          console.log('✅ Profile mapping complete:', mappedUser ? 'Success' : 'Failed');
+          setUser(mappedUser);
+        } else {
+          console.log('👤 No user in session');
+        }
+        
+        setLoading(false);
+        setInitialized(true);
+        console.log('✅ Auth initialization complete');
+        
+      } catch (error) {
+        console.error('❌ Error initializing auth:', error);
+        if (isMounted) {
+          setLoading(false);
+          setInitialized(true);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
+      
+      console.log('🔔 Auth state changed:', event, session ? 'Has session' : 'No session');
+      
+      // Only process if already initialized to avoid race conditions
+      if (!initialized && event === 'SIGNED_IN') {
+        console.log('⏭️ Skipping auth change during initialization');
+        return;
+      }
+      
+      setSession(session);
+      
+      if (session?.user) {
+        console.log('👤 Auth change - fetching profile...');
+        const mappedUser = await mapSupabaseUserToUser(session.user);
+        
+        if (!isMounted) return;
+        
+        console.log('✅ Auth change - profile mapped:', mappedUser ? 'Success' : 'Failed');
+        setUser(mappedUser);
+      } else {
+        console.log('👤 Auth change - no user');
+        setUser(null);
+      }
+      
+      setLoading(false);
+    });
+
+    return () => {
+      console.log('🧹 Auth cleanup');
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [initialized]);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/auth/login`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (error) {
         throw new Error(error.message || 'Login failed');
       }
 
-      const data = await response.json();
-      setUser(data.user);
-      setAccessToken(data.accessToken);
-      localStorage.setItem('accessToken', data.accessToken);
+      if (data.user) {
+        const mappedUser = await mapSupabaseUserToUser(data.user);
+        setUser(mappedUser);
+        setSession(data.session);
+      }
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   };
 
-  const signup = async (email: string, password: string, name: string) => {
+  const signup = async (email: string, password: string, name: string, firstName?: string) => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/auth/signup`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
+      // First, sign up the user
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            first_name: firstName || name,
           },
-          body: JSON.stringify({ email, password, name }),
-        }
-      );
+        },
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (error) {
         throw new Error(error.message || 'Signup failed');
       }
 
-      const data = await response.json();
-      setUser(data.user);
-      setAccessToken(data.accessToken);
-      localStorage.setItem('accessToken', data.accessToken);
+      if (data.user) {
+        // Update the user profile with the name
+        const { error: updateError } = await supabase
+          .from('sarathi_user')
+          .update({
+            name,
+            first_name: firstName || name,
+          })
+          .eq('uuid', data.user.id);
+
+        if (updateError) {
+          console.error('Error updating user profile:', updateError);
+        }
+
+        const mappedUser = await mapSupabaseUserToUser(data.user);
+        setUser(mappedUser);
+        setSession(data.session);
+      }
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
     }
   };
 
-  const sendMagicLink = async (phone: string) => {
+  const loginWithProvider = async (provider: 'google' | 'facebook' | 'apple') => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/auth/magic-link`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({ phone }),
-        }
-      );
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to send magic link');
+      if (error) {
+        throw new Error(error.message || `${provider} login failed`);
       }
     } catch (error) {
-      console.error('Magic link error:', error);
+      console.error(`${provider} login error:`, error);
       throw error;
     }
   };
 
   const logout = async () => {
-    setUser(null);
-    setAccessToken(null);
-    localStorage.removeItem('accessToken');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw new Error(error.message || 'Logout failed');
+      }
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
+  };
+
+  const updateProfile = async (updates: Partial<SarathiUser>) => {
+    try {
+      if (!user) {
+        throw new Error('No user logged in');
+      }
+
+      const { error } = await supabase
+        .from('sarathi_user')
+        .update(updates)
+        .eq('uuid', user.id);
+
+      if (error) {
+        throw new Error(error.message || 'Failed to update profile');
+      }
+
+      // Refresh user data
+      if (session?.user) {
+        const mappedUser = await mapSupabaseUserToUser(session.user);
+        setUser(mappedUser);
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, accessToken, loading, login, signup, sendMagicLink, logout, refreshUser }}
+      value={{ user, session, loading, login, signup, loginWithProvider, logout, updateProfile }}
     >
       {children}
     </AuthContext.Provider>

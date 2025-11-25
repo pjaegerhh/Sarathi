@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth, User } from '../contexts/AuthContext';
-import { projectId } from '../utils/supabase/info';
+import { supabase } from '../lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -14,14 +14,22 @@ interface AdminDashboardProps {
   onNavigate: (page: string) => void;
 }
 
+interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  userType: string;
+  status: 'active' | 'inactive' | 'pending';
+}
+
 export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const { t } = useLanguage();
-  const { user, accessToken, refreshUser } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
+  const { user, session } = useAuth();
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Check if user has admin or content moderator access
-  if (!user || (user.role !== 'Admin' && user.role !== 'ContentModerator')) {
+  // Check if user has admin or superadmin access
+  if (!user || (user.userType !== 'admin' && user.userType !== 'superadmin')) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
@@ -30,7 +38,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               {t.common.error}
             </CardTitle>
             <CardDescription className="text-center">
-              Forbidden: Admin or Content Moderator access required
+              Forbidden: Admin or Superadmin access required
             </CardDescription>
           </CardHeader>
           <CardContent className="flex justify-center">
@@ -49,21 +57,25 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/admin/users`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
+      const { data, error } = await supabase
+        .from('sarathi_user')
+        .select('uuid, email, name, user_type')
+        .order('created_at', { ascending: false });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
-      setUsers(data.users || []);
+      // Map to AdminUser format
+      const mappedUsers: AdminUser[] = (data || []).map(u => ({
+        id: u.uuid,
+        email: u.email,
+        name: u.name,
+        userType: u.user_type,
+        status: 'active', // For now, all users are active. You can add a status field later
+      }));
+
+      setUsers(mappedUsers);
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast.error(error.message || 'Failed to fetch users');
@@ -72,75 +84,15 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     }
   };
 
-  const activateUser = async (userId: string) => {
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/admin/users/${userId}/activate`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to activate user');
-      }
-
-      toast.success(t.admin.activateUser);
-      fetchUsers();
-      
-      // Refresh current user data if they activated themselves
-      if (userId === user.id) {
-        await refreshUser();
-      }
-    } catch (error: any) {
-      console.error('Error activating user:', error);
-      toast.error(error.message || 'Failed to activate user');
-    }
-  };
-
-  const deactivateUser = async (userId: string) => {
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/admin/users/${userId}/deactivate`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to deactivate user');
-      }
-
-      toast.success(t.admin.deactivateUser);
-      fetchUsers();
-    } catch (error: any) {
-      console.error('Error deactivating user:', error);
-      toast.error(error.message || 'Failed to deactivate user');
-    }
-  };
-
   const changeUserRole = async (userId: string, newRole: string) => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-0bbbe2a5/admin/users/${userId}/role`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
+      const { error } = await supabase
+        .from('sarathi_user')
+        .update({ user_type: newRole })
+        .eq('uuid', userId);
 
-      if (!response.ok) {
-        throw new Error('Failed to update user role');
+      if (error) {
+        throw error;
       }
 
       toast.success('Role updated successfully');
@@ -151,8 +103,8 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     }
   };
 
-  const pendingUsers = users.filter(u => u.status === 'pending');
   const activeUsers = users.filter(u => u.status === 'active');
+  const pendingUsers = users.filter(u => u.status === 'pending');
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -164,7 +116,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             <div>
               <h1 className="text-3xl">{t.admin.title}</h1>
               <p className="text-sm text-muted-foreground">
-                {t.roles[user.role.toLowerCase() as keyof typeof t.roles]}
+                {user.userType}
               </p>
             </div>
           </div>
@@ -204,48 +156,6 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           </Card>
         </div>
 
-        {/* Pending Approvals */}
-        {pendingUsers.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.admin.pendingApprovals}</CardTitle>
-              <CardDescription>
-                Users waiting for approval
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>{t.admin.status}</TableHead>
-                    <TableHead>{t.admin.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingUsers.map((u) => (
-                    <TableRow key={u.id}>
-                      <TableCell>{u.name}</TableCell>
-                      <TableCell>{u.email}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{u.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => activateUser(u.id)}
-                        >
-                          {t.admin.activateUser}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
 
         {/* User Management */}
         <Card>
@@ -276,12 +186,12 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                 <TableBody>
                   {users.map((u) => (
                     <TableRow key={u.id}>
-                      <TableCell>{u.name}</TableCell>
+                      <TableCell>{u.name || 'N/A'}</TableCell>
                       <TableCell>{u.email}</TableCell>
                       <TableCell>
-                        {user.role === 'Admin' ? (
+                        {user.userType === 'admin' || user.userType === 'superadmin' ? (
                           <Select
-                            value={u.role}
+                            value={u.userType}
                             onValueChange={(value) => changeUserRole(u.id, value)}
                             disabled={u.id === user.id}
                           >
@@ -289,14 +199,20 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Guest">Guest</SelectItem>
-                              <SelectItem value="User">User</SelectItem>
-                              <SelectItem value="ContentModerator">Content Moderator</SelectItem>
-                              <SelectItem value="Admin">Admin</SelectItem>
+                              <SelectItem value="amputee">Amputee</SelectItem>
+                              <SelectItem value="caregiver">Caregiver</SelectItem>
+                              <SelectItem value="doctor">Doctor</SelectItem>
+                              <SelectItem value="practitioner">Practitioner</SelectItem>
+                              <SelectItem value="volunteer">Volunteer</SelectItem>
+                              <SelectItem value="moderator">Moderator</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              {user.userType === 'superadmin' && (
+                                <SelectItem value="superadmin">Superadmin</SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         ) : (
-                          <Badge>{u.role}</Badge>
+                          <Badge>{u.userType}</Badge>
                         )}
                       </TableCell>
                       <TableCell>
@@ -305,23 +221,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="space-x-2">
-                        {u.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            onClick={() => activateUser(u.id)}
-                          >
-                            Activate
-                          </Button>
-                        )}
-                        {u.status === 'active' && u.id !== user.id && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => deactivateUser(u.id)}
-                          >
-                            Deactivate
-                          </Button>
-                        )}
+                        {/* Future: Add activate/deactivate functionality */}
                       </TableCell>
                     </TableRow>
                   ))}

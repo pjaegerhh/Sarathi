@@ -70,6 +70,8 @@ jobs:
         run: npm run build
         env:
           VITE_APP_ENVIRONMENT: testing
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Copy static web app config to dist
         run: cp staticwebapp.config.json dist/
@@ -126,6 +128,8 @@ jobs:
           VITE_APP_ENVIRONMENT: testing
           VITE_AZURE_STORAGE_ACCOUNT_NAME: sarathitest
           VITE_AZURE_STORAGE_CONTAINER: documents
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
   # Job 2: Deployment Summary
   deployment_summary:

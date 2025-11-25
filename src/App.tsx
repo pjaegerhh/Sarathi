@@ -1,21 +1,43 @@
 import { useState, useEffect } from 'react';
 import { LanguageProvider } from './contexts/LanguageContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { HomePageDesktop, HomePageMobile } from './components/homepage';
-import { AuthPage } from './components/AuthPage';
+import { LoginPage } from './components/LoginPage';
+import { RegistrationPage } from './components/RegistrationPage';
+import { ProfileSelectionPage } from './components/ProfileSelectionPage';
+import { ProfileCompletePage } from './components/ProfileCompletePage';
+import { ProfileVerifiedPage } from './components/ProfileVerifiedPage';
 import { CommunityPage } from './components/CommunityPage';
 import { StoriesPage } from './components/StoriesPage';
 import { ProfilePage } from './components/ProfilePage';
 import { AdminDashboard } from './components/AdminDashboard';
+import { OnboardingPage } from './components/OnboardingPage';
 import { Toaster } from './components/ui/sonner';
+import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
+type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
 
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+function AppContent() {
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    // Check immediately on mount if this is an email verification redirect
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    if (path === '/profile-verified' || hash.includes('type=email_confirmation')) {
+      return 'profile-verified';
+    }
+    return 'home';
+  });
+  const [pageData, setPageData] = useState<any>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
+  const { user, loading } = useAuth();
+
+  console.log('🎨 AppContent render:', { currentPage, loading, hasUser: !!user });
+
+  // Protected pages that require authentication
+  const protectedPages: Page[] = ['community', 'stories', 'profile', 'daily-tips', 'help-center', 'admin'];
 
   useEffect(() => {
     // Detect if mobile based on screen width
@@ -28,6 +50,34 @@ export default function App() {
 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Check for email verification status when user logs in
+  useEffect(() => {
+    if (user && currentPage === 'home') {
+      // Check if user's email is not verified
+      const checkEmailVerification = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user && !session.user.email_confirmed_at) {
+          setShowEmailVerificationModal(true);
+        }
+      };
+      checkEmailVerification();
+    }
+  }, [user, currentPage]);
+
+  // Clean up URL for profile-verified page
+  useEffect(() => {
+    if (currentPage === 'profile-verified') {
+      window.history.replaceState({}, '', '/profile-verified');
+    }
+  }, [currentPage]);
+
+  // Redirect to login if trying to access protected page without authentication
+  useEffect(() => {
+    if (!loading && !user && protectedPages.includes(currentPage)) {
+      setCurrentPage('auth');
+    }
+  }, [user, loading, currentPage]);
 
   // Add PWA meta tags
   useEffect(() => {
@@ -67,12 +117,29 @@ export default function App() {
     };
   }, []);
 
-  const handleNavigate = (page: string) => {
+  const handleNavigate = (page: string, data?: any) => {
+    // Check if page requires authentication
+    if (!user && protectedPages.includes(page as Page)) {
+      setCurrentPage('auth');
+      return;
+    }
     setCurrentPage(page as Page);
+    setPageData(data || null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const renderPage = () => {
+    // Show loading state while checking authentication
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+          </div>
+        </div>
+      );
+    }
+
     switch (currentPage) {
       case 'home':
         return isMobile ? (
@@ -81,7 +148,15 @@ export default function App() {
           <HomePageDesktop onNavigate={handleNavigate} />
         );
       case 'auth':
-        return <AuthPage onNavigate={handleNavigate} />;
+        return <LoginPage onNavigate={handleNavigate} />;
+      case 'register':
+        return <RegistrationPage onNavigate={handleNavigate} />;
+      case 'profile-selection':
+        return <ProfileSelectionPage onNavigate={handleNavigate} userName={pageData?.userName} />;
+      case 'profile-complete':
+        return <ProfileCompletePage onNavigate={handleNavigate} />;
+      case 'profile-verified':
+        return <ProfileVerifiedPage onContinue={() => handleNavigate('home')} />;
       case 'community':
         return <CommunityPage onNavigate={handleNavigate} />;
       case 'stories':
@@ -90,9 +165,10 @@ export default function App() {
         return <ProfilePage onNavigate={handleNavigate} />;
       case 'admin':
         return <AdminDashboard onNavigate={handleNavigate} />;
+      case 'tutorial':
+        return <OnboardingPage onNavigate={handleNavigate} />;
       case 'daily-tips':
       case 'help-center':
-      case 'tutorial':
         return (
           <div className="min-h-screen flex items-center justify-center bg-background pt-spacing-5xl pb-spacing-5xl">
             <div className="w-full max-w-[1280px] mx-auto px-spacing-xl">
@@ -119,30 +195,144 @@ export default function App() {
   };
 
   return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation - Hidden only on auth, register, profile-selection, profile-complete, profile-verified and admin pages */}
+      {currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'admin' && (
+        <>
+          {isMobile ? (
+            <MobileNavigation onNavigate={handleNavigate} currentPage={currentPage} />
+          ) : (
+            currentPage === 'home' ? null : (
+              <DesktopNavigation onNavigate={handleNavigate} currentPage={currentPage} />
+            )
+          )}
+        </>
+      )}
+
+      {/* Page Content */}
+      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && !isMobile ? 'pt-[72px]' : ''}>
+        {renderPage()}
+      </main>
+
+      {/* Email Verification Modal */}
+      {showEmailVerificationModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '20px',
+            padding: '32px',
+            maxWidth: '450px',
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              margin: '0 auto 24px',
+              background: 'linear-gradient(135deg, #8AC0AD 0%, #388896 100%)',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                <polyline points="3,7 12,13 21,7"></polyline>
+              </svg>
+            </div>
+
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: 600,
+              color: '#192126',
+              marginBottom: '16px'
+            }}>
+              Verify Your Email
+            </h2>
+
+            <p style={{
+              fontSize: '16px',
+              color: '#979797',
+              lineHeight: '1.6',
+              marginBottom: '24px'
+            }}>
+              We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.
+            </p>
+
+            <p style={{
+              fontSize: '14px',
+              color: '#979797',
+              lineHeight: '1.5',
+              marginBottom: '24px'
+            }}>
+              Can't find the email? Check your spam folder or click below to resend.
+            </p>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setShowEmailVerificationModal(false)}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#388896',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '24px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Got it
+              </button>
+              <button
+                onClick={async () => {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (session?.user?.email) {
+                    await supabase.auth.resend({
+                      type: 'signup',
+                      email: session.user.email
+                    });
+                    alert('Verification email resent! Please check your inbox.');
+                  }
+                }}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'white',
+                  color: '#388896',
+                  border: '2px solid #388896',
+                  borderRadius: '24px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Resend Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notifications */}
+      <Toaster />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <LanguageProvider>
       <AuthProvider>
-        <div className="min-h-screen bg-background">
-          {/* Navigation - Hidden only on auth and admin pages */}
-          {currentPage !== 'auth' && currentPage !== 'admin' && (
-            <>
-              {isMobile ? (
-                <MobileNavigation onNavigate={handleNavigate} currentPage={currentPage} />
-              ) : (
-                currentPage === 'home' ? null : (
-                  <DesktopNavigation onNavigate={handleNavigate} currentPage={currentPage} />
-                )
-              )}
-            </>
-          )}
-
-          {/* Page Content */}
-          <main className={currentPage !== 'auth' && currentPage !== 'admin' && currentPage !== 'home' && !isMobile ? 'pt-[72px]' : ''}>
-            {renderPage()}
-          </main>
-
-          {/* Toast Notifications */}
-          <Toaster />
-        </div>
+        <AppContent />
       </AuthProvider>
     </LanguageProvider>
   );
