@@ -9,6 +9,7 @@ import { RegistrationPage } from './components/RegistrationPage';
 import { ProfileSelectionPage } from './components/ProfileSelectionPage';
 import { ProfileCompletePage } from './components/ProfileCompletePage';
 import { ProfileVerifiedPage } from './components/ProfileVerifiedPage';
+import { ProfileOnboardingPage } from './components/ProfileOnboardingPage';
 import { CommunityPage } from './components/CommunityPage';
 import { StoriesPage } from './components/StoriesPage';
 import { ProfilePage } from './components/ProfilePage';
@@ -17,7 +18,7 @@ import { OnboardingPage } from './components/OnboardingPage';
 import { Toaster } from './components/ui/sonner';
 import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
+type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
@@ -65,10 +66,22 @@ function AppContent() {
     }
   }, [user, currentPage]);
 
-  // Clean up URL for profile-verified page
+  // Clean up URL for profile-verified page (only after Supabase has processed the verification)
   useEffect(() => {
     if (currentPage === 'profile-verified') {
-      window.history.replaceState({}, '', '/profile-verified');
+      const hash = window.location.hash;
+      
+      // Only clean up if there's a verification token that needs processing
+      if (hash && (hash.includes('access_token') || hash.includes('type=signup'))) {
+        // Wait for Supabase to process the hash before cleaning up
+        const timer = setTimeout(() => {
+          window.history.replaceState({}, '', '/profile-verified');
+        }, 1000);
+        return () => clearTimeout(timer);
+      } else {
+        // No verification token, clean up immediately
+        window.history.replaceState({}, '', '/profile-verified');
+      }
     }
   }, [currentPage]);
 
@@ -156,7 +169,9 @@ function AppContent() {
       case 'profile-complete':
         return <ProfileCompletePage onNavigate={handleNavigate} />;
       case 'profile-verified':
-        return <ProfileVerifiedPage onContinue={() => handleNavigate('home')} />;
+        return <ProfileVerifiedPage onNavigate={handleNavigate} />;
+      case 'profile-onboarding':
+        return <ProfileOnboardingPage onNavigate={handleNavigate} />;
       case 'community':
         return <CommunityPage onNavigate={handleNavigate} />;
       case 'stories':
@@ -196,8 +211,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation - Hidden only on auth, register, profile-selection, profile-complete, profile-verified and admin pages */}
-      {currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'admin' && (
+      {/* Navigation - Hidden only on auth, register, profile-selection, profile-complete, profile-verified, profile-onboarding and admin pages */}
+      {currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'admin' && (
         <>
           {isMobile ? (
             <MobileNavigation onNavigate={handleNavigate} currentPage={currentPage} />
@@ -210,7 +225,7 @@ function AppContent() {
       )}
 
       {/* Page Content */}
-      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && !isMobile ? 'pt-[72px]' : ''}>
+      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && !isMobile ? 'pt-[72px]' : ''}>
         {renderPage()}
       </main>
 

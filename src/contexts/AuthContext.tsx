@@ -166,11 +166,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('🔔 Auth state changed:', event, session ? 'Has session' : 'No session');
       
-      // Only process if already initialized to avoid race conditions
-      if (!initialized && event === 'SIGNED_IN') {
-        console.log('⏭️ Skipping auth change during initialization');
-        return;
-      }
+      // Process all events, including during initialization for email verification
+      // Don't skip SIGNED_IN during initialization as it could be email verification
       
       setSession(session);
       

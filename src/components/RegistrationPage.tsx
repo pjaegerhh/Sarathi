@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth, UserRole } from '../contexts/AuthContext';
+import { UserRole } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import backgroundImage from '../assets/images/Background_login.png';
@@ -144,11 +143,15 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       }
 
       // Create user with Supabase Auth - WITH EMAIL CONFIRMATION REQUIRED
+      // Use window.location.origin to get the current domain (works for localhost and production)
+      const redirectUrl = `${window.location.origin}/profile-verified`;
+      console.log('📧 Email redirect URL:', redirectUrl);
+      
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/profile-verified`,
+          emailRedirectTo: redirectUrl,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -167,58 +170,9 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
 
       console.log('✅ User created in auth.users:', authData.user.id);
       
-      // User info to pass to next screen
-      const userName = `${formData.firstName} ${formData.lastName}`.trim();
-      
-      // Instead of waiting and checking, just try to INSERT with ON CONFLICT handling
-      // The database will handle duplicates gracefully
-      console.log('📝 Creating/updating user profile...');
-      
-      const profileData = {
-        uuid: authData.user.id,
-        email: formData.email,
-        user_type: 'amputee',
-        name: userName,
-        first_name: formData.firstName,
-        telephone: formData.telephone || null,
-        date_of_birth: formData.dateOfBirth || null,
-      };
-
-      // Try INSERT first - if row exists, we'll get 409 and then UPDATE
-      const { error: insertError } = await supabase
-        .from('sarathi_user')
-        .insert(profileData);
-      
-      console.log('📊 Insert result:', { error: insertError?.message, code: insertError?.code });
-      
-      if (insertError) {
-        // Check for duplicate key error - multiple possible codes
-        if (insertError.code === '23505' || insertError.message?.includes('duplicate') || insertError.message?.includes('already exists')) {
-          // Duplicate key - row exists, so UPDATE it instead
-          console.log('🔄 Row exists, updating instead...');
-          
-          const { name, first_name, telephone, date_of_birth } = profileData;
-          const { data: updateData, error: updateError } = await supabase
-            .from('sarathi_user')
-            .update({ name, first_name, telephone, date_of_birth })
-            .eq('uuid', authData.user.id)
-            .select();
-          
-          console.log('📊 Update result:', { data: updateData, error: updateError?.message });
-          
-          if (updateError) {
-            console.error('❌ Error updating profile:', updateError);
-            toast.error('Failed to save profile data');
-          } else {
-            console.log('✅ Profile updated successfully!');
-          }
-        } else {
-          console.error('❌ Error inserting user:', insertError);
-          toast.error(`Registration error: ${insertError.message}`);
-        }
-      } else {
-        console.log('✅ User profile created successfully!');
-      }
+      // The database trigger will automatically create the user profile
+      // We don't need to manually insert/update here
+      console.log('📝 User profile will be created automatically by database trigger');
 
       // Show success screen - user will verify email before proceeding
       setShowSuccessScreen(true);

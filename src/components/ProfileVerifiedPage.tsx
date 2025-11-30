@@ -1,17 +1,78 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
 import backgroundImage from '../assets/images/Background_login.png';
 import sarathiLogo from '../assets/svg/sarathi_login.svg';
 
 interface ProfileVerifiedPageProps {
-  onContinue: () => void;
+  onNavigate: (page: string) => void;
 }
 
-export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onContinue }) => {
+export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavigate }) => {
   const { t } = useLanguage();
   const { user, loading } = useAuth();
   const [isReady, setIsReady] = useState(false);
+  const [verificationError, setVerificationError] = useState(false);
+
+  useEffect(() => {
+    const handleEmailVerification = async () => {
+      console.log('🔍 ProfileVerifiedPage: Starting email verification check');
+      
+      // Check if there's a hash in the URL (email verification)
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token') || hash.includes('type=signup'))) {
+        console.log('📧 Email verification detected in URL');
+        
+        try {
+          // Wait a moment for Supabase to process the URL
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          // Check if session was established
+          const { data: { session }, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('❌ Error getting session after verification:', error);
+            setVerificationError(true);
+            setIsReady(true);
+            return;
+          }
+          
+          if (session && session.user) {
+            console.log('✅ User session established after email verification:', session.user.email);
+            toast.success('Email verified successfully! You are now logged in.');
+            
+            // Force a refresh of the auth state by triggering the context manually
+            // The AuthContext should pick this up via onAuthStateChange
+          } else {
+            console.warn('⚠️ No session found after verification, trying to refresh...');
+            
+            // Try to refresh the session
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshError || !refreshData.session) {
+              console.error('❌ Failed to establish session:', refreshError);
+              setVerificationError(true);
+              setIsReady(true);
+              return;
+            }
+            
+            console.log('✅ Session established after refresh:', refreshData.session.user.email);
+            toast.success('Email verified successfully! You are now logged in.');
+          }
+        } catch (error) {
+          console.error('❌ Exception during email verification:', error);
+          setVerificationError(true);
+          setIsReady(true);
+        }
+      } else {
+        console.log('ℹ️ No verification token in URL');
+      }
+    };
+
+    handleEmailVerification();
+  }, []);
 
   useEffect(() => {
     // Wait for either user to be available or loading to complete
@@ -22,12 +83,10 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onCont
         console.log('✅ ProfileVerifiedPage: User is logged in');
         setIsReady(true);
       } else {
-        // Still no user after loading? Wait a bit more for the auth to settle
-        console.log('⏳ ProfileVerifiedPage: Waiting for auth to settle...');
-        const timer = setTimeout(() => {
-          setIsReady(true);
-        }, 2000);
-        return () => clearTimeout(timer);
+        // No user after loading completed - show ready anyway
+        // The verification check above will handle showing error if needed
+        console.log('⚠️ No user found after auth loading completed');
+        setIsReady(true);
       }
     }
   }, [user, loading]);
@@ -56,7 +115,7 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onCont
               margin: '0 auto 16px',
             }}
           />
-          <p style={{ color: '#388896', fontSize: '16px' }}>Verifying your account...</p>
+          <p style={{ color: '#388896', fontSize: '16px' }}>Verifying your account and logging you in...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -64,6 +123,70 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onCont
             100% { transform: rotate(360deg); }
           }
         `}</style>
+      </div>
+    );
+  }
+
+  // Show error state if verification failed
+  if (verificationError) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%)',
+          padding: '20px',
+        }}
+      >
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '20px',
+          padding: '48px',
+          maxWidth: '500px',
+          textAlign: 'center',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            margin: '0 auto 24px',
+            background: '#EF4444',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+          </div>
+          <h2 style={{ fontSize: '24px', fontWeight: 600, color: '#192126', marginBottom: '16px' }}>
+            Verification Failed
+          </h2>
+          <p style={{ fontSize: '16px', color: '#666', marginBottom: '32px', lineHeight: '1.6' }}>
+            We couldn't verify your email. The link may have expired or is invalid.
+          </p>
+          <button
+            onClick={() => onNavigate('auth')}
+            style={{
+              width: '100%',
+              height: '52px',
+              background: '#388896',
+              color: 'white',
+              border: 'none',
+              borderRadius: '26px',
+              fontSize: '16px',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            Go to Login
+          </button>
+        </div>
       </div>
     );
   }
@@ -407,7 +530,7 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onCont
 
             {/* Explore Sarathi Button */}
             <button
-              onClick={onContinue}
+              onClick={() => onNavigate('profile-onboarding')}
               style={{
                 background: '#388896',
                 color: 'white',
