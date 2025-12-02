@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { supabase, SarathiUser } from '../lib/supabase';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -10,11 +10,13 @@ export interface User {
   name: string | null;
   firstName: string | null;
   telephone: string | null;
+  age: number | null;
   userType: UserRole;
   prosthesisType: 'above_knee' | 'below_knee' | null;
   lengthUsage: 'less_than_6_month' | 'more_than_1_year' | 'more_than_5_years' | null;
   mainChallenge: string[] | null;
   activities: string[] | null;
+  onboardingCompleted: boolean | null;
 }
 
 interface AuthContextType {
@@ -30,49 +32,102 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to clear auth storage
+const clearAuthStorage = () => {
+  try {
+    localStorage.removeItem('sarathi-auth-token');
+    // Also clear any other Supabase-related keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') || key.includes('supabase')) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (e) {
+    console.error('Error clearing auth storage:', e);
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const isSigningOut = useRef(false); // Prevent signout loops
 
-  console.log('🔐 AuthProvider mounting...', { initialized, loading, hasUser: !!user });
+  // Function to safely sign out and clear state
+  const safeSignOut = async () => {
+    if (isSigningOut.current) {
+      return;
+    }
+    
+    isSigningOut.current = true;
+    
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('Error during signOut:', e);
+    }
+    
+    // Clear storage as a failsafe
+    clearAuthStorage();
+    
+    // Clear state
+    setUser(null);
+    setSession(null);
+    setLoading(false);
+    
+    isSigningOut.current = false;
+  };
 
   // Function to convert Supabase user to our User type
   const mapSupabaseUserToUser = async (supabaseUser: SupabaseUser): Promise<User | null> => {
     try {
-      console.log('👤 Fetching user profile for:', supabaseUser.id);
+      // Add a timeout for the database query - reduced to 5 seconds for faster recovery
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Select exact columns that exist in the database
       const { data: userData, error } = await supabase
         .from('sarathi_user')
-        .select('uuid, name, first_name, email, telephone, user_type, prosthesis_type, length_usage, main_challenge, activities, created_at, updated_at, date_of_birth')
+        .select('uuid, name, first_name, email, telephone, user_type, prosthesis_type, length_usage, main_challenge, activities, created_at, updated_at, date_of_birth, age, onboarding_completed')
         .eq('uuid', supabaseUser.id)
-        .single();
+        .single()
+        .abortSignal(controller.signal);
+      
+      clearTimeout(timeoutId);
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
-        // Fallback to basic user
+        
+        // Check if error is "no rows returned" (PGRST116), timeout, or abort - user was deleted from database
+        if (error.code === 'PGRST116' || error.message?.includes('no rows') || error.name === 'AbortError' || error.message?.includes('aborted')) {
+          console.warn('⚠️ User not found in database or timeout - signing out...');
+          // Don't await here to prevent blocking - let it happen async
+          safeSignOut();
+          return null;
+        }
+        
+        // For other errors, fallback to basic user from auth metadata
         return {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
           name: supabaseUser.user_metadata?.full_name || null,
           firstName: supabaseUser.user_metadata?.first_name || null,
           telephone: supabaseUser.user_metadata?.telephone || null,
+          age: null,
           userType: 'amputee',
           prosthesisType: null,
           lengthUsage: null,
           mainChallenge: null,
           activities: null,
+          onboardingCompleted: null,
         };
       }
       
       if (!userData) {
         console.warn('⚠️ No user data found for:', supabaseUser.id);
+        safeSignOut();
         return null;
       }
-
-      console.log('✅ User profile loaded from database:', userData);
 
       return {
         id: userData.uuid,
@@ -80,40 +135,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name: userData.name,
         firstName: userData.first_name,
         telephone: userData.telephone,
+        age: (userData as any).age || null,
         userType: userData.user_type,
         prosthesisType: userData.prosthesis_type,
         lengthUsage: userData.length_usage,
         mainChallenge: userData.main_challenge,
         activities: userData.activities,
+        onboardingCompleted: (userData as any).onboarding_completed || null,
       };
     } catch (error) {
       console.error('❌ Exception in mapSupabaseUserToUser:', error);
-      
-      // Ultimate fallback
-      return {
-        id: supabaseUser.id,
-        email: supabaseUser.email || '',
-        name: null,
-        firstName: null,
-        telephone: null,
-        userType: 'amputee',
-        prosthesisType: null,
-        lengthUsage: null,
-        mainChallenge: null,
-        activities: null,
-      };
+      safeSignOut();
+      return null;
     }
   };
 
   // Initialize auth state
   useEffect(() => {
     if (initialized) {
-      console.log('⏭️ Already initialized, skipping');
       return;
     }
     
-    console.log('🚀 Auth initialization starting...');
     let isMounted = true;
+    
+    // Failsafe timeout - always complete loading after 8 seconds for faster recovery
+    const failsafeTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('⚠️ Auth initialization timeout - forcing completion');
+        setUser(null);
+        setSession(null);
+        setLoading(false);
+        setInitialized(true);
+      }
+    }, 8000);
     
     const initializeAuth = async () => {
       try {
@@ -123,33 +177,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (error) {
           console.error('❌ Error getting session:', error);
+          clearAuthStorage(); // Clear on error
           setLoading(false);
           setInitialized(true);
           return;
         }
         
-        console.log('📦 Initial session:', session ? 'Found' : 'None');
         setSession(session);
         
         if (session?.user) {
-          console.log('👤 Has user in session, fetching profile...');
           const mappedUser = await mapSupabaseUserToUser(session.user);
           
           if (!isMounted) return;
           
-          console.log('✅ Profile mapping complete:', mappedUser ? 'Success' : 'Failed');
           setUser(mappedUser);
-        } else {
-          console.log('👤 No user in session');
+          
+          // If mappedUser is null, it means user was deleted - state is already cleared by safeSignOut
         }
         
         setLoading(false);
         setInitialized(true);
-        console.log('✅ Auth initialization complete');
         
       } catch (error) {
         console.error('❌ Error initializing auth:', error);
         if (isMounted) {
+          clearAuthStorage(); // Clear on error
           setLoading(false);
           setInitialized(true);
         }
@@ -164,23 +216,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
-      console.log('🔔 Auth state changed:', event, session ? 'Has session' : 'No session');
-      
-      // Process all events, including during initialization for email verification
-      // Don't skip SIGNED_IN during initialization as it could be email verification
+      // Handle sign out event
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setSession(null);
+        setLoading(false);
+        return;
+      }
       
       setSession(session);
       
       if (session?.user) {
-        console.log('👤 Auth change - fetching profile...');
-        const mappedUser = await mapSupabaseUserToUser(session.user);
-        
-        if (!isMounted) return;
-        
-        console.log('✅ Auth change - profile mapped:', mappedUser ? 'Success' : 'Failed');
-        setUser(mappedUser);
+        // Only fetch profile if we're already initialized to avoid double fetch
+        if (initialized) {
+          try {
+            const mappedUser = await mapSupabaseUserToUser(session.user);
+            
+            if (!isMounted) return;
+            
+            setUser(mappedUser);
+          } catch (e) {
+            console.error('❌ Auth change - profile fetch failed:', e);
+          }
+        }
       } else {
-        console.log('👤 Auth change - no user');
         setUser(null);
       }
       
@@ -188,8 +247,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      console.log('🧹 Auth cleanup');
       isMounted = false;
+      clearTimeout(failsafeTimeout);
       subscription.unsubscribe();
     };
   }, [initialized]);

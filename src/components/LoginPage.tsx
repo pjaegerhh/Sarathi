@@ -50,7 +50,6 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
 
       // Check if user's email is confirmed
       if (data.user && !data.user.email_confirmed_at) {
-        console.log('⚠️ User email not confirmed');
         setUnverifiedEmail(email);
         setShowUnverifiedScreen(true);
         // Sign out the user since they're not verified
@@ -62,6 +61,36 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       // User is verified, proceed with login
       await login(email, password);
       toast.success(t.auth.loginSuccess);
+      
+      // Check if this is the test user - always show onboarding
+      const TEST_USER_EMAIL = 'peter@compusys.cc';
+      if (email.toLowerCase() === TEST_USER_EMAIL.toLowerCase()) {
+        onNavigate('onboarding-flow');
+        return;
+      }
+
+      // For other users, check if onboarding has been completed
+      if (data.user) {
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('sarathi_user')
+            .select('user_type')
+            .eq('uuid', data.user.id)
+            .single();
+
+          // Check if user has not set a user_type yet (first-time login after verification)
+          if (!userError && userData) {
+            if (!userData.user_type || userData.user_type === 'amputee') {
+              // Check if user_type is the default - might need onboarding
+              // For now, we'll only trigger onboarding for the test user
+            }
+          }
+        } catch (err) {
+          // Could not check onboarding status
+        }
+      }
+
+      // User has completed onboarding, go to home
       onNavigate('home');
     } catch (error: any) {
       toast.error(error.message || t.auth.invalidCredentials);

@@ -15,10 +15,11 @@ import { StoriesPage } from './components/StoriesPage';
 import { ProfilePage } from './components/ProfilePage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { OnboardingPage } from './components/OnboardingPage';
+import { OnboardingFlowPage } from './components/OnboardingFlowPage';
 import { Toaster } from './components/ui/sonner';
 import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
+type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
@@ -34,8 +35,6 @@ function AppContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
   const { user, loading } = useAuth();
-
-  console.log('🎨 AppContent render:', { currentPage, loading, hasUser: !!user });
 
   // Protected pages that require authentication
   const protectedPages: Page[] = ['community', 'stories', 'profile', 'daily-tips', 'help-center', 'admin'];
@@ -134,10 +133,16 @@ function AppContent() {
     // Check if page requires authentication
     if (!user && protectedPages.includes(page as Page)) {
       setCurrentPage('auth');
+      window.history.pushState({}, '', '/');
       return;
     }
     setCurrentPage(page as Page);
     setPageData(data || null);
+    
+    // Update browser URL to match the page
+    const pageUrl = page === 'home' ? '/' : `/${page}`;
+    window.history.pushState({}, '', pageUrl);
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -172,6 +177,8 @@ function AppContent() {
         return <ProfileVerifiedPage onNavigate={handleNavigate} />;
       case 'profile-onboarding':
         return <ProfileOnboardingPage onNavigate={handleNavigate} />;
+      case 'onboarding-flow':
+        return <OnboardingFlowPage onNavigate={handleNavigate} />;
       case 'community':
         return <CommunityPage onNavigate={handleNavigate} />;
       case 'stories':
@@ -211,8 +218,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation - Hidden only on auth, register, profile-selection, profile-complete, profile-verified, profile-onboarding and admin pages */}
-      {currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'admin' && (
+      {/* Navigation - Hidden only on auth, register, profile-selection, profile-complete, profile-verified, profile-onboarding, onboarding-flow and admin pages */}
+      {currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && (
         <>
           {isMobile ? (
             <MobileNavigation onNavigate={handleNavigate} currentPage={currentPage} />
@@ -225,7 +232,7 @@ function AppContent() {
       )}
 
       {/* Page Content */}
-      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && !isMobile ? 'pt-[72px]' : ''}>
+      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && !isMobile ? 'pt-[72px]' : ''}>
         {renderPage()}
       </main>
 

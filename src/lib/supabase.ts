@@ -4,12 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-console.log('🔍 Supabase Config:', { 
-  url: supabaseUrl, 
-  hasKey: !!supabaseAnonKey,
-  keyLength: supabaseAnonKey?.length 
-});
-
 // Validate required environment variables
 if (!supabaseUrl || supabaseUrl === 'undefined') {
   console.error('❌ Missing VITE_SUPABASE_URL environment variable');
@@ -25,8 +19,6 @@ if (!supabaseAnonKey || supabaseAnonKey === 'undefined') {
   throw new Error('Missing VITE_SUPABASE_ANON_KEY environment variable. Check your .env file.');
 }
 
-console.log('✅ Supabase client initializing...');
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -37,8 +29,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-console.log('✅ Supabase client created successfully');
-
 // Database types
 export interface SarathiUser {
   uuid: string;
@@ -47,11 +37,13 @@ export interface SarathiUser {
   date_of_birth: string | null; // ISO date string
   email: string;
   telephone: string | null;
+  age: number | null; // Age of the user
   user_type: 'admin' | 'superadmin' | 'moderator' | 'amputee' | 'caregiver' | 'doctor' | 'practitioner' | 'volunteer';
   prosthesis_type: 'above_knee' | 'below_knee' | null;
   length_usage: 'less_than_6_month' | 'more_than_1_year' | 'more_than_5_years' | null;
   main_challenge: string[] | null; // Array of: fit_comfort, mobility, community, cost_access, training, emotional
   activities: string[] | null; // Array of: rehabilitation, social_life, emotions, pain_relief, work, independence, education, confidence, training, sports, guidance, community, maintenance
+  onboarding_completed: boolean | null; // Whether onboarding has been completed
   created_at: string;
   updated_at: string;
 }

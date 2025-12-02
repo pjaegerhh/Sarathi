@@ -19,6 +19,38 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const { t } = useLanguage();
   const { user, logout, updateProfile } = useAuth();
 
+  // Challenge and Activity label mappings using translations
+  const getChallengeLabel = (id: string): string => {
+    const challengeMap: Record<string, string> = {
+      'fit_comfort': t.onboarding?.fitAndComfort || 'Fit and Comfort',
+      'mobility': t.onboarding?.mobility || 'Mobility',
+      'community': t.onboarding?.community || 'Community',
+      'cost_access': t.onboarding?.costAndAccess || 'Cost and Access',
+      'training': t.onboarding?.training || 'Training',
+      'emotional': t.onboarding?.emotionalWellbeing || 'Emotional Well-being',
+    };
+    return challengeMap[id] || id;
+  };
+
+  const getActivityLabel = (id: string): string => {
+    const activityMap: Record<string, string> = {
+      'rehabilitation': t.onboarding?.rehabilitation || 'Rehabilitation',
+      'social_life': t.onboarding?.socialLife || 'Social Life',
+      'emotions': t.onboarding?.emotions || 'Emotions',
+      'pain_relief': t.onboarding?.painRelief || 'Pain Relief',
+      'work': t.onboarding?.work || 'Work',
+      'independence': t.onboarding?.independence || 'Independence',
+      'education': t.onboarding?.education || 'Education',
+      'confidence': t.onboarding?.confidence || 'Confidence',
+      'training': t.onboarding?.training || 'Training',
+      'sports': t.onboarding?.sports || 'Sports',
+      'guidance': t.onboarding?.guidance || 'Guidance',
+      'community': t.onboarding?.community || 'Community',
+      'maintenance': t.onboarding?.maintenance || 'Maintenance',
+    };
+    return activityMap[id] || id;
+  };
+
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -28,6 +60,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     name: user?.name || '',
     firstName: user?.firstName || '',
     telephone: user?.telephone || '',
+    age: user?.age?.toString() || '',
     prosthesisType: user?.prosthesisType || '',
     lengthUsage: user?.lengthUsage || '',
     mainChallenge: user?.mainChallenge || [],
@@ -62,10 +95,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         name: user.name || '',
         firstName: user.firstName || '',
         telephone: user.telephone || '',
+        age: user.age?.toString() || '',
         prosthesisType: user.prosthesisType || '',
         lengthUsage: user.lengthUsage || '',
-        mainChallenge: user.mainChallenge || [],
-        activities: user.activities || [],
+        mainChallenge: Array.isArray(user.mainChallenge) ? user.mainChallenge : [],
+        activities: Array.isArray(user.activities) ? user.activities : [],
       });
     }
   }, [user]);
@@ -110,6 +144,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         name: formData.name,
         first_name: formData.firstName,
         telephone: formData.telephone,
+        age: formData.age ? parseInt(formData.age, 10) : null,
         prosthesis_type: formData.prosthesisType as any,
         length_usage: formData.lengthUsage as any,
         main_challenge: formData.mainChallenge,
@@ -155,10 +190,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           name: user.name || '',
           firstName: user.firstName || '',
           telephone: user.telephone || '',
+          age: user.age?.toString() || '',
           prosthesisType: user.prosthesisType || '',
           lengthUsage: user.lengthUsage || '',
-          mainChallenge: user.mainChallenge || [],
-          activities: user.activities || [],
+          mainChallenge: Array.isArray(user.mainChallenge) ? user.mainChallenge : [],
+          activities: Array.isArray(user.activities) ? user.activities : [],
         });
       }
     } else if (pendingNavigation) {
@@ -335,6 +371,23 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="age">Age</Label>
+                  {isEditing ? (
+                    <Input
+                      id="age"
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => handleInputChange('age', e.target.value)}
+                      placeholder="Enter your age"
+                      min="0"
+                      max="120"
+                    />
+                  ) : (
+                    <p className="text-sm py-2">{formData.age || 'Not set'}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="telephone">{t.auth.telephone}</Label>
                   {isEditing ? (
                     <Input
@@ -426,26 +479,27 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               <div className="space-y-3">
                 <Label>{t.profile.mainChallenge}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {formData.mainChallenge.map((challenge) => (
-                    <Badge
-                      key={challenge}
-                      variant="secondary"
-                      className="px-3 py-1 flex items-center gap-2"
-                    >
-                      {challenge}
-                      {isEditing && (
-                        <button
-                          onClick={() => handleRemoveChallenge(challenge)}
-                          className="hover:text-destructive"
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
-                    </Badge>
-                  ))}
-                  {formData.mainChallenge.length === 0 && !isEditing && (
+                  {Array.isArray(formData.mainChallenge) && formData.mainChallenge.length > 0 ? (
+                    formData.mainChallenge.map((challenge) => (
+                      <Badge
+                        key={challenge}
+                        variant="secondary"
+                        className="px-3 py-1 flex items-center gap-2"
+                      >
+                        {getChallengeLabel(challenge)}
+                        {isEditing && (
+                          <button
+                            onClick={() => handleRemoveChallenge(challenge)}
+                            className="hover:text-destructive"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </Badge>
+                    ))
+                  ) : !isEditing ? (
                     <p className="text-sm text-muted-foreground">No challenges added</p>
-                  )}
+                  ) : null}
                 </div>
                 {isEditing && (
                   <div className="flex gap-2">
@@ -466,26 +520,27 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               <div className="space-y-3">
                 <Label>{t.profile.activities}</Label>
                 <div className="flex flex-wrap gap-2">
-                  {formData.activities.map((activity) => (
-                    <Badge
-                      key={activity}
-                      variant="secondary"
-                      className="px-3 py-1 flex items-center gap-2"
-                    >
-                      {activity}
-                      {isEditing && (
-                        <button
-                          onClick={() => handleRemoveActivity(activity)}
-                          className="hover:text-destructive"
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
-                    </Badge>
-                  ))}
-                  {formData.activities.length === 0 && !isEditing && (
+                  {Array.isArray(formData.activities) && formData.activities.length > 0 ? (
+                    formData.activities.map((activity) => (
+                      <Badge
+                        key={activity}
+                        variant="secondary"
+                        className="px-3 py-1 flex items-center gap-2"
+                      >
+                        {getActivityLabel(activity)}
+                        {isEditing && (
+                          <button
+                            onClick={() => handleRemoveActivity(activity)}
+                            className="hover:text-destructive"
+                          >
+                            <X size={14} />
+                          </button>
+                        )}
+                      </Badge>
+                    ))
+                  ) : !isEditing ? (
                     <p className="text-sm text-muted-foreground">No activities added</p>
-                  )}
+                  ) : null}
                 </div>
                 {isEditing && (
                   <div className="flex gap-2">

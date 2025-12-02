@@ -75,8 +75,6 @@ export function ProfileOnboardingPage({ onNavigate }: ProfileOnboardingPageProps
     setLoading(true);
 
     try {
-      console.log('📝 Updating profile with onboarding data:', formData);
-
       const updateData: any = {
         user_type: formData.userType,
       };
@@ -104,7 +102,6 @@ export function ProfileOnboardingPage({ onNavigate }: ProfileOnboardingPageProps
         throw error;
       }
 
-      console.log('✅ Profile onboarding completed successfully');
       toast.success('Profile completed successfully!');
       
       // Navigate to home page

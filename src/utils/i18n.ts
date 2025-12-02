@@ -85,6 +85,58 @@ export interface Translations {
     skip: string;
     getStarted: string;
     stepOf: string;
+    // Age input screen
+    welcomeToSarathi: string;
+    letsGetToKnowYou: string;
+    tellUsYourAge: string;
+    pleaseEnterValidAge: string;
+    // User type selection
+    whoAreYou: string;
+    whoAreYouDescription: string;
+    iAmAmputee: string;
+    iAmCaregiver: string;
+    iAmVolunteer: string;
+    iAmDoctor: string;
+    iAmPractitioner: string;
+    // Medical information header
+    medicalInformation: string;
+    medicalInformationDescription: string;
+    // Prosthesis type
+    whatTypeOfProsthesis: string;
+    aboveKnee: string;
+    belowKnee: string;
+    // Length of usage
+    howLongHaveYouBeenUsing: string;
+    lessThan6Months: string;
+    moreThan1Year: string;
+    moreThan5Years: string;
+    // Main challenges
+    whatIsYourMainChallenge: string;
+    fitAndComfort: string;
+    mobility: string;
+    community: string;
+    costAndAccess: string;
+    training: string;
+    emotionalWellbeing: string;
+    // Activities
+    whichActivitiesMatter: string;
+    rehabilitation: string;
+    socialLife: string;
+    emotions: string;
+    painRelief: string;
+    work: string;
+    independence: string;
+    education: string;
+    confidence: string;
+    sports: string;
+    guidance: string;
+    maintenance: string;
+    // Error messages
+    pleaseSelectProfileType: string;
+    pleaseSelectProsthesisType: string;
+    pleaseSelectLengthUsage: string;
+    pleaseLoginFirst: string;
+    profileCompletedSuccess: string;
   };
 
   // Registration
@@ -124,7 +176,30 @@ export interface Translations {
     completeProfile: string;
     skipForNow: string;
     goToHome: string;
-  };
+    // Form fields and placeholders
+    firstName: string;
+    lastName: string;
+    emailAddress: string;
+    enterDateOfBirth: string;
+    phoneNumber: string;
+    password: string;
+    confirmPassword: string;
+    createAccount: string;
+    alreadyHaveAccount: string;
+    loginHere: string;
+    // Error messages
+    passwordsDoNotMatch: string;
+    passwordMinLength: string;
+    fillAllFields: string;
+    emailAlreadyRegistered: string;
+    phoneAlreadyRegistered: string;
+      failedToCreateUser: string;
+      registrationFailed: string;
+      accountCreatedSuccess: string;
+      verificationEmailSentPrefix: string;
+      verificationEmailSentSuffix: string;
+      goToLogin: string;
+    };
   
   // Homepage
   home: {
@@ -265,6 +340,7 @@ export interface Translations {
     cancel: string;
     close: string;
     save: string;
+    saving: string;
     delete: string;
     edit: string;
     view: string;
@@ -390,6 +466,58 @@ export const translations: Record<Language, Translations> = {
       skip: 'Skip',
       getStarted: 'Get Started',
       stepOf: 'of',
+      // Age input screen
+      welcomeToSarathi: 'Welcome to ',
+      letsGetToKnowYou: "Let's start by getting to know you better.",
+      tellUsYourAge: 'Tell us your age',
+      pleaseEnterValidAge: 'Please enter a valid age',
+      // User type selection
+      whoAreYou: 'Who are you?',
+      whoAreYouDescription: 'Select the option that best describes you',
+      iAmAmputee: 'I am an amputee',
+      iAmCaregiver: 'I am a caregiver',
+      iAmVolunteer: 'I am a volunteer',
+      iAmDoctor: 'I am a doctor',
+      iAmPractitioner: 'I am a practitioner',
+      // Medical information header
+      medicalInformation: 'Medical Information',
+      medicalInformationDescription: 'Help us understand your specific needs to recommend the best prosthetic solution',
+      // Prosthesis type
+      whatTypeOfProsthesis: 'What type of prosthesis do you use?',
+      aboveKnee: 'Above Knee',
+      belowKnee: 'Below Knee',
+      // Length of usage
+      howLongHaveYouBeenUsing: 'How long have you been using a prosthesis?',
+      lessThan6Months: 'Less than 6 months',
+      moreThan1Year: 'More than 1 year',
+      moreThan5Years: 'More than 5 years',
+      // Main challenges
+      whatIsYourMainChallenge: 'What is your main challenge right now?',
+      fitAndComfort: 'Fit and Comfort',
+      mobility: 'Mobility',
+      community: 'Community',
+      costAndAccess: 'Cost and Access',
+      training: 'Training',
+      emotionalWellbeing: 'Emotional Well-being',
+      // Activities
+      whichActivitiesMatter: 'Which activities matter the most to you?',
+      rehabilitation: 'Rehabilitation',
+      socialLife: 'Social Life',
+      emotions: 'Emotions',
+      painRelief: 'Pain Relief',
+      work: 'Work',
+      independence: 'Independence',
+      education: 'Education',
+      confidence: 'Confidence',
+      sports: 'Sports',
+      guidance: 'Guidance',
+      maintenance: 'Maintenance',
+      // Error messages
+      pleaseSelectProfileType: 'Please select your profile type',
+      pleaseSelectProsthesisType: 'Please select your prosthesis type',
+      pleaseSelectLengthUsage: 'Please select how long you have been using a prosthesis',
+      pleaseLoginFirst: 'Please log in first',
+      profileCompletedSuccess: 'Profile completed successfully!',
     },
     registration: {
       title: 'Create Your Account',
@@ -427,6 +555,29 @@ export const translations: Record<Language, Translations> = {
       completeProfile: 'Complete your profile',
       skipForNow: 'Skip for now',
       goToHome: 'Go to Home',
+      // Form fields and placeholders
+      firstName: 'First name',
+      lastName: 'Last name',
+      emailAddress: 'Email address',
+      enterDateOfBirth: 'Enter date of birth (DD.MM.YY)',
+      phoneNumber: 'Enter your phone number',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      createAccount: 'Create an account',
+      alreadyHaveAccount: 'Already have an account?',
+      loginHere: 'Login here',
+      // Error messages
+      passwordsDoNotMatch: 'Passwords do not match',
+      passwordMinLength: 'Password must be at least 6 characters',
+      fillAllFields: 'Please fill in all required fields',
+      emailAlreadyRegistered: 'Email already registered. Please login instead.',
+      phoneAlreadyRegistered: 'Phone number already registered. Please use a different number.',
+      failedToCreateUser: 'Failed to create user',
+      registrationFailed: 'Registration failed',
+      accountCreatedSuccess: 'Account created! Please check your email to verify your account.',
+      verificationEmailSentPrefix: "We've sent a verification link to ",
+      verificationEmailSentSuffix: ". Please click the link to verify your account and complete your profile setup.",
+      goToLogin: 'Go to Login',
     },
     home: {
       heroQuote: "It's time we shared the global knowledge of the developers of the prosthesis community and worked together on shared solutions to better and better help those in need",
@@ -558,6 +709,7 @@ export const translations: Record<Language, Translations> = {
       cancel: 'Cancel',
       close: 'Close',
       save: 'Save',
+      saving: 'Saving...',
       delete: 'Delete',
       edit: 'Edit',
       view: 'View',
@@ -679,6 +831,58 @@ export const translations: Record<Language, Translations> = {
       skip: 'छोड़ें',
       getStarted: 'शुरू करें',
       stepOf: 'का',
+      // Age input screen
+      welcomeToSarathi: 'स्वागत है ',
+      letsGetToKnowYou: 'आइए आपको बेहतर जानने से शुरू करें।',
+      tellUsYourAge: 'अपनी उम्र बताएं',
+      pleaseEnterValidAge: 'कृपया एक वैध उम्र दर्ज करें',
+      // User type selection
+      whoAreYou: 'आप कौन हैं?',
+      whoAreYouDescription: 'वह विकल्प चुनें जो आपका सबसे अच्छा वर्णन करता है',
+      iAmAmputee: 'मैं एक विच्छेदक हूँ',
+      iAmCaregiver: 'मैं एक देखभालकर्ता हूँ',
+      iAmVolunteer: 'मैं एक स्वयंसेवक हूँ',
+      iAmDoctor: 'मैं एक डॉक्टर हूँ',
+      iAmPractitioner: 'मैं एक प्रैक्टिशनर हूँ',
+      // Medical information header
+      medicalInformation: 'चिकित्सा जानकारी',
+      medicalInformationDescription: 'सर्वोत्तम कृत्रिम समाधान की सिफारिश करने के लिए हमें अपनी विशिष्ट आवश्यकताओं को समझने में मदद करें',
+      // Prosthesis type
+      whatTypeOfProsthesis: 'आप किस प्रकार के कृत्रिम अंग का उपयोग करते हैं?',
+      aboveKnee: 'घुटने के ऊपर',
+      belowKnee: 'घुटने के नीचे',
+      // Length of usage
+      howLongHaveYouBeenUsing: 'आप कब से कृत्रिम अंग का उपयोग कर रहे हैं?',
+      lessThan6Months: '6 महीने से कम',
+      moreThan1Year: '1 साल से अधिक',
+      moreThan5Years: '5 साल से अधिक',
+      // Main challenges
+      whatIsYourMainChallenge: 'अभी आपकी मुख्य चुनौती क्या है?',
+      fitAndComfort: 'फिट और आराम',
+      mobility: 'गतिशीलता',
+      community: 'समुदाय',
+      costAndAccess: 'लागत और पहुंच',
+      training: 'प्रशिक्षण',
+      emotionalWellbeing: 'भावनात्मक कल्याण',
+      // Activities
+      whichActivitiesMatter: 'आपके लिए कौन सी गतिविधियाँ सबसे अधिक मायने रखती हैं?',
+      rehabilitation: 'पुनर्वास',
+      socialLife: 'सामाजिक जीवन',
+      emotions: 'भावनाएं',
+      painRelief: 'दर्द से राहत',
+      work: 'काम',
+      independence: 'स्वतंत्रता',
+      education: 'शिक्षा',
+      confidence: 'आत्मविश्वास',
+      sports: 'खेल',
+      guidance: 'मार्गदर्शन',
+      maintenance: 'रखरखाव',
+      // Error messages
+      pleaseSelectProfileType: 'कृपया अपना प्रोफ़ाइल प्रकार चुनें',
+      pleaseSelectProsthesisType: 'कृपया अपना कृत्रिम अंग प्रकार चुनें',
+      pleaseSelectLengthUsage: 'कृपया चुनें कि आप कब से कृत्रिम अंग का उपयोग कर रहे हैं',
+      pleaseLoginFirst: 'कृपया पहले लॉग इन करें',
+      profileCompletedSuccess: 'प्रोफाइल सफलतापूर्वक पूर्ण हो गया!',
     },
     registration: {
       title: 'अपना खाता बनाएं',
@@ -716,6 +920,29 @@ export const translations: Record<Language, Translations> = {
       completeProfile: 'अपनी प्रोफ़ाइल पूरी करें',
       skipForNow: 'अभी के लिए छोड़ें',
       goToHome: 'होम पर जाएं',
+      // Form fields and placeholders
+      firstName: 'पहला नाम',
+      lastName: 'अंतिम नाम',
+      emailAddress: 'ईमेल पता',
+      enterDateOfBirth: 'जन्म तिथि दर्ज करें (DD.MM.YY)',
+      phoneNumber: 'अपना फोन नंबर दर्ज करें',
+      password: 'पासवर्ड',
+      confirmPassword: 'पासवर्ड की पुष्टि करें',
+      createAccount: 'खाता बनाएं',
+      alreadyHaveAccount: 'क्या आपके पास पहले से एक खाता मौजूद है?',
+      loginHere: 'यहां लॉगिन करें',
+      // Error messages
+      passwordsDoNotMatch: 'पासवर्ड मेल नहीं खाते',
+      passwordMinLength: 'पासवर्ड कम से कम 6 अक्षर का होना चाहिए',
+      fillAllFields: 'कृपया सभी आवश्यक फ़ील्ड भरें',
+      emailAlreadyRegistered: 'ईमेल पहले से पंजीकृत है। कृपया इसके बजाय लॉगिन करें।',
+      phoneAlreadyRegistered: 'फोन नंबर पहले से पंजीकृत है। कृपया एक अलग नंबर का उपयोग करें।',
+      failedToCreateUser: 'उपयोगकर्ता बनाने में विफल',
+      registrationFailed: 'पंजीकरण विफल',
+      accountCreatedSuccess: 'खाता बनाया गया! कृपया अपने खाते की पुष्टि करने के लिए अपना ईमेल जांचें।',
+      verificationEmailSentPrefix: 'हमने आपको एक सत्यापन लिंक भेजा है ',
+      verificationEmailSentSuffix: '। कृपया अपने खाते को सत्यापित करने और अपनी प्रोफ़ाइल सेटअप पूरा करने के लिए लिंक पर क्लिक करें।',
+      goToLogin: 'लॉगिन पर जाएं',
     },
     home: {
       heroQuote: 'अब समय आ गया है कि हम प्रोस्थेसिस समुदाय के डेवलपर्स के वैश्विक ज्ञान को साझा करें और जरूरतमंदों की बेहतर मदद के लिए साझा समाधानों पर एक साथ काम करें',
@@ -847,6 +1074,7 @@ export const translations: Record<Language, Translations> = {
       cancel: 'रद्द करें',
       close: 'बंद करें',
       save: 'सहेजें',
+      saving: 'सहेज रहे हैं...',
       delete: 'हटाएं',
       edit: 'संपादित करें',
       view: 'देखें',

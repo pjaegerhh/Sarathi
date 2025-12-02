@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { UserRole } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabase';
 import backgroundImage from '../assets/images/Background_login.png';
@@ -10,6 +11,8 @@ interface RegistrationPageProps {
 }
 
 export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
+  const { t } = useLanguage();
+  
   // Password visibility state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -107,17 +110,17 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
     
     // Validation checks
     if (!passwordsMatch) {
-      toast.error('Passwords do not match');
+      toast.error(t.registration.passwordsDoNotMatch);
       return;
     }
 
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t.registration.passwordMinLength);
       return;
     }
 
     if (!formData.firstName || !formData.lastName || !formData.email) {
-      toast.error('Please fill in all required fields');
+      toast.error(t.registration.fillAllFields);
       return;
     }
 
@@ -127,7 +130,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       // Check if email already exists
       const emailExists = await checkEmailExists(formData.email);
       if (emailExists) {
-        toast.error('Email already registered. Please login instead.');
+        toast.error(t.registration.emailAlreadyRegistered);
         setLoading(false);
         return;
       }
@@ -136,7 +139,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       if (formData.telephone) {
         const phoneExists = await checkPhoneExists(formData.telephone);
         if (phoneExists) {
-          toast.error('Phone number already registered. Please use a different number.');
+          toast.error(t.registration.phoneAlreadyRegistered);
           setLoading(false);
           return;
         }
@@ -145,7 +148,6 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       // Create user with Supabase Auth - WITH EMAIL CONFIRMATION REQUIRED
       // Use window.location.origin to get the current domain (works for localhost and production)
       const redirectUrl = `${window.location.origin}/profile-verified`;
-      console.log('📧 Email redirect URL:', redirectUrl);
       
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: formData.email,
@@ -156,6 +158,8 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
             first_name: formData.firstName,
             last_name: formData.lastName,
             full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+            telephone: formData.telephone,
+            date_of_birth: formData.dateOfBirth,
           }
         }
       });
@@ -165,23 +169,39 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       }
 
       if (!authData.user) {
-        throw new Error('Failed to create user');
+        throw new Error(t.registration.failedToCreateUser);
       }
-
-      console.log('✅ User created in auth.users:', authData.user.id);
       
-      // The database trigger will automatically create the user profile
-      // We don't need to manually insert/update here
-      console.log('📝 User profile will be created automatically by database trigger');
+      // Wait a moment for the trigger to create the user profile
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Update the user profile with additional data that might not be in the trigger
+      try {
+        const { error: updateError } = await supabase
+          .from('sarathi_user')
+          .update({
+            first_name: formData.firstName,
+            name: formData.lastName, // name should be last name only
+            telephone: formData.telephone || null,
+            date_of_birth: formData.dateOfBirth || null,
+          })
+          .eq('uuid', authData.user.id);
+
+        if (updateError) {
+          console.warn('⚠️ Could not update additional profile data:', updateError);
+        }
+      } catch (error) {
+        console.warn('⚠️ Exception updating profile data:', error);
+      }
 
       // Show success screen - user will verify email before proceeding
       setShowSuccessScreen(true);
       
-      toast.success('Account created! Please check your email to verify your account.');
+      toast.success(t.registration.accountCreatedSuccess);
       
     } catch (error: any) {
       console.error('Registration error:', error);
-      toast.error(error.message || 'Registration failed');
+      toast.error(error.message || t.registration.registrationFailed);
     } finally {
       setLoading(false);
     }
@@ -291,7 +311,9 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                 lineHeight: '1.6',
                 marginBottom: '32px'
               }}>
-                We've sent a verification link to <strong>{formData.email}</strong>. Please click the link to verify your account and complete your profile setup.
+                {t.registration.verificationEmailSentPrefix}
+                <strong>{formData.email}</strong>
+                {t.registration.verificationEmailSentSuffix}
               </p>
 
               <button
@@ -312,7 +334,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                 onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                 onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
               >
-                Go to Login
+                {t.registration.goToLogin}
               </button>
 
               <p style={{
@@ -347,7 +369,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                 Register
               </h1>
               <p style={{ fontSize: '14px', color: '#979797' }}>
-                Create an account to continue
+                {t.registration.title}
               </p>
             </div>
 
@@ -374,7 +396,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
-                  placeholder="First name"
+                  placeholder={t.registration.firstName}
                   required
                   style={{
                     width: '100%',
@@ -409,7 +431,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
-                  placeholder="Last name"
+                  placeholder={t.registration.lastName}
                   required
                   style={{
                     width: '100%',
@@ -444,7 +466,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="Email address"
+                  placeholder={t.registration.emailAddress}
                   required
                   style={{
                     width: '100%',
@@ -490,7 +512,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   type="date"
                   value={formData.dateOfBirth}
                   onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                  placeholder="Enter date of birth (DD.MM.YY)"
+                  placeholder={t.registration.enterDateOfBirth}
                   style={{
                     width: '100%',
                     height: '52px',
@@ -528,7 +550,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                     type="tel"
                     value={formData.telephone}
                     onChange={(e) => handleInputChange('telephone', e.target.value)}
-                    placeholder="Enter your phone number"
+                    placeholder={t.registration.phoneNumber}
                     style={{
                       flex: 1,
                       border: 'none',
@@ -727,13 +749,13 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   opacity: loading ? 0.5 : 1
                 }}
               >
-                {loading ? 'Loading...' : 'Create an account'}
+                {loading ? t.common.loading : t.registration.createAccount}
               </button>
 
               {/* Login Link */}
               <div style={{ textAlign: 'center', fontSize: '14px', marginBottom: '16px' }}>
                 <span style={{ color: '#979797' }}>
-                  Have an account ?
+                  {t.registration.alreadyHaveAccount}
                 </span>
                 {' '}
                 <button
@@ -748,7 +770,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                     fontWeight: 500
                   }}
                 >
-                  Login
+                  {t.registration.loginHere}
                 </button>
               </div>
 

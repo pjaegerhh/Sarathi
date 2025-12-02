@@ -18,13 +18,9 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavi
 
   useEffect(() => {
     const handleEmailVerification = async () => {
-      console.log('🔍 ProfileVerifiedPage: Starting email verification check');
-      
       // Check if there's a hash in the URL (email verification)
       const hash = window.location.hash;
       if (hash && (hash.includes('access_token') || hash.includes('type=signup'))) {
-        console.log('📧 Email verification detected in URL');
-        
         try {
           // Wait a moment for Supabase to process the URL
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -40,14 +36,11 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavi
           }
           
           if (session && session.user) {
-            console.log('✅ User session established after email verification:', session.user.email);
             toast.success('Email verified successfully! You are now logged in.');
             
             // Force a refresh of the auth state by triggering the context manually
             // The AuthContext should pick this up via onAuthStateChange
           } else {
-            console.warn('⚠️ No session found after verification, trying to refresh...');
-            
             // Try to refresh the session
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
             
@@ -58,7 +51,6 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavi
               return;
             }
             
-            console.log('✅ Session established after refresh:', refreshData.session.user.email);
             toast.success('Email verified successfully! You are now logged in.');
           }
         } catch (error) {
@@ -66,8 +58,6 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavi
           setVerificationError(true);
           setIsReady(true);
         }
-      } else {
-        console.log('ℹ️ No verification token in URL');
       }
     };
 
@@ -76,16 +66,12 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavi
 
   useEffect(() => {
     // Wait for either user to be available or loading to complete
-    console.log('🔍 ProfileVerifiedPage: Auth state:', { hasUser: !!user, loading });
-    
     if (!loading) {
       if (user) {
-        console.log('✅ ProfileVerifiedPage: User is logged in');
         setIsReady(true);
       } else {
         // No user after loading completed - show ready anyway
         // The verification check above will handle showing error if needed
-        console.log('⚠️ No user found after auth loading completed');
         setIsReady(true);
       }
     }
@@ -530,7 +516,7 @@ export const ProfileVerifiedPage: React.FC<ProfileVerifiedPageProps> = ({ onNavi
 
             {/* Explore Sarathi Button */}
             <button
-              onClick={() => onNavigate('profile-onboarding')}
+              onClick={() => onNavigate('onboarding-flow')}
               style={{
                 background: '#388896',
                 color: 'white',

@@ -39,17 +39,12 @@ export function ProfileSelectionPage({ onNavigate, userName = 'User' }: ProfileS
     setLoading(true);
     
     try {
-      console.log('📝 Updating user_type to:', selectedProfile);
-      console.log('👤 User ID:', user.id);
-      
       // Update user_type in sarathi_user table
       const { data, error } = await supabase
         .from('sarathi_user')
         .update({ user_type: selectedProfile })
         .eq('uuid', user.id)
         .select();
-      
-      console.log('📊 Update result:', { data, error });
       
       if (error) {
         console.error('❌ Error updating user_type:', error);
@@ -58,7 +53,6 @@ export function ProfileSelectionPage({ onNavigate, userName = 'User' }: ProfileS
         return;
       }
       
-      console.log('✅ User type updated successfully');
       toast.success('Profile type saved!');
       
       // Navigate to complete page
