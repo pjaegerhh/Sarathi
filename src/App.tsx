@@ -232,7 +232,7 @@ function AppContent() {
       )}
 
       {/* Page Content */}
-      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && !isMobile ? 'pt-[72px]' : ''}>
+      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && currentPage !== 'profile' && !isMobile ? 'pt-[72px]' : ''}>
         {renderPage()}
       </main>
 

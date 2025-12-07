@@ -514,15 +514,24 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               width: '186px',
               height: '186px',
               borderRadius: '50%',
-              background: user.profile_picture_url 
-                ? `url(${user.profile_picture_url})` 
-                : `url(${defaultProfilePic})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+              background: '#ffffff',
+              overflow: 'hidden',
               border: '6px solid #ffffff',
               position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
+            <img
+              src={user.profile_picture_url || defaultProfilePic}
+              alt={t.profile.profilePicture}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
             {/* Change picture button - only visible in edit mode */}
             {isEditing && (
               <>

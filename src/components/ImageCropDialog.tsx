@@ -2,6 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import Cropper from 'react-easy-crop';
 import { useLanguage } from '../contexts/LanguageContext';
 
+const PROFILE_TARGET_SIZE = 186; // matches ellipse container
+const COVER_TARGET_WIDTH = 1280;
+const COVER_TARGET_HEIGHT = 420;
+
 interface ImageCropDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -66,9 +70,9 @@ export function ImageCropDialog({
       }
 
       // For cover photos (aspect 1280/420), resize to exactly 1280x420
-      // For profile photos (aspect 1), resize to square (use width)
-      const targetWidth = aspect === 1280 / 420 ? 1280 : croppedAreaPixels.width;
-      const targetHeight = aspect === 1280 / 420 ? 420 : croppedAreaPixels.width;
+      // For profile photos (aspect 1), resize to 186x186 to match ellipse container
+      const targetWidth = aspect === 1280 / 420 ? COVER_TARGET_WIDTH : PROFILE_TARGET_SIZE;
+      const targetHeight = aspect === 1280 / 420 ? COVER_TARGET_HEIGHT : PROFILE_TARGET_SIZE;
 
       // Set canvas size to target dimensions
       canvas.width = targetWidth;
@@ -186,6 +190,10 @@ export function ImageCropDialog({
             crop={crop}
             zoom={zoom}
             aspect={aspect}
+            minZoom={0.3}
+            maxZoom={3}
+            cropShape={aspect === 1 ? 'round' : 'rect'}
+            restrictPosition={false}
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropCompleteInternal}
@@ -215,9 +223,9 @@ export function ImageCropDialog({
             </label>
             <input
               type="range"
-              min={1}
+              min={0.3}
               max={3}
-              step={0.1}
+              step={0.05}
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
               style={{
