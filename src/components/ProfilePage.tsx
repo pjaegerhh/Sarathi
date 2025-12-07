@@ -58,7 +58,38 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     workplace: user?.workplace || '',
     place_of_residence: user?.place_of_residence || '',
     my_story: user?.my_story || '',
+    prosthesisType: (user as any)?.prosthesisType || '',
+    lengthUsage: (user as any)?.lengthUsage || '',
+    activities: (user as any)?.activities || [],
+    mainChallenge: (user as any)?.mainChallenge || [],
   });
+  const [activitiesModalOpen, setActivitiesModalOpen] = useState(false);
+  const [challengesModalOpen, setChallengesModalOpen] = useState(false);
+
+  const activityOptions = [
+    'rehabilitation',
+    'social_life',
+    'emotions',
+    'pain_relief',
+    'work',
+    'independence',
+    'education',
+    'confidence',
+    'training',
+    'sports',
+    'guidance',
+    'community',
+    'maintenance',
+  ];
+
+  const challengeOptions = [
+    'fit_comfort',
+    'mobility',
+    'community',
+    'cost_access',
+    'training',
+    'emotional',
+  ];
 
   useEffect(() => {
     const handleResize = () => {
@@ -76,6 +107,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         workplace: user.workplace || '',
         place_of_residence: user.place_of_residence || '',
         my_story: user.my_story || '',
+        prosthesisType: (user as any)?.prosthesisType || '',
+        lengthUsage: (user as any)?.lengthUsage || '',
+        activities: (user as any)?.activities || [],
+        mainChallenge: (user as any)?.mainChallenge || [],
       });
     }
   }, [user]);
@@ -260,7 +295,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         workplace: editData.workplace || null,
         place_of_residence: editData.place_of_residence || null,
         my_story: editData.my_story || null,
-      });
+        prosthesis_type: editData.prosthesisType || null,
+        length_usage: editData.lengthUsage || null,
+        activities: editData.activities || [],
+        main_challenge: editData.mainChallenge || [],
+      } as any);
       setHasUnsavedChanges(false);
       setIsEditing(false);
       toast.success(t.profile.profileSaved);
@@ -280,6 +319,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         workplace: user.workplace || '',
         place_of_residence: user.place_of_residence || '',
         my_story: user.my_story || '',
+        prosthesisType: (user as any)?.prosthesisType || '',
+        lengthUsage: (user as any)?.lengthUsage || '',
+        activities: (user as any)?.activities || [],
+        mainChallenge: (user as any)?.mainChallenge || [],
       });
     }
     setHasUnsavedChanges(false);
@@ -338,7 +381,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         editData.profession !== (user.profession || '') ||
         editData.workplace !== (user.workplace || '') ||
         editData.place_of_residence !== (user.place_of_residence || '') ||
-        editData.my_story !== (user.my_story || '');
+        editData.my_story !== (user.my_story || '') ||
+        editData.prosthesisType !== ((user as any)?.prosthesisType || '') ||
+        editData.lengthUsage !== ((user as any)?.lengthUsage || '') ||
+        JSON.stringify(editData.activities || []) !== JSON.stringify((user as any)?.activities || []) ||
+        JSON.stringify(editData.mainChallenge || []) !== JSON.stringify((user as any)?.mainChallenge || []);
       setHasUnsavedChanges(hasChanges);
     }
   }, [editData, isEditing, user]);
@@ -400,12 +447,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
   const getChallengeIcon = (challengeId: string) => {
     const challengeMap: Record<string, string> = {
-      'fit_comfort': fitComfortIcon,
-      'mobility': mobilityIcon,
-      'community': communityIcon,
-      'cost_access': costAccessIcon,
-      'training': trainingIcon,
-      'emotional': emotionalIcon,
+      fit_comfort: fitComfortIcon,
+      mobility: mobilityIcon,
+      community: communityIcon,
+      cost_access: costAccessIcon,
+      training: trainingIcon,
+      emotional: emotionalIcon,
     };
     return challengeMap[challengeId] || fitComfortIcon;
   };
@@ -420,6 +467,26 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       'emotional': t.onboarding.emotionalWellbeing,
     };
     return challengeMap[challengeId] || challengeId;
+  };
+
+  const toggleActivity = (id: string) => {
+    setEditData((prev) => {
+      const exists = (prev.activities || []).includes(id);
+      return {
+        ...prev,
+        activities: exists ? prev.activities.filter((a: string) => a !== id) : [...(prev.activities || []), id],
+      };
+    });
+  };
+
+  const toggleChallenge = (id: string) => {
+    setEditData((prev) => {
+      const exists = (prev.mainChallenge || []).includes(id);
+      return {
+        ...prev,
+        mainChallenge: exists ? prev.mainChallenge.filter((c: string) => c !== id) : [...(prev.mainChallenge || []), id],
+      };
+    });
   };
 
   // Mock data for uploads, connections, and activities (to be replaced with real data later)
@@ -507,7 +574,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         <div style={{ 
           position: 'absolute', 
           left: isMobile ? '20px' : '120px', 
-          top: '352px' 
+          top: '352px',
+          width: '186px',
+          height: '186px',
+          overflow: 'visible',
         }}>
           <div
             style={{
@@ -532,39 +602,39 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 objectFit: 'cover',
               }}
             />
-            {/* Change picture button - only visible in edit mode */}
-            {isEditing && (
-              <>
-                <input
-                  ref={profileFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={handleProfilePhotoSelect}
-                />
-                <button
-                  onClick={() => profileFileInputRef.current?.click()}
-                  style={{
-                    position: 'absolute',
-                    right: '0',
-                    bottom: '0',
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    background: '#f2f2f7',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0px 0px 10px 0px #dddddd',
-                  }}
-                >
-                  <img src={fotoIcon} alt="upload photo" width="24" height="24" />
-                </button>
-              </>
-            )}
           </div>
+          {/* Change picture button - only visible in edit mode */}
+          {isEditing && (
+            <>
+              <input
+                ref={profileFileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleProfilePhotoSelect}
+              />
+              <button
+                onClick={() => profileFileInputRef.current?.click()}
+                style={{
+                  position: 'absolute',
+                  right: '0',
+                  bottom: '0',
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '50%',
+                  background: '#f2f2f7',
+                  border: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0px 0px 10px 0px #dddddd',
+                }}
+              >
+                <img src={fotoIcon} alt="upload photo" width="24" height="24" />
+              </button>
+            </>
+          )}
         </div>
 
         {/* Name and Location - 10px below cover picture (430px) */}
@@ -614,7 +684,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           top: '458px' 
         }}>
           <button
-            onClick={handleEditToggle}
+            onClick={isEditing ? handleSave : handleEditToggle}
             disabled={saving}
             onMouseEnter={(e) => {
               if (!saving) {
@@ -705,46 +775,103 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 {/* 1st row: Profession */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                   <img src={achievementIcon} alt="achievement" width="31" height="31" />
-                  {user.profession && (
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      lineHeight: '28px',
-                      color: '#192126',
-                    }}>
-                      {user.profession}
-                    </span>
+                  {isEditing ? (
+                    <input
+                      value={editData.profession}
+                      onChange={(e) => setEditData({ ...editData, profession: e.target.value })}
+                      style={{
+                        flex: 1,
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        lineHeight: '24px',
+                        color: '#192126',
+                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid #d9d9d9',
+                        outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    user.profession && (
+                      <span style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        lineHeight: '28px',
+                        color: '#192126',
+                      }}>
+                        {user.profession}
+                      </span>
+                    )
                   )}
                 </div>
                 {/* 2nd row: Workplace */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                   <img src={workIcon} alt="work" width="31" height="31" />
-                  {user.workplace && (
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      lineHeight: '28px',
-                      color: '#192126',
-                    }}>
-                      {t.profile.worksAt} {user.workplace}
-                    </span>
+                  {isEditing ? (
+                    <input
+                      value={editData.workplace}
+                      onChange={(e) => setEditData({ ...editData, workplace: e.target.value })}
+                      style={{
+                        flex: 1,
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        lineHeight: '24px',
+                        color: '#192126',
+                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid #d9d9d9',
+                        outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    user.workplace && (
+                      <span style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        lineHeight: '28px',
+                        color: '#192126',
+                      }}>
+                        {t.profile.worksAt} {user.workplace}
+                      </span>
+                    )
                   )}
                 </div>
                 {/* 3rd row: Place of Residence */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <img src={locationPrimaryIcon} alt="location" width="25" height="25" />
-                  {user.place_of_residence && (
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      lineHeight: '28px',
-                      color: '#192126',
-                    }}>
-                      {t.profile.from} {user.place_of_residence}
-                    </span>
+                  {isEditing ? (
+                    <input
+                      value={editData.place_of_residence}
+                      onChange={(e) => setEditData({ ...editData, place_of_residence: e.target.value })}
+                      style={{
+                        flex: 1,
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        lineHeight: '24px',
+                        color: '#192126',
+                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        border: '1px solid #d9d9d9',
+                        outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    user.place_of_residence && (
+                      <span style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        lineHeight: '28px',
+                        color: '#192126',
+                      }}>
+                        {t.profile.from} {user.place_of_residence}
+                      </span>
+                    )
                   )}
                 </div>
               </div>
@@ -760,39 +887,79 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {user.userType === 'amputee' ? (
                   <>
-                    {user.prosthesisType && (
-                      <p style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontSize: '18px',
-                        fontWeight: 500,
-                        lineHeight: '28px',
-                        color: '#192126',
-                        margin: 0,
-                      }}>
-                        <span style={{ fontWeight: 400 }}>{t.profile.prostheticType}:</span>
-                        <span style={{ fontWeight: 500, marginLeft: '8px' }}>
-                          {user.prosthesisType === 'below_knee' ? t.profile.belowKnee : t.profile.aboveKnee}
-                        </span>
-                      </p>
+                    {isEditing ? (
+                      <select
+                        value={editData.prosthesisType}
+                        onChange={(e) => setEditData({ ...editData, prosthesisType: e.target.value === '__clear__' ? '' : e.target.value })}
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '16px',
+                          padding: '10px 12px',
+                          borderRadius: '12px',
+                          border: '1px solid #d9d9d9',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="__clear__">Clear</option>
+                        <option value="above_knee">{t.profile.aboveKnee}</option>
+                        <option value="below_knee">{t.profile.belowKnee}</option>
+                      </select>
+                    ) : (
+                      editData.prosthesisType && (
+                        <p style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '18px',
+                          fontWeight: 500,
+                          lineHeight: '28px',
+                          color: '#192126',
+                          margin: 0,
+                        }}>
+                          <span style={{ fontWeight: 400 }}>{t.profile.prostheticType}:</span>
+                          <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                            {editData.prosthesisType === 'below_knee' ? t.profile.belowKnee : t.profile.aboveKnee}
+                          </span>
+                        </p>
+                      )
                     )}
-                    {user.lengthUsage && (
-                      <p style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontSize: '18px',
-                        fontWeight: 500,
-                        lineHeight: '28px',
-                        color: '#192126',
-                        margin: 0,
-                      }}>
-                        <span style={{ fontWeight: 400 }}>{t.profile.usageDuration}:</span>
-                        <span style={{ fontWeight: 500, marginLeft: '8px' }}>
-                          {user.lengthUsage === 'less_than_6_month' 
-                            ? t.profile.lessThan6Months 
-                            : user.lengthUsage === 'more_than_1_year'
-                            ? t.profile.moreThan1Year
-                            : t.profile.moreThan5Years}
-                        </span>
-                      </p>
+
+                    {isEditing ? (
+                      <select
+                        value={editData.lengthUsage}
+                        onChange={(e) => setEditData({ ...editData, lengthUsage: e.target.value === '__clear__' ? '' : e.target.value })}
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '16px',
+                          padding: '10px 12px',
+                          borderRadius: '12px',
+                          border: '1px solid #d9d9d9',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="__clear__">Clear</option>
+                        <option value="less_than_6_month">{t.profile.lessThan6Months}</option>
+                        <option value="more_than_1_year">{t.profile.moreThan1Year}</option>
+                        <option value="more_than_5_years">{t.profile.moreThan5Years}</option>
+                      </select>
+                    ) : (
+                      editData.lengthUsage && (
+                        <p style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '18px',
+                          fontWeight: 500,
+                          lineHeight: '28px',
+                          color: '#192126',
+                          margin: 0,
+                        }}>
+                          <span style={{ fontWeight: 400 }}>{t.profile.usageDuration}:</span>
+                          <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                            {editData.lengthUsage === 'less_than_6_month' 
+                              ? t.profile.lessThan6Months 
+                              : editData.lengthUsage === 'more_than_1_year'
+                              ? t.profile.moreThan1Year
+                              : t.profile.moreThan5Years}
+                          </span>
+                        </p>
+                      )
                     )}
                   </>
                 ) : (
@@ -962,8 +1129,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               }}>
                 {t.profile.interestsAndActivities}
               </h2>
-              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                {user.activities && user.activities.map((activityId) => (
+              <div
+                style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default' }}
+                onClick={() => isEditing && setActivitiesModalOpen(true)}
+              >
+                {(isEditing ? editData.activities : (user as any)?.activities || []).map((activityId: string) => (
                   <div
                     key={activityId}
                     style={{
@@ -994,6 +1164,17 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     </span>
                   </div>
                 ))}
+                {isEditing && (editData.activities || []).length === 0 && (
+                  <span style={{
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    lineHeight: '20px',
+                    color: '#505050',
+                  }}>
+                    {t.profile.editProfile}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -1014,8 +1195,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               }}>
                 {t.profile.challengesFaced}
               </h2>
-              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                {user.mainChallenge && user.mainChallenge.map((challengeId) => (
+              <div
+                style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default' }}
+                onClick={() => isEditing && setChallengesModalOpen(true)}
+              >
+                {(isEditing ? editData.mainChallenge : (user as any)?.mainChallenge || []).map((challengeId: string) => (
                   <div
                     key={challengeId}
                     style={{
@@ -1055,6 +1239,17 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     </span>
                   </div>
                 ))}
+                {isEditing && (editData.mainChallenge || []).length === 0 && (
+                  <span style={{
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    lineHeight: '20px',
+                    color: '#505050',
+                  }}>
+                    {t.profile.editProfile}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1121,18 +1316,39 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   padding: '20px',
                   width: '100%',
                 }}>
-                  <p style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    lineHeight: '22px',
-                    color: '#192126',
-                    textAlign: 'justify',
-                    margin: 0,
-                    whiteSpace: 'pre-wrap',
-                  }}>
-                    {user.my_story || 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.   At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet....'}
-                  </p>
+                  {isEditing ? (
+                    <textarea
+                      value={editData.my_story}
+                      onChange={(e) => setEditData({ ...editData, my_story: e.target.value })}
+                      style={{
+                        width: '100%',
+                        minHeight: '160px',
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        lineHeight: '22px',
+                        color: '#192126',
+                        border: '1px solid #d9d9d9',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        resize: 'vertical',
+                        outline: 'none',
+                      }}
+                    />
+                  ) : (
+                    <p style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '22px',
+                      color: '#192126',
+                      textAlign: 'justify',
+                      margin: 0,
+                      whiteSpace: 'pre-wrap',
+                    }}>
+                      {editData.my_story || ''}
+                    </p>
+                  )}
                 </div>
 
                 {/* Read More Button */}
@@ -1432,6 +1648,188 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           onCropComplete={uploadProfilePhoto}
           aspect={1}
         />
+      )}
+
+      {/* Activities Modal */}
+      {activitiesModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }} onClick={() => setActivitiesModalOpen(false)}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              padding: '24px',
+              maxWidth: '640px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '20px',
+              fontWeight: 500,
+              margin: '0 0 16px 0',
+              color: '#192126',
+            }}>
+              {t.profile.interestsAndActivities}
+            </h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+              {activityOptions.map((id) => (
+                <label
+                  key={id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '14px',
+                    border: '1px solid #d9d9d9',
+                    cursor: 'pointer',
+                    minWidth: '220px',
+                    minHeight: '52px',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={(editData.activities || []).includes(id)}
+                    onChange={() => toggleActivity(id)}
+                  />
+                  <img src={getActivityIcon(id)} alt={id} width={24} height={24} />
+                  <span style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', color: '#192126' }}>
+                    {getActivityLabel(id)}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+              <button
+                onClick={() => setActivitiesModalOpen(false)}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                }}
+              >
+                {t.profile.cancel}
+              </button>
+              <button
+                onClick={() => setActivitiesModalOpen(false)}
+                style={{
+                  background: '#388896',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                }}
+              >
+                {t.profile.saveProfile}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Challenges Modal */}
+      {challengesModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }} onClick={() => setChallengesModalOpen(false)}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              padding: '24px',
+              maxWidth: '640px',
+              width: '90%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '20px',
+              fontWeight: 500,
+              margin: '0 0 16px 0',
+              color: '#192126',
+            }}>
+              {t.profile.challengesFaced}
+            </h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+              {challengeOptions.map((id) => (
+                <label
+                  key={id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '14px',
+                    border: '1px solid #d9d9d9',
+                    cursor: 'pointer',
+                    minWidth: '220px',
+                    minHeight: '52px',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={(editData.mainChallenge || []).includes(id)}
+                    onChange={() => toggleChallenge(id)}
+                  />
+                  <img src={getChallengeIcon(id)} alt={id} width={24} height={24} />
+                  <span style={{ fontFamily: 'Roboto, sans-serif', fontSize: '14px', color: '#192126' }}>
+                    {getChallengeLabel(id)}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>
+              <button
+                onClick={() => setChallengesModalOpen(false)}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                }}
+              >
+                {t.profile.cancel}
+              </button>
+              <button
+                onClick={() => setChallengesModalOpen(false)}
+                style={{
+                  background: '#388896',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                }}
+              >
+                {t.profile.saveProfile}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Save Dialog */}

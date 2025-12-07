@@ -78,6 +78,10 @@ export function ImageCropDialog({
       canvas.width = targetWidth;
       canvas.height = targetHeight;
 
+      // Fill background to avoid transparency around smaller images
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+
       // Draw the cropped image, resized to target dimensions
       ctx.drawImage(
         image,
