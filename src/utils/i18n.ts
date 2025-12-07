@@ -378,11 +378,94 @@ export interface Translations {
     stayOnPage: string;
     addChallenge: string;
     addActivity: string;
+    changeCoverPicture: string;
+    changeProfilePicture: string;
+    uploadCoverPicture: string;
+    uploadProfilePicture: string;
+    cropImage: string;
+    cropAndSave: string;
+    cancel: string;
+    uploading: string;
+    about: string;
+    myStory: string;
+    readMore: string;
+    profession: string;
+    workplace: string;
+    placeOfResidence: string;
+    worksAt: string;
+    from: string;
+    prostheticType: string;
+    uploads: string;
+    seeAllPosts: string;
+    connections: string;
+    seeAllConnections: string;
+    makeAPost: string;
+    shareAThought: string;
+    photoVideo: string;
+    latestActivities: string;
+    noRecentActivities: string;
+    savingChanges: string;
     removeChallenge: string;
     removeActivity: string;
     passwordMismatch: string;
     passwordTooShort: string;
     oldPasswordRequired: string;
+    // New profile page fields
+    about: string;
+    myStory: string;
+    profession: string;
+    workplace: string;
+    placeOfResidence: string;
+    location: string;
+    worksAt: string;
+    from: string;
+    uploads: string;
+    connections: string;
+    makeAPost: string;
+    shareAThought: string;
+    photoVideo: string;
+    seeAllPosts: string;
+    seeAllConnections: string;
+    readMore: string;
+    verifiedUser: string;
+    coverPicture: string;
+    profilePicture: string;
+    changePicture: string;
+    latestActivities: string;
+    youCommented: string;
+    youLiked: string;
+    youJoinedGroup: string;
+    youEarnedBadge: string;
+    commented: string;
+    liked: string;
+    agoHours: string;
+    agoDays: string;
+    agoWeek: string;
+    agoWeeks: string;
+    ago: string;
+    on: string;
+    and: string;
+    otherPeople: string;
+    others: string;
+    yourRecentPost: string;
+    forFirstCommunityReplies: string;
+    interestsAndActivities: string;
+    challengesFaced: string;
+    communityActivities: string;
+    prostheticType: string;
+    usageDuration: string;
+    addCoverPhoto: string;
+    photo: string;
+    video: string;
+    logOut: string;
+    deleteAccount: string;
+    coverPhotoUploaded: string;
+    profilePhotoUploaded: string;
+    profileSaved: string;
+    saveProfile: string;
+    discard: string;
+    saving: string;
+    save: string;
   };
 }
 
@@ -750,6 +833,90 @@ export const translations: Record<Language, Translations> = {
       passwordMismatch: 'Passwords do not match',
       passwordTooShort: 'Password must be at least 6 characters',
       oldPasswordRequired: 'Current password is required',
+      changeCoverPicture: 'Change Cover Picture',
+      changeProfilePicture: 'Change Profile Picture',
+      uploadCoverPicture: 'Upload Cover Picture',
+      uploadProfilePicture: 'Upload Profile Picture',
+      cropImage: 'Crop Image',
+      cropAndSave: 'Crop & Save',
+      cancel: 'Cancel',
+      uploading: 'Uploading...',
+      about: 'About',
+      myStory: 'My Story',
+      readMore: 'Read More',
+      profession: 'Profession',
+      workplace: 'Workplace',
+      placeOfResidence: 'Place of Residence',
+      worksAt: 'Works at',
+      from: 'From',
+      prostheticType: 'Prosthetic type',
+      uploads: 'Uploads',
+      seeAllPosts: 'See all posts',
+      connections: 'Connections',
+      seeAllConnections: 'See all connections',
+      makeAPost: 'Make a post',
+      shareAThought: 'Share a thought..',
+      photoVideo: 'Photo / Video',
+      latestActivities: 'Latest Activities',
+      noRecentActivities: 'No recent activities',
+      savingChanges: 'Saving...',
+      // New profile page fields
+      about: 'About',
+      myStory: 'My Story',
+      profession: 'Profession',
+      workplace: 'Workplace',
+      placeOfResidence: 'Place of Residence',
+      location: 'Location',
+      worksAt: 'Works at',
+      from: 'From',
+      uploads: 'Uploads',
+      connections: 'Connections',
+      makeAPost: 'Make a post',
+      shareAThought: 'Share a thought..',
+      photoVideo: 'Photo / Video',
+      seeAllPosts: 'See all posts',
+      seeAllConnections: 'See all connections',
+      readMore: 'Read More',
+      verifiedUser: 'Verified User',
+      coverPicture: 'Cover Picture',
+      profilePicture: 'Profile Picture',
+      changePicture: 'Change Picture',
+      latestActivities: 'Latest Activities',
+      youCommented: 'You Commented on',
+      youLiked: 'You Liked',
+      youJoinedGroup: 'You Joined group:',
+      youEarnedBadge: 'You Earned a badge for :',
+      commented: 'commented on',
+      liked: 'liked your post',
+      agoHours: 'hrs ago',
+      agoDays: 'days ago',
+      agoWeek: 'week ago',
+      agoWeeks: 'weeks ago',
+      ago: 'ago',
+      on: 'on',
+      and: 'and',
+      otherPeople: 'other people',
+      others: 'others',
+      yourRecentPost: 'your recent post',
+      forFirstCommunityReplies: 'First 5 Community replies',
+      interestsAndActivities: 'Interests and Activities',
+      challengesFaced: 'Challenges faced',
+      communityActivities: 'Community Activities',
+      prostheticType: 'Prosthesis type',
+      usageDuration: 'Usage Duration',
+      addCoverPhoto: 'Add cover photo',
+      photo: 'Photo',
+      video: 'Video',
+      logOut: 'Log Out',
+      deleteAccount: 'Delete Account',
+      coverPhotoUploaded: 'Cover photo uploaded successfully',
+      profilePhotoUploaded: 'Profile photo uploaded successfully',
+      profileSaved: 'Profile saved successfully',
+      saveProfile: 'Save Profile',
+      discard: 'Discard',
+      saving: 'Saving...',
+      save: 'Save',
+      unsavedChangesMessage: 'You have unsaved changes. What would you like to do?',
     },
   },
   hi: {
@@ -1115,6 +1282,82 @@ export const translations: Record<Language, Translations> = {
       passwordMismatch: 'पासवर्ड मेल नहीं खाते',
       passwordTooShort: 'पासवर्ड कम से कम 6 वर्णों का होना चाहिए',
       oldPasswordRequired: 'वर्तमान पासवर्ड आवश्यक है',
+      changeCoverPicture: 'कवर चित्र बदलें',
+      changeProfilePicture: 'प्रोफ़ाइल चित्र बदलें',
+      uploadCoverPicture: 'कवर चित्र अपलोड करें',
+      uploadProfilePicture: 'प्रोफ़ाइल चित्र अपलोड करें',
+      cropImage: 'चित्र क्रॉप करें',
+      cropAndSave: 'क्रॉप करें और सहेजें',
+      cancel: 'रद्द करें',
+      uploading: 'अपलोड हो रहा है...',
+      about: 'के बारे में',
+      myStory: 'मेरी कहानी',
+      readMore: 'और पढ़ें',
+      profession: 'पेशा',
+      workplace: 'कार्यस्थल',
+      placeOfResidence: 'निवास स्थान',
+      worksAt: 'में काम करते हैं',
+      from: 'से',
+      prostheticType: 'कृत्रिम अंग प्रकार',
+      uploads: 'अपलोड',
+      seeAllPosts: 'सभी पोस्ट देखें',
+      connections: 'कनेक्शन',
+      seeAllConnections: 'सभी कनेक्शन देखें',
+      makeAPost: 'एक पोस्ट बनाएं',
+      shareAThought: 'एक विचार साझा करें..',
+      photoVideo: 'फोटो / वीडियो',
+      latestActivities: 'नवीनतम गतिविधियाँ',
+      noRecentActivities: 'कोई हाल की गतिविधि नहीं',
+      savingChanges: 'सहेज रहे हैं...',
+      // New profile page fields
+      about: 'के बारे में',
+      myStory: 'मेरी कहानी',
+      profession: 'पेशा',
+      workplace: 'कार्यस्थल',
+      placeOfResidence: 'निवास स्थान',
+      location: 'स्थान',
+      worksAt: 'में काम करता है',
+      from: 'से',
+      uploads: 'अपलोड',
+      connections: 'कनेक्शन',
+      makeAPost: 'पोस्ट बनाएं',
+      shareAThought: 'एक विचार साझा करें..',
+      photoVideo: 'फोटो / वीडियो',
+      seeAllPosts: 'सभी पोस्ट देखें',
+      seeAllConnections: 'सभी कनेक्शन देखें',
+      readMore: 'और पढ़ें',
+      verifiedUser: 'सत्यापित उपयोगकर्ता',
+      coverPicture: 'कवर चित्र',
+      profilePicture: 'प्रोफ़ाइल चित्र',
+      changePicture: 'चित्र बदलें',
+      latestActivities: 'नवीनतम गतिविधियाँ',
+      youCommented: 'आपने टिप्पणी की',
+      youLiked: 'आपने पसंद किया',
+      youJoinedGroup: 'आप समूह में शामिल हुए:',
+      youEarnedBadge: 'आपने बैज अर्जित किया :',
+      commented: 'ने टिप्पणी की',
+      liked: 'ने आपकी पोस्ट पसंद की',
+      agoHours: 'घंटे पहले',
+      agoDays: 'दिन पहले',
+      agoWeek: 'सप्ताह पहले',
+      agoWeeks: 'सप्ताह पहले',
+      ago: 'पहले',
+      on: 'पर',
+      and: 'और',
+      otherPeople: 'अन्य लोग',
+      others: 'अन्य',
+      yourRecentPost: 'आपकी हाल की पोस्ट',
+      forFirstCommunityReplies: 'पहले 5 समुदाय उत्तर',
+      interestsAndActivities: 'रुचियाँ और गतिविधियाँ',
+      challengesFaced: 'चुनौतियाँ',
+      communityActivities: 'समुदाय गतिविधियाँ',
+      prostheticType: 'कृत्रिम अंग प्रकार',
+      usageDuration: 'उपयोग अवधि',
+      addCoverPhoto: 'कवर फोटो जोड़ें',
+      photo: 'फोटो',
+      video: 'वीडियो',
+      logOut: 'लॉग आउट',
+      deleteAccount: 'खाता हटाएं',
     },
   },
 };

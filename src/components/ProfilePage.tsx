@@ -1,674 +1,1546 @@
-import { useLanguage } from '../contexts/LanguageContext';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
-import { User as UserIcon, Mail, Shield, Calendar, Edit, X, Plus, Lock } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
+import { toast } from 'sonner';
+import { ImageCropDialog } from './ImageCropDialog';
+import locationIcon from '../assets/svg/location.svg';
+import locationPrimaryIcon from '../assets/svg/location_primary.svg';
+import achievementIcon from '../assets/svg/achievement.svg';
+import workIcon from '../assets/svg/work.svg';
+import videoIcon from '../assets/svg/video.svg';
+import imageIcon from '../assets/svg/image.svg';
+import rehabIcon from '../assets/svg/rehab.svg';
+import emotionsIcon from '../assets/svg/emotions.svg';
+import sociallifeIcon from '../assets/svg/sociallife.svg';
+import fitComfortIcon from '../assets/svg/fit_comfort.svg';
+import mobilityIcon from '../assets/svg/mobility.svg';
+import emotionalIcon from '../assets/svg/emotional.svg';
+import heartIcon from '../assets/svg/heart.svg';
+import communityIcon from '../assets/svg/community.svg';
+import costAccessIcon from '../assets/svg/cost_access.svg';
+import trainingIcon from '../assets/svg/training.svg';
+import painreliefIcon from '../assets/svg/painrelief.svg';
+import independenceIcon from '../assets/svg/independence.svg';
+import educationIcon from '../assets/svg/education.svg';
+import confidenceIcon from '../assets/svg/confidence.svg';
+import trainingFocusIcon from '../assets/svg/training_focus.svg';
+import sportsIcon from '../assets/svg/sports.svg';
+import guidanceIcon from '../assets/svg/guidance.svg';
+import communityActivityIcon from '../assets/svg/community.svg';
+import maintenanceIcon from '../assets/svg/maintenance.svg';
+import defaultProfilePic from '../assets/images/default_profile_pic.png';
+import fotoIcon from '../assets/svg/foto.svg';
 
 interface ProfilePageProps {
   onNavigate: (page: string) => void;
 }
 
 export function ProfilePage({ onNavigate }: ProfilePageProps) {
-  const { t } = useLanguage();
   const { user, logout, updateProfile } = useAuth();
-
-  // Challenge and Activity label mappings using translations
-  const getChallengeLabel = (id: string): string => {
-    const challengeMap: Record<string, string> = {
-      'fit_comfort': t.onboarding?.fitAndComfort || 'Fit and Comfort',
-      'mobility': t.onboarding?.mobility || 'Mobility',
-      'community': t.onboarding?.community || 'Community',
-      'cost_access': t.onboarding?.costAndAccess || 'Cost and Access',
-      'training': t.onboarding?.training || 'Training',
-      'emotional': t.onboarding?.emotionalWellbeing || 'Emotional Well-being',
-    };
-    return challengeMap[id] || id;
-  };
-
-  const getActivityLabel = (id: string): string => {
-    const activityMap: Record<string, string> = {
-      'rehabilitation': t.onboarding?.rehabilitation || 'Rehabilitation',
-      'social_life': t.onboarding?.socialLife || 'Social Life',
-      'emotions': t.onboarding?.emotions || 'Emotions',
-      'pain_relief': t.onboarding?.painRelief || 'Pain Relief',
-      'work': t.onboarding?.work || 'Work',
-      'independence': t.onboarding?.independence || 'Independence',
-      'education': t.onboarding?.education || 'Education',
-      'confidence': t.onboarding?.confidence || 'Confidence',
-      'training': t.onboarding?.training || 'Training',
-      'sports': t.onboarding?.sports || 'Sports',
-      'guidance': t.onboarding?.guidance || 'Guidance',
-      'community': t.onboarding?.community || 'Community',
-      'maintenance': t.onboarding?.maintenance || 'Maintenance',
-    };
-    return activityMap[id] || id;
-  };
-
-  // Edit mode state
+  const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
-
-  // Form state
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    firstName: user?.firstName || '',
-    telephone: user?.telephone || '',
-    age: user?.age?.toString() || '',
-    prosthesisType: user?.prosthesisType || '',
-    lengthUsage: user?.lengthUsage || '',
-    mainChallenge: user?.mainChallenge || [],
-    activities: user?.activities || [],
-  });
-
-  // Challenge/Activity input state
-  const [newChallenge, setNewChallenge] = useState('');
-  const [newActivity, setNewActivity] = useState('');
-
-  // Password change state
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [passwordError, setPasswordError] = useState('');
-
-  // Unsaved changes dialog
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [coverPhotoDialogOpen, setCoverPhotoDialogOpen] = useState(false);
+  const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
+  const [profilePhotoDialogOpen, setProfilePhotoDialogOpen] = useState(false);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const profileFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Track form data for edit mode
+  const [editData, setEditData] = useState({
+    profession: user?.profession || '',
+    workplace: user?.workplace || '',
+    place_of_residence: user?.place_of_residence || '',
+    my_story: user?.my_story || '',
+  });
 
-  // Loading states
-  const [isSaving, setIsSaving] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  // Update form data when user changes
+  // Initialize edit data when user changes
   useEffect(() => {
     if (user) {
-      setFormData({
-        name: user.name || '',
-        firstName: user.firstName || '',
-        telephone: user.telephone || '',
-        age: user.age?.toString() || '',
-        prosthesisType: user.prosthesisType || '',
-        lengthUsage: user.lengthUsage || '',
-        mainChallenge: Array.isArray(user.mainChallenge) ? user.mainChallenge : [],
-        activities: Array.isArray(user.activities) ? user.activities : [],
+      setEditData({
+        profession: user.profession || '',
+        workplace: user.workplace || '',
+        place_of_residence: user.place_of_residence || '',
+        my_story: user.my_story || '',
       });
     }
   }, [user]);
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setHasChanges(true);
-  };
-
-  const handleAddChallenge = () => {
-    if (newChallenge.trim() && !formData.mainChallenge.includes(newChallenge.trim())) {
-      handleInputChange('mainChallenge', [...formData.mainChallenge, newChallenge.trim()]);
-      setNewChallenge('');
+  // Handle cover photo file selection
+  const handleCoverPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      if (e.target) e.target.value = '';
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB');
+      if (e.target) e.target.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (result) {
+        setCoverPhotoPreview(result);
+        setCoverPhotoDialogOpen(true);
+      } else {
+        toast.error('Error reading image file');
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Error reading image file');
+      if (e.target) e.target.value = '';
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input so same file can be selected again
+    if (e.target) {
+      e.target.value = '';
     }
   };
 
-  const handleRemoveChallenge = (challenge: string) => {
-    handleInputChange(
-      'mainChallenge',
-      formData.mainChallenge.filter((c) => c !== challenge)
-    );
-  };
-
-  const handleAddActivity = () => {
-    if (newActivity.trim() && !formData.activities.includes(newActivity.trim())) {
-      handleInputChange('activities', [...formData.activities, newActivity.trim()]);
-      setNewActivity('');
+  // Handle profile photo file selection
+  const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setProfilePhotoPreview(result);
+        setProfilePhotoDialogOpen(true);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleRemoveActivity = (activity: string) => {
-    handleInputChange(
-      'activities',
-      formData.activities.filter((a) => a !== activity)
-    );
-  };
-
-  const handleSaveChanges = async () => {
+  // Upload cover photo to Supabase
+  const uploadCoverPhoto = async (blob: Blob) => {
+    if (!user) return;
+    
     try {
-      setIsSaving(true);
-      await updateProfile({
-        name: formData.name,
-        first_name: formData.firstName,
-        telephone: formData.telephone,
-        age: formData.age ? parseInt(formData.age, 10) : null,
-        prosthesis_type: formData.prosthesisType as any,
-        length_usage: formData.lengthUsage as any,
-        main_challenge: formData.mainChallenge,
-        activities: formData.activities,
-      });
-      setIsEditing(false);
-      setHasChanges(false);
-      alert(t.profile.profileUpdated);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert(t.common.error);
+      setSaving(true);
+      const fileExt = 'jpg';
+      const fileName = `${user.id}/cover-${Date.now()}.${fileExt}`;
+      
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('profile-media')
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL (or signed URL if bucket is private)
+      const { data: publicUrlData } = supabase.storage
+        .from('profile-media')
+        .getPublicUrl(fileName);
+
+      // If bucket is private, get signed URL instead
+      let imageUrl = publicUrlData.publicUrl;
+      
+      // Try to get signed URL (for private buckets)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('profile-media')
+        .createSignedUrl(fileName, 31536000); // 1 year expiry
+
+      if (!signedUrlError && signedUrlData) {
+        imageUrl = signedUrlData.signedUrl;
+      }
+
+      // Update profile with the URL
+      await updateProfile({ cover_picture_url: imageUrl });
+      
+      // Clear preview and close dialog
+      setCoverPhotoPreview(null);
+      setCoverPhotoDialogOpen(false);
+      
+      setHasUnsavedChanges(true);
+      toast.success(t.profile.coverPhotoUploaded);
+    } catch (error: any) {
+      console.error('Error uploading cover photo:', error);
+      toast.error(error.message || 'Failed to upload cover photo');
     } finally {
-      setIsSaving(false);
+      setSaving(false);
     }
   };
 
-  const handleCancelEdit = () => {
-    if (hasChanges) {
-      setShowUnsavedDialog(true);
-      setPendingNavigation('cancel');
-    } else {
+  // Upload profile photo to Supabase
+  const uploadProfilePhoto = async (blob: Blob) => {
+    if (!user) return;
+    
+    try {
+      setSaving(true);
+      const fileExt = 'jpg';
+      const fileName = `${user.id}/profile-${Date.now()}.${fileExt}`;
+      
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('profile-media')
+        .upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL (or signed URL if bucket is private)
+      const { data: publicUrlData } = supabase.storage
+        .from('profile-media')
+        .getPublicUrl(fileName);
+
+      // If bucket is private, get signed URL instead
+      let imageUrl = publicUrlData.publicUrl;
+      
+      // Try to get signed URL (for private buckets)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('profile-media')
+        .createSignedUrl(fileName, 31536000); // 1 year expiry
+
+      if (!signedUrlError && signedUrlData) {
+        imageUrl = signedUrlData.signedUrl;
+      }
+
+      // Update profile with the URL
+      await updateProfile({ profile_picture_url: imageUrl });
+      
+      // Clear preview and close dialog
+      setProfilePhotoPreview(null);
+      setProfilePhotoDialogOpen(false);
+      
+      setHasUnsavedChanges(true);
+      toast.success(t.profile.profilePhotoUploaded);
+    } catch (error: any) {
+      console.error('Error uploading profile photo:', error);
+      toast.error(error.message || 'Failed to upload profile photo');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Save profile changes
+  const handleSave = async () => {
+    if (!user) return;
+    
+    try {
+      setSaving(true);
+      await updateProfile({
+        profession: editData.profession || null,
+        workplace: editData.workplace || null,
+        place_of_residence: editData.place_of_residence || null,
+        my_story: editData.my_story || null,
+      });
+      setHasUnsavedChanges(false);
       setIsEditing(false);
+      toast.success(t.profile.profileSaved);
+    } catch (error: any) {
+      console.error('Error saving profile:', error);
+      toast.error(error.message || 'Failed to save profile');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleNavigateWithCheck = (page: string) => {
-    if (hasChanges && isEditing) {
-      setShowUnsavedDialog(true);
+  // Discard changes
+  const handleDiscard = () => {
+    if (user) {
+      setEditData({
+        profession: user.profession || '',
+        workplace: user.workplace || '',
+        place_of_residence: user.place_of_residence || '',
+        my_story: user.my_story || '',
+      });
+    }
+    setHasUnsavedChanges(false);
+    setIsEditing(false);
+    setShowSaveDialog(false);
+    if (pendingNavigation) {
+      onNavigate(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
+  // Handle navigation with unsaved changes check
+  const handleNavigate = (page: string) => {
+    if (isEditing && hasUnsavedChanges) {
       setPendingNavigation(page);
+      setShowSaveDialog(true);
     } else {
       onNavigate(page);
     }
   };
 
-  const handleConfirmLeave = () => {
-    setHasChanges(false);
-    setShowUnsavedDialog(false);
-    if (pendingNavigation === 'cancel') {
-      setIsEditing(false);
-      // Reset form data
-      if (user) {
-        setFormData({
-          name: user.name || '',
-          firstName: user.firstName || '',
-          telephone: user.telephone || '',
-          age: user.age?.toString() || '',
-          prosthesisType: user.prosthesisType || '',
-          lengthUsage: user.lengthUsage || '',
-          mainChallenge: Array.isArray(user.mainChallenge) ? user.mainChallenge : [],
-          activities: Array.isArray(user.activities) ? user.activities : [],
-        });
+  // Handle save dialog actions
+  const handleSaveDialogAction = async (action: 'save' | 'discard' | 'cancel') => {
+    if (action === 'save') {
+      await handleSave();
+      if (pendingNavigation) {
+        onNavigate(pendingNavigation);
+        setPendingNavigation(null);
       }
-    } else if (pendingNavigation) {
-      onNavigate(pendingNavigation);
+    } else if (action === 'discard') {
+      handleDiscard();
+    } else {
+      // Cancel - stay on page
+      setShowSaveDialog(false);
+      setPendingNavigation(null);
     }
-    setPendingNavigation(null);
   };
 
-  const handlePasswordChange = async () => {
-    setPasswordError('');
-
-    // Validation
-    if (!passwordData.oldPassword) {
-      setPasswordError(t.profile.oldPasswordRequired);
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      setPasswordError(t.profile.passwordTooShort);
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError(t.profile.passwordMismatch);
-      return;
-    }
-
-    try {
-      setIsChangingPassword(true);
-
-      // Verify old password by attempting to sign in
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user!.email,
-        password: passwordData.oldPassword,
-      });
-
-      if (signInError) {
-        setPasswordError('Current password is incorrect');
-        return;
+  // Handle edit mode toggle
+  const handleEditToggle = () => {
+    if (isEditing) {
+      if (hasUnsavedChanges) {
+        setShowSaveDialog(true);
+      } else {
+        setIsEditing(false);
       }
-
-      // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: passwordData.newPassword,
-      });
-
-      if (updateError) {
-        setPasswordError(updateError.message);
-        return;
-      }
-
-      alert(t.profile.passwordChanged);
-      setShowPasswordDialog(false);
-      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (error) {
-      console.error('Password change error:', error);
-      setPasswordError(t.common.error);
-    } finally {
-      setIsChangingPassword(false);
+    } else {
+      setIsEditing(true);
     }
   };
+
+  // Track changes in edit data
+  useEffect(() => {
+    if (isEditing && user) {
+      const hasChanges = 
+        editData.profession !== (user.profession || '') ||
+        editData.workplace !== (user.workplace || '') ||
+        editData.place_of_residence !== (user.place_of_residence || '') ||
+        editData.my_story !== (user.my_story || '');
+      setHasUnsavedChanges(hasChanges);
+    }
+  }, [editData, isEditing, user]);
+
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4 pt-24 pb-24">
-        <div className="w-full max-w-[1280px] mx-auto px-4 flex justify-center">
-          <Card className="w-full max-w-md">
-            <CardHeader className="text-center">
-              <CardTitle>{t.nav.profile}</CardTitle>
-              <CardDescription>Please login to view your profile</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center gap-4">
-              <Button onClick={() => onNavigate('auth')}>{t.auth.login}</Button>
-              <Button variant="outline" onClick={() => onNavigate('home')}>
-                {t.nav.home}
-              </Button>
-            </CardContent>
-          </Card>
+      <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'Roboto, sans-serif', fontSize: '16px', color: '#505050' }}>
+          {t.auth.login}
         </div>
       </div>
     );
   }
 
+  // Helper function to get user display name
+  const getUserDisplayName = () => {
+    return user.firstName || user.name || 'User';
+  };
+
+  // Helper functions to map activities and challenges to icons and labels (matching onboarding flow)
+  const getActivityIcon = (activityId: string) => {
+    const activityMap: Record<string, string> = {
+      'rehabilitation': rehabIcon,
+      'social_life': sociallifeIcon,
+      'emotions': emotionsIcon,
+      'pain_relief': painreliefIcon,
+      'work': workIcon,
+      'independence': independenceIcon,
+      'education': educationIcon,
+      'confidence': confidenceIcon,
+      'training': trainingFocusIcon,
+      'sports': sportsIcon,
+      'guidance': guidanceIcon,
+      'community': communityActivityIcon,
+      'maintenance': maintenanceIcon,
+    };
+    return activityMap[activityId] || rehabIcon;
+  };
+
+  const getActivityLabel = (activityId: string) => {
+    const activityMap: Record<string, string> = {
+      'rehabilitation': t.onboarding.rehabilitation,
+      'social_life': t.onboarding.socialLife,
+      'emotions': t.onboarding.emotions,
+      'pain_relief': t.onboarding.painRelief,
+      'work': t.onboarding.work,
+      'independence': t.onboarding.independence,
+      'education': t.onboarding.education,
+      'confidence': t.onboarding.confidence,
+      'training': t.onboarding.training,
+      'sports': t.onboarding.sports,
+      'guidance': t.onboarding.guidance,
+      'community': t.onboarding.community,
+      'maintenance': t.onboarding.maintenance,
+    };
+    return activityMap[activityId] || activityId;
+  };
+
+  const getChallengeIcon = (challengeId: string) => {
+    const challengeMap: Record<string, string> = {
+      'fit_comfort': fitComfortIcon,
+      'mobility': mobilityIcon,
+      'community': communityIcon,
+      'cost_access': costAccessIcon,
+      'training': trainingIcon,
+      'emotional': emotionalIcon,
+    };
+    return challengeMap[challengeId] || fitComfortIcon;
+  };
+
+  const getChallengeLabel = (challengeId: string) => {
+    const challengeMap: Record<string, string> = {
+      'fit_comfort': t.onboarding.fitAndComfort,
+      'mobility': t.onboarding.mobility,
+      'community': t.onboarding.community,
+      'cost_access': t.onboarding.costAndAccess,
+      'training': t.onboarding.training,
+      'emotional': t.onboarding.emotionalWellbeing,
+    };
+    return challengeMap[challengeId] || challengeId;
+  };
+
+  // Mock data for uploads, connections, and activities (to be replaced with real data later)
+  const uploads = [
+    { id: 1, image: null },
+    { id: 2, image: null },
+    { id: 3, image: null },
+  ];
+
+  const connections = [
+    { id: 1, name: 'Brijesh Mohan', image: null },
+    { id: 2, name: 'Shruti Apte', image: null },
+    { id: 3, name: 'Rishika Sharma', image: null },
+  ];
+
+  const activities = [
+    { type: 'like', text: 'Ravi liked your comment on "Running with a Below-Knee Prosthetic"', detail: '"Great stretching routine! I\'ve been trying…" — 3 hrs ago' },
+    { type: 'comment', text: 'You Commented on "Running with a Below-Knee Prosthetic"', detail: '"Great stretching routine! I\'ve been trying…" — 3 hrs ago' },
+    { type: 'group', text: 'You Joined group: "Adaptive sport India"', detail: '- 2 days ago' },
+    { type: 'badge', text: 'You Earned a badge for : " First 5 Community replies"', detail: '- 1 week ago' },
+    { type: 'comment', text: 'Aashish and 4 other people commented on your recent post.', detail: '10 days ago' },
+    { type: 'like', text: 'Amit and 7 other people liked your post  "Rehabilitation and ways to keep up".', detail: '12 days ago' },
+  ];
+
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 pt-24 pb-24">
-      <div className="w-full max-w-[1280px] mx-auto px-4">
-        <div className="max-w-3xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <UserIcon className="text-primary" size={32} />
-              <div>
-                <h1 className="text-3xl font-bold">{t.profile.title}</h1>
-                <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
-              </div>
-            </div>
-            {!isEditing && (
-              <Button onClick={() => setIsEditing(true)} variant="outline">
-                <Edit className="mr-2" size={16} />
-                {t.profile.editProfile}
-              </Button>
-            )}
-          </div>
-
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.profile.accountInfo}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">{t.auth.email}</Label>
-                  <div className="flex items-center gap-2">
-                    <Mail className="text-muted-foreground" size={16} />
-                    <p className="text-sm">{user.email}</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Email cannot be changed</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">{t.profile.userType}</Label>
-                  <div className="flex items-center gap-2">
-                    <Shield className="text-muted-foreground" size={16} />
-                    <Badge variant="default" className="capitalize">
-                      {user.userType}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <Button onClick={() => setShowPasswordDialog(true)} variant="outline" size="sm">
-                  <Lock className="mr-2" size={16} />
-                  {t.profile.changePassword}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.profile.personalInfo}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t.auth.name}</Label>
-                  {isEditing ? (
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Enter your full name"
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{formData.name || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">{t.auth.firstName}</Label>
-                  {isEditing ? (
-                    <Input
-                      id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      placeholder="Enter your first name"
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{formData.firstName || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="age">Age</Label>
-                  {isEditing ? (
-                    <Input
-                      id="age"
-                      type="number"
-                      value={formData.age}
-                      onChange={(e) => handleInputChange('age', e.target.value)}
-                      placeholder="Enter your age"
-                      min="0"
-                      max="120"
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{formData.age || 'Not set'}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="telephone">{t.auth.telephone}</Label>
-                  {isEditing ? (
-                    <Input
-                      id="telephone"
-                      value={formData.telephone}
-                      onChange={(e) => handleInputChange('telephone', e.target.value)}
-                      placeholder="Enter your phone number"
-                    />
-                  ) : (
-                    <p className="text-sm py-2">{formData.telephone || 'Not set'}</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Prosthesis Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.profile.prosthesisInfo}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="prosthesisType">{t.profile.prosthesisType}</Label>
-                  {isEditing ? (
-                    <Select
-                      value={formData.prosthesisType}
-                      onValueChange={(value) => handleInputChange('prosthesisType', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="above_knee">{t.profile.aboveKnee}</SelectItem>
-                        <SelectItem value="below_knee">{t.profile.belowKnee}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm py-2 capitalize">
-                      {formData.prosthesisType
-                        ? formData.prosthesisType === 'above_knee'
-                          ? t.profile.aboveKnee
-                          : t.profile.belowKnee
-                        : 'Not set'}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lengthUsage">{t.profile.lengthUsage}</Label>
-                  {isEditing ? (
-                    <Select
-                      value={formData.lengthUsage}
-                      onValueChange={(value) => handleInputChange('lengthUsage', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="less_than_6_month">{t.profile.lessThan6Months}</SelectItem>
-                        <SelectItem value="more_than_1_year">{t.profile.moreThan1Year}</SelectItem>
-                        <SelectItem value="more_than_5_years">{t.profile.moreThan5Years}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <p className="text-sm py-2">
-                      {formData.lengthUsage
-                        ? formData.lengthUsage === 'less_than_6_month'
-                          ? t.profile.lessThan6Months
-                          : formData.lengthUsage === 'more_than_1_year'
-                          ? t.profile.moreThan1Year
-                          : t.profile.moreThan5Years
-                        : 'Not set'}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Challenges & Activities */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.profile.challengesActivities}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Main Challenges */}
-              <div className="space-y-3">
-                <Label>{t.profile.mainChallenge}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {Array.isArray(formData.mainChallenge) && formData.mainChallenge.length > 0 ? (
-                    formData.mainChallenge.map((challenge) => (
-                      <Badge
-                        key={challenge}
-                        variant="secondary"
-                        className="px-3 py-1 flex items-center gap-2"
-                      >
-                        {getChallengeLabel(challenge)}
-                        {isEditing && (
-                          <button
-                            onClick={() => handleRemoveChallenge(challenge)}
-                            className="hover:text-destructive"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
-                      </Badge>
-                    ))
-                  ) : !isEditing ? (
-                    <p className="text-sm text-muted-foreground">No challenges added</p>
-                  ) : null}
-                </div>
-                {isEditing && (
-                  <div className="flex gap-2">
-                    <Input
-                      value={newChallenge}
-                      onChange={(e) => setNewChallenge(e.target.value)}
-                      placeholder="Type a challenge..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddChallenge()}
-                    />
-                    <Button onClick={handleAddChallenge} variant="outline" size="sm">
-                      <Plus size={16} />
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {/* Activities */}
-              <div className="space-y-3">
-                <Label>{t.profile.activities}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {Array.isArray(formData.activities) && formData.activities.length > 0 ? (
-                    formData.activities.map((activity) => (
-                      <Badge
-                        key={activity}
-                        variant="secondary"
-                        className="px-3 py-1 flex items-center gap-2"
-                      >
-                        {getActivityLabel(activity)}
-                        {isEditing && (
-                          <button
-                            onClick={() => handleRemoveActivity(activity)}
-                            className="hover:text-destructive"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
-                      </Badge>
-                    ))
-                  ) : !isEditing ? (
-                    <p className="text-sm text-muted-foreground">No activities added</p>
-                  ) : null}
-                </div>
-                {isEditing && (
-                  <div className="flex gap-2">
-                    <Input
-                      value={newActivity}
-                      onChange={(e) => setNewActivity(e.target.value)}
-                      placeholder="Type an activity..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddActivity()}
-                    />
-                    <Button onClick={handleAddActivity} variant="outline" size="sm">
-                      <Plus size={16} />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
+    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '1280px', position: 'relative' }}>
+        {/* Cover Picture - Keep as is */}
+        <div 
+          style={{ 
+            width: '100%', 
+            height: '420px', 
+            background: user.cover_picture_url 
+              ? `url(${user.cover_picture_url})` 
+              : 'linear-gradient(135deg, #8AC0AD 0%, #388896 100%)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            position: 'relative'
+          }}
+        >
+          {/* Add cover photo button - only visible in edit mode */}
           {isEditing && (
-            <div className="flex gap-4">
-              <Button onClick={handleSaveChanges} disabled={isSaving || !hasChanges}>
-                {isSaving ? t.common.loading : t.profile.saveChanges}
-              </Button>
-              <Button onClick={handleCancelEdit} variant="outline">
-                {t.profile.cancelEdit}
-              </Button>
-            </div>
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleCoverPhotoSelect}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+                style={{
+                  position: 'absolute',
+                  right: '80px',
+                  top: '354px',
+                  background: '#ffffff',
+                  border: 'none',
+                  borderRadius: '24px',
+                  padding: '8px 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  boxShadow: '0px 0px 10px 0px #dddddd',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#505050',
+                }}
+              >
+                <span>{t.profile.addCoverPhoto}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f9ca6" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </button>
+            </>
           )}
+        </div>
 
-          {/* Logout & Admin Buttons */}
-          <div className="flex gap-4 pt-4 border-t">
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                await logout();
-                onNavigate('home');
-              }}
-            >
-              {t.auth.logout}
-            </Button>
-            {(user.userType === 'admin' || user.userType === 'superadmin') && (
-              <Button variant="outline" onClick={() => handleNavigateWithCheck('admin')}>
-                {t.admin.title}
-              </Button>
+        {/* Profile Picture - Original position (352px) */}
+        <div style={{ 
+          position: 'absolute', 
+          left: isMobile ? '20px' : '120px', 
+          top: '352px' 
+        }}>
+          <div
+            style={{
+              width: '186px',
+              height: '186px',
+              borderRadius: '50%',
+              background: user.profile_picture_url 
+                ? `url(${user.profile_picture_url})` 
+                : `url(${defaultProfilePic})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              border: '6px solid #ffffff',
+              position: 'relative',
+            }}
+          >
+            {/* Change picture button - only visible in edit mode */}
+            {isEditing && (
+              <>
+                <input
+                  ref={profileFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleProfilePhotoSelect}
+                />
+                <button
+                  onClick={() => profileFileInputRef.current?.click()}
+                  style={{
+                    position: 'absolute',
+                    right: '0',
+                    bottom: '0',
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    background: '#f2f2f7',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0px 0px 10px 0px #dddddd',
+                  }}
+                >
+                  <img src={fotoIcon} alt="upload photo" width="24" height="24" />
+                </button>
+              </>
             )}
           </div>
         </div>
+
+        {/* Name and Location - 10px below cover picture (430px) */}
+        <div style={{ 
+          position: 'absolute',
+          left: isMobile ? '20px' : '320px', // 120px (profile left) + 186px (profile width) + 14px (gap)
+          top: '430px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '32px',
+              fontWeight: 500,
+              lineHeight: '40px',
+              color: '#192126',
+              margin: 0,
+            }}>
+              {user.firstName && user.name ? `${user.firstName} ${user.name}` : getUserDisplayName()}
+            </h1>
+            {/* Verified badge */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#388896" />
+              <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={locationIcon} alt="location" width="20" height="20" />
+            <span style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '18px',
+              fontWeight: 500,
+              lineHeight: '28px',
+              color: '#192126',
+            }}>
+              {user.place_of_residence || 'India'}
+            </span>
+          </div>
+        </div>
+
+        {/* Edit Profile Button */}
+        <div style={{ 
+          position: 'absolute', 
+          right: isMobile ? '20px' : '80px', 
+          top: '458px' 
+        }}>
+          <button
+            onClick={handleEditToggle}
+            disabled={saving}
+            onMouseEnter={(e) => {
+              if (!saving) {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#388896';
+                const svg = e.currentTarget.querySelector('svg');
+                if (svg) svg.setAttribute('stroke', '#388896');
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!saving) {
+                e.currentTarget.style.background = '#388896';
+                e.currentTarget.style.color = '#ffffff';
+                const svg = e.currentTarget.querySelector('svg');
+                if (svg) svg.setAttribute('stroke', '#ffffff');
+              }
+            }}
+            style={{
+              background: '#388896',
+              border: 'none',
+              borderRadius: '24px',
+              padding: '8px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              cursor: saving ? 'not-allowed' : 'pointer',
+              boxShadow: '0px 0px 10px 0px #dddddd',
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '16px',
+              fontWeight: 700,
+              color: '#ffffff',
+              transition: 'all 0.2s ease',
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            <span>{isEditing ? t.profile.saveProfile : t.profile.editProfile}</span>
+            {isEditing ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        {/* Divider - 10px below profile picture (profile pic starts at 352px, height 186px, ends at 538px, so divider at 548px) */}
+        <div style={{ 
+          width: isMobile ? 'calc(100% - 40px)' : 'calc(100% - 160px)', 
+          height: '1px', 
+          background: '#d9d9d9', 
+          margin: isMobile ? '128px 20px 0 20px' : '128px 80px 0 80px'
+        }} />
+
+        {/* Main Content - Two Column Layout */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
+          gap: '24px', 
+          marginTop: '20px',
+          padding: isMobile ? '0 20px 40px 20px' : '0 80px 40px 80px'
+        }}>
+          {/* Left Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* About Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '28px',
+            }}>
+              <h2 style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '22px',
+                fontWeight: 400,
+                lineHeight: '32px',
+                color: '#192126',
+                margin: '0 0 20px 0',
+              }}>
+                {t.profile.about}
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* 1st row: Profession */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <img src={achievementIcon} alt="achievement" width="31" height="31" />
+                  {user.profession && (
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      lineHeight: '28px',
+                      color: '#192126',
+                    }}>
+                      {user.profession}
+                    </span>
+                  )}
+                </div>
+                {/* 2nd row: Workplace */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <img src={workIcon} alt="work" width="31" height="31" />
+                  {user.workplace && (
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      lineHeight: '28px',
+                      color: '#192126',
+                    }}>
+                      {t.profile.worksAt} {user.workplace}
+                    </span>
+                  )}
+                </div>
+                {/* 3rd row: Place of Residence */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src={locationPrimaryIcon} alt="location" width="25" height="25" />
+                  {user.place_of_residence && (
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      lineHeight: '28px',
+                      color: '#192126',
+                    }}>
+                      {t.profile.from} {user.place_of_residence}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Prosthesis Info Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '28px',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {user.userType === 'amputee' ? (
+                  <>
+                    {user.prosthesisType && (
+                      <p style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        lineHeight: '28px',
+                        color: '#192126',
+                        margin: 0,
+                      }}>
+                        <span style={{ fontWeight: 400 }}>{t.profile.prostheticType}:</span>
+                        <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                          {user.prosthesisType === 'below_knee' ? t.profile.belowKnee : t.profile.aboveKnee}
+                        </span>
+                      </p>
+                    )}
+                    {user.lengthUsage && (
+                      <p style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '18px',
+                        fontWeight: 500,
+                        lineHeight: '28px',
+                        color: '#192126',
+                        margin: 0,
+                      }}>
+                        <span style={{ fontWeight: 400 }}>{t.profile.usageDuration}:</span>
+                        <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                          {user.lengthUsage === 'less_than_6_month' 
+                            ? t.profile.lessThan6Months 
+                            : user.lengthUsage === 'more_than_1_year'
+                            ? t.profile.moreThan1Year
+                            : t.profile.moreThan5Years}
+                        </span>
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p style={{
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    lineHeight: '28px',
+                    color: '#192126',
+                    margin: 0,
+                  }}>
+                    <span style={{ fontWeight: 400 }}>{t.profile.userType}:</span>
+                    <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                      {user.userType === 'caregiver' ? t.onboarding.iAmCaregiver :
+                       user.userType === 'volunteer' ? t.onboarding.iAmVolunteer :
+                       user.userType === 'doctor' ? t.onboarding.iAmDoctor :
+                       user.userType === 'practitioner' ? t.onboarding.iAmPractitioner :
+                       user.userType}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Uploads Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '20px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '26px' }}>
+                <h2 style={{
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '22px',
+                  fontWeight: 400,
+                  lineHeight: '32px',
+                  color: '#192126',
+                  margin: 0,
+                }}>
+                  {t.profile.uploads}
+                </h2>
+                <button 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#388896';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#ffffff';
+                    e.currentTarget.style.color = '#388896';
+                  }}
+                  style={{
+                    background: '#ffffff',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '8px 24px',
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: '#388896',
+                    cursor: 'pointer',
+                    boxShadow: '0px 0px 10px 0px #dddddd',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {t.profile.seeAllPosts}
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '20px' }}>
+                {uploads.map((upload) => (
+                  <div
+                    key={upload.id}
+                    style={{
+                      width: '150px',
+                      height: '150px',
+                      borderRadius: '30px',
+                      background: '#f2f2f7',
+                      border: '1px solid #f2f2f7',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Connections Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '20px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
+                <h2 style={{
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '22px',
+                  fontWeight: 400,
+                  lineHeight: '32px',
+                  color: '#192126',
+                  margin: 0,
+                }}>
+                  {t.profile.connections}
+                </h2>
+                <button 
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#388896';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#ffffff';
+                    e.currentTarget.style.color = '#388896';
+                  }}
+                  style={{
+                    background: '#ffffff',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '8px 24px',
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: '#388896',
+                    cursor: 'pointer',
+                    boxShadow: '0px 0px 10px 0px #dddddd',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {t.profile.seeAllConnections}
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {connections.map((connection) => (
+                  <div key={connection.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '150px' }}>
+                    <div style={{
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '50px',
+                      background: '#f2f2f7',
+                    }} />
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      lineHeight: '28px',
+                      color: '#192126',
+                      textAlign: 'center',
+                    }}>
+                      {connection.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Interests and Activities Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '28px',
+            }}>
+              <h2 style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '22px',
+                fontWeight: 400,
+                lineHeight: '32px',
+                color: '#192126',
+                margin: '0 0 24px 0',
+              }}>
+                {t.profile.interestsAndActivities}
+              </h2>
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                {user.activities && user.activities.map((activityId) => (
+                  <div
+                    key={activityId}
+                    style={{
+                      background: '#ffffff',
+                      border: 'none',
+                      borderRadius: '15px',
+                      padding: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0px 0px 10px 0px #dddddd',
+                    }}
+                  >
+                    <img 
+                      src={getActivityIcon(activityId)} 
+                      alt={activityId} 
+                      width="24" 
+                      height="24" 
+                    />
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      lineHeight: '20px',
+                      color: '#192126',
+                    }}>
+                      {getActivityLabel(activityId)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Challenges Faced Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '28px',
+            }}>
+              <h2 style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '22px',
+                fontWeight: 400,
+                lineHeight: '32px',
+                color: '#192126',
+                margin: '0 0 8px 0',
+              }}>
+                {t.profile.challengesFaced}
+              </h2>
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                {user.mainChallenge && user.mainChallenge.map((challengeId) => (
+                  <div
+                    key={challengeId}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '131px',
+                    }}
+                  >
+                    <div style={{
+                      width: '45px',
+                      height: '45px',
+                      borderRadius: '36px',
+                      background: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0px 0px 10px 0px #dddddd',
+                    }}>
+                      <img 
+                        src={getChallengeIcon(challengeId)} 
+                        alt={challengeId} 
+                        width="24" 
+                        height="24" 
+                      />
+                    </div>
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '22px',
+                      color: '#505050',
+                      textAlign: 'center',
+                    }}>
+                      {getChallengeLabel(challengeId)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* My Story Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '26px 18px',
+            }}>
+              <h2 style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '22px',
+                fontWeight: 400,
+                lineHeight: '32px',
+                color: '#192126',
+                margin: '0 0 44px 0',
+              }}>
+                {t.profile.myStory}
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'flex-end' }}>
+                {/* Video/Image Space */}
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <div style={{
+                    width: '100%',
+                    height: '357px',
+                    borderRadius: '30px',
+                    background: '#f2f2f7',
+                    position: 'relative',
+                  }}>
+                    {/* Play button overlay */}
+                    <button
+                      style={{
+                        position: 'absolute',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '50%',
+                        background: '#ffffff',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0px 0px 10px 0px #dddddd',
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Story Text */}
+                <div style={{
+                  background: '#ffffff',
+                  borderRadius: '30px',
+                  padding: '20px',
+                  width: '100%',
+                }}>
+                  <p style={{
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    lineHeight: '22px',
+                    color: '#192126',
+                    textAlign: 'justify',
+                    margin: 0,
+                    whiteSpace: 'pre-wrap',
+                  }}>
+                    {user.my_story || 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.   At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet....'}
+                  </p>
+                </div>
+
+                {/* Read More Button */}
+                <button
+                  onClick={() => {/* TODO: Open modal */}}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#388896';
+                    e.currentTarget.style.color = '#ffffff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#ffffff';
+                    e.currentTarget.style.color = '#388896';
+                  }}
+                  style={{
+                    background: '#ffffff',
+                    border: 'none',
+                    borderRadius: '24px',
+                    padding: '8px 24px',
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: '#388896',
+                    cursor: 'pointer',
+                    boxShadow: '0px 0px 10px 0px #dddddd',
+                    width: '130px',
+                    height: '46px',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {t.profile.readMore}
+                </button>
+              </div>
+            </div>
+
+            {/* Make a Post Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '11px 20px',
+            }}>
+              <h2 style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '22px',
+                fontWeight: 400,
+                lineHeight: '32px',
+                color: '#192126',
+                margin: '0 0 8px 0',
+              }}>
+                {t.profile.makeAPost}
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                {/* Post Input */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    background: '#f2f2f7',
+                  }} />
+                  <div style={{
+                    flex: 1,
+                    height: '50px',
+                    background: '#f2f2f7',
+                    borderRadius: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0 29px',
+                  }}>
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '22px',
+                      color: '#979797',
+                    }}>
+                      {t.profile.shareAThought}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Photo/Video Options */}
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}>
+                    <img src={imageIcon} alt="photo" width="24" height="24" />
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '22px',
+                      color: '#979797',
+                    }}>
+                      {t.profile.photo}
+                    </span>
+                  </button>
+                  <button style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                  }}>
+                    <img src={videoIcon} alt="video" width="24" height="24" />
+                    <span style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      lineHeight: '22px',
+                      color: '#979797',
+                    }}>
+                      {t.profile.video}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Community Activities Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '20px',
+            }}>
+              <h2 style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '22px',
+                fontWeight: 400,
+                lineHeight: '32px',
+                color: '#192126',
+                margin: '0 0 20px 0',
+              }}>
+                {t.profile.communityActivities}
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
+                {activities.map((activity, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #f2f2f7',
+                      borderRadius: '30px',
+                      padding: '14px 26px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                    }}
+                  >
+                    {activity.type === 'like' && <img src={heartIcon} alt="like" width="20" height="18" />}
+                    {activity.type === 'comment' && (
+                      <svg width="20" height="18" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                    )}
+                    {activity.type === 'group' && <img src={communityIcon} alt="group" width="20" height="18" />}
+                    {activity.type === 'badge' && (
+                      <svg width="20" height="18" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
+                        <circle cx="12" cy="8" r="7" />
+                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                      </svg>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <p style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 700,
+                        lineHeight: '24px',
+                        color: '#192126',
+                        margin: '0 0 4px 0',
+                      }}>
+                        {activity.text}
+                      </p>
+                      <p style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        lineHeight: '22px',
+                        color: '#192126',
+                        margin: 0,
+                      }}>
+                        {activity.detail}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Log Out and Delete Account Buttons */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          marginTop: '40px',
+          padding: isMobile ? '0 20px 40px 20px' : '0 80px 40px 80px',
+          justifyContent: 'flex-start',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={async () => {
+              try {
+                await logout();
+                handleNavigate('login');
+              } catch (error) {
+                console.error('Logout error:', error);
+              }
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#388896';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.color = '#388896';
+            }}
+            style={{
+              background: '#ffffff',
+              border: 'none',
+              borderRadius: '26px',
+              padding: '8px 24px',
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '16px',
+              fontWeight: 700,
+              color: '#388896',
+              cursor: 'pointer',
+              boxShadow: '0px 0px 10px 0px #dddddd',
+              height: '48px',
+              width: '160px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {t.profile.logOut}
+          </button>
+          <button
+            onClick={() => {/* TODO: Implement delete account */}}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#388896';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.color = '#388896';
+            }}
+            style={{
+              background: '#ffffff',
+              border: 'none',
+              borderRadius: '26px',
+              padding: '8px 24px',
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '16px',
+              fontWeight: 700,
+              color: '#388896',
+              cursor: 'pointer',
+              boxShadow: '0px 0px 10px 0px #dddddd',
+              height: '48px',
+              width: '160px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {t.profile.deleteAccount}
+          </button>
+        </div>
       </div>
 
-      {/* Password Change Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t.profile.changePassword}</DialogTitle>
-            <DialogDescription>Enter your current password and choose a new password.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="oldPassword">{t.profile.oldPassword}</Label>
-              <Input
-                id="oldPassword"
-                type="password"
-                value={passwordData.oldPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">{t.profile.newPassword}</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t.profile.confirmPassword}</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-              />
-            </div>
-            {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowPasswordDialog(false);
-                setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
-                setPasswordError('');
-              }}
-            >
-              {t.common.cancel}
-            </Button>
-            <Button onClick={handlePasswordChange} disabled={isChangingPassword}>
-              {isChangingPassword ? t.common.loading : t.common.save}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Cover Photo Crop Dialog */}
+      {coverPhotoPreview && (
+        <ImageCropDialog
+          open={coverPhotoDialogOpen}
+          onOpenChange={(open) => {
+            setCoverPhotoDialogOpen(open);
+            if (!open) {
+              // Clear preview when dialog closes
+              setCoverPhotoPreview(null);
+            }
+          }}
+          imageSrc={coverPhotoPreview}
+          onCropComplete={uploadCoverPhoto}
+          aspect={1280 / 420}
+        />
+      )}
 
-      {/* Unsaved Changes Dialog */}
-      <Dialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t.profile.unsavedChanges}</DialogTitle>
-            <DialogDescription>{t.profile.unsavedChangesMessage}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowUnsavedDialog(false);
-                setPendingNavigation(null);
-              }}
-            >
-              {t.profile.stayOnPage}
-            </Button>
-            <Button variant="destructive" onClick={handleConfirmLeave}>
-              {t.profile.leaveWithoutSaving}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Profile Photo Crop Dialog */}
+      {profilePhotoPreview && (
+        <ImageCropDialog
+          open={profilePhotoDialogOpen}
+          onOpenChange={setProfilePhotoDialogOpen}
+          imageSrc={profilePhotoPreview}
+          onCropComplete={uploadProfilePhoto}
+          aspect={1}
+        />
+      )}
+
+      {/* Save Dialog */}
+      {showSaveDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '30px',
+            padding: '32px',
+            maxWidth: '500px',
+            width: '90%',
+            boxShadow: '0px 0px 20px rgba(0, 0, 0, 0.3)',
+          }}>
+            <h2 style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '22px',
+              fontWeight: 400,
+              lineHeight: '32px',
+              color: '#192126',
+              margin: '0 0 16px 0',
+            }}>
+              {t.profile.unsavedChanges}
+            </h2>
+            <p style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '16px',
+              fontWeight: 400,
+              lineHeight: '24px',
+              color: '#505050',
+              margin: '0 0 24px 0',
+            }}>
+              {t.profile.unsavedChangesMessage}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => handleSaveDialogAction('cancel')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f2f2f7';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#ffffff';
+                }}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '24px',
+                  padding: '8px 24px',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#192126',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {t.profile.cancel}
+              </button>
+              <button
+                onClick={() => handleSaveDialogAction('discard')}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#388896';
+                  e.currentTarget.style.color = '#ffffff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = '#ffffff';
+                  e.currentTarget.style.color = '#388896';
+                }}
+                style={{
+                  background: '#ffffff',
+                  border: 'none',
+                  borderRadius: '24px',
+                  padding: '8px 24px',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#388896',
+                  cursor: 'pointer',
+                  boxShadow: '0px 0px 10px 0px #dddddd',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {t.profile.discard}
+              </button>
+              <button
+                onClick={() => handleSaveDialogAction('save')}
+                disabled={saving}
+                style={{
+                  background: '#388896',
+                  border: 'none',
+                  borderRadius: '24px',
+                  padding: '8px 24px',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  boxShadow: '0px 0px 10px 0px #dddddd',
+                  transition: 'all 0.2s ease',
+                  opacity: saving ? 0.6 : 1,
+                }}
+              >
+                {saving ? t.profile.saving : t.profile.save}
+              </button>
+        </div>
+      </div>
+        </div>
+      )}
     </div>
   );
 }

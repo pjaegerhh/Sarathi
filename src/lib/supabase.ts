@@ -44,7 +44,35 @@ export interface SarathiUser {
   main_challenge: string[] | null; // Array of: fit_comfort, mobility, community, cost_access, training, emotional
   activities: string[] | null; // Array of: rehabilitation, social_life, emotions, pain_relief, work, independence, education, confidence, training, sports, guidance, community, maintenance
   onboarding_completed: boolean | null; // Whether onboarding has been completed
+  // New profile page fields
+  profession: string | null; // User profession/occupation
+  workplace: string | null; // User workplace/company
+  place_of_residence: string | null; // User place of residence/city
+  my_story: string | null; // User story in HTML format
+  cover_picture_url: string | null; // URL to cover picture in Supabase storage
+  profile_picture_url: string | null; // URL to profile picture in Supabase storage
   created_at: string;
   updated_at: string;
+}
+
+// User activity types
+export type ActivityType = 
+  | 'post_created'
+  | 'comment_created'
+  | 'like_given'
+  | 'like_received'
+  | 'comment_received'
+  | 'group_joined'
+  | 'badge_earned'
+  | 'connection_added';
+
+export interface UserActivity {
+  id: number;
+  user_id: string;
+  activity_type: ActivityType;
+  activity_content: string | null;
+  related_post_id: number | null;
+  related_user_id: string | null;
+  created_at: string;
 }
 

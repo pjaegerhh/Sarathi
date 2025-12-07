@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "version:patch": "npm version patch --no-git-tag-version",
     "version:minor": "npm version minor --no-git-tag-version",
-    "version:major": "npm version major --no-git-tag-version"
+    "version:major": "npm version major --no-git-tag-version",
+    "setup:storage": "tsx scripts/setup-storage.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -50,6 +51,7 @@
     "react": "^19.2.0",
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.2.0",
+    "react-easy-crop": "^5.5.6",
     "react-hook-form": "^7.65.0",
     "react-resizable-panels": "^3.0.6",
     "react-router-dom": "^7.9.4",
@@ -60,17 +62,20 @@
     "vaul": "^1.1.2"
   },
   "devDependencies": {
+    "@types/node": "^22.13.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
     "@vitejs/plugin-react": "^5.1.0",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^16.4.7",
     "eslint": "^9.38.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.16",
+    "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "vite": "^7.1.12"
   }

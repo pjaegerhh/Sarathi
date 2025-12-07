@@ -17,6 +17,13 @@ export interface User {
   mainChallenge: string[] | null;
   activities: string[] | null;
   onboardingCompleted: boolean | null;
+  // New profile page fields
+  profession: string | null;
+  workplace: string | null;
+  place_of_residence: string | null;
+  my_story: string | null;
+  cover_picture_url: string | null;
+  profile_picture_url: string | null;
 }
 
 interface AuthContextType {
@@ -88,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const { data: userData, error } = await supabase
         .from('sarathi_user')
-        .select('uuid, name, first_name, email, telephone, user_type, prosthesis_type, length_usage, main_challenge, activities, created_at, updated_at, date_of_birth, age, onboarding_completed')
+        .select('uuid, name, first_name, email, telephone, user_type, prosthesis_type, length_usage, main_challenge, activities, created_at, updated_at, date_of_birth, age, onboarding_completed, profession, workplace, place_of_residence, my_story, cover_picture_url, profile_picture_url')
         .eq('uuid', supabaseUser.id)
         .single()
         .abortSignal(controller.signal);
@@ -120,6 +127,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           mainChallenge: null,
           activities: null,
           onboardingCompleted: null,
+          profession: null,
+          workplace: null,
+          place_of_residence: null,
+          my_story: null,
+          cover_picture_url: null,
+          profile_picture_url: null,
         };
       }
       
@@ -142,6 +155,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         mainChallenge: userData.main_challenge,
         activities: userData.activities,
         onboardingCompleted: (userData as any).onboarding_completed || null,
+        profession: (userData as any).profession || null,
+        workplace: (userData as any).workplace || null,
+        place_of_residence: (userData as any).place_of_residence || null,
+        my_story: (userData as any).my_story || null,
+        cover_picture_url: (userData as any).cover_picture_url || null,
+        profile_picture_url: (userData as any).profile_picture_url || null,
       };
     } catch (error) {
       console.error('❌ Exception in mapSupabaseUserToUser:', error);
@@ -364,10 +383,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(error.message || 'Failed to update profile');
       }
 
-      // Refresh user data
+      // Refresh user data from database to get updated fields
       if (session?.user) {
         const mappedUser = await mapSupabaseUserToUser(session.user);
-        setUser(mappedUser);
+        if (mappedUser) {
+          setUser(mappedUser);
+        }
       }
     } catch (error) {
       console.error('Update profile error:', error);
