@@ -4,6 +4,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
 import { ImageCropDialog } from './ImageCropDialog';
+import { ViewStoryModal } from './ViewStoryModal';
+import { EditStoryModal } from './EditStoryModal';
 import locationIcon from '../assets/svg/location.svg';
 import locationPrimaryIcon from '../assets/svg/location_primary.svg';
 import achievementIcon from '../assets/svg/achievement.svg';
@@ -66,6 +68,21 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [activitiesModalOpen, setActivitiesModalOpen] = useState(false);
   const [challengesModalOpen, setChallengesModalOpen] = useState(false);
 
+  // Story state
+  const [userStory, setUserStory] = useState<{
+    id: string;
+    story_text: string | null;
+    media_urls: string[] | null;
+    created_at: string;
+    updated_at: string;
+  } | null>(null);
+  const [storyMediaUrl, setStoryMediaUrl] = useState<string | null>(null);
+  const [isStoryMediaVideo, setIsStoryMediaVideo] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
+  const [editStoryModalOpen, setEditStoryModalOpen] = useState(false);
+
   const activityOptions = [
     'rehabilitation',
     'social_life',
@@ -114,6 +131,79 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       });
     }
   }, [user]);
+
+  // Fetch user story
+  useEffect(() => {
+    fetchUserStory();
+  }, [user?.id]);
+
+  const fetchUserStory = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_stories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 is "no rows returned" - which is fine
+        console.error('Error fetching user story:', error);
+        return;
+      }
+
+      if (data) {
+        console.log('📖 User story fetched:', data);
+        console.log('📸 Media URLs:', data.media_urls);
+        setUserStory(data);
+        
+        // Load signed URL for first media
+        if (data.media_urls && data.media_urls.length > 0) {
+          loadStoryMediaUrl(data.media_urls[0]);
+        }
+      } else {
+        setUserStory(null);
+        setStoryMediaUrl(null);
+      }
+    } catch (error) {
+      console.error('Error fetching user story:', error);
+    }
+  };
+
+  // Load signed URL for story preview
+  const loadStoryMediaUrl = async (path: string) => {
+    // Check if it's a video
+    const isVideo = path.match(/\.(mp4|webm|ogg)$/i);
+    setIsStoryMediaVideo(!!isVideo);
+    
+    const { data, error } = await supabase.storage
+      .from('profile-media')
+      .createSignedUrl(path, 3600); // Valid for 1 hour
+
+    if (data?.signedUrl) {
+      console.log('🔗 Generated signed URL for:', path);
+      setStoryMediaUrl(data.signedUrl);
+    } else if (error) {
+      console.error('❌ Failed to load story media:', error);
+    }
+  };
+
+  // Handle video play
+  const handleVideoPlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause();
+        setIsVideoPlaying(false);
+      } else {
+        videoRef.current.play();
+        setIsVideoPlaying(true);
+      }
+    }
+  };
 
   // Handle cover photo file selection
   const handleCoverPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1275,67 +1365,200 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               </h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', alignItems: 'flex-end' }}>
                 {/* Video/Image Space */}
-                <div style={{ position: 'relative', width: '100%' }}>
+                <div 
+                  style={{ 
+                    position: 'relative', 
+                    width: '100%',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    if (isEditing) {
+                      setEditStoryModalOpen(true);
+                    } else if (userStory) {
+                      setViewStoryModalOpen(true);
+                    } else {
+                      // No story exists, open edit modal to create one
+                      setEditStoryModalOpen(true);
+                    }
+                  }}
+                >
                   <div style={{
                     width: '100%',
                     height: '357px',
                     borderRadius: '30px',
                     background: '#f2f2f7',
                     position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}>
-                    {/* Play button overlay */}
-                    <button
-                      style={{
-                        position: 'absolute',
-                        left: '50%',
-                        top: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '50%',
-                        background: '#ffffff',
-                        border: 'none',
+                    {!userStory ? (
+                      // Placeholder when no story exists
+                      <div style={{
                         display: 'flex',
+                        flexDirection: 'column',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '0px 0px 10px 0px #dddddd',
-                      }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
-                        <polygon points="5 3 19 12 5 21 5 3" />
-                      </svg>
-                    </button>
+                        gap: '16px',
+                        padding: '40px',
+                        textAlign: 'center',
+                      }}>
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#979797" strokeWidth="1.5">
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="m21 15-5-5L5 21" />
+                        </svg>
+                        <div>
+                          <p style={{
+                            fontFamily: 'Roboto, sans-serif',
+                            fontSize: '18px',
+                            fontWeight: 500,
+                            color: '#192126',
+                            margin: '0 0 8px 0',
+                          }}>
+                            {t.profile.noStoryYet}
+                          </p>
+                          <p style={{
+                            fontFamily: 'Roboto, sans-serif',
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: '#979797',
+                            margin: 0,
+                          }}>
+                            {t.profile.noStoryDescription}
+                          </p>
+                        </div>
+                        {isEditing && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditStoryModalOpen(true);
+                            }}
+                            style={{
+                              background: '#388896',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '24px',
+                              padding: '12px 32px',
+                              fontFamily: 'Roboto, sans-serif',
+                              fontSize: '16px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              marginTop: '8px',
+                            }}
+                          >
+                            {t.profile.createYourStory}
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {/* Display first media or placeholder */}
+                        {userStory.media_urls && userStory.media_urls.length > 0 && storyMediaUrl ? (
+                          isStoryMediaVideo ? (
+                            <video
+                              ref={videoRef}
+                              src={storyMediaUrl}
+                              onClick={(e) => {
+                                if (!isEditing) {
+                                  handleVideoPlay(e);
+                                }
+                              }}
+                              onEnded={() => setIsVideoPlaying(false)}
+                              onPause={() => setIsVideoPlaying(false)}
+                              onPlay={() => setIsVideoPlaying(true)}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                borderRadius: '30px',
+                                background: '#000000',
+                                cursor: !isEditing ? 'pointer' : 'default',
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src={storyMediaUrl}
+                              alt="Story media"
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                borderRadius: '30px',
+                                background: '#000000',
+                              }}
+                            />
+                          )
+                        ) : null}
+                        {/* Play button overlay for view mode */}
+                        {!isEditing && isStoryMediaVideo && !isVideoPlaying && (
+                          <button
+                            onClick={handleVideoPlay}
+                            style={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '64px',
+                              height: '64px',
+                              borderRadius: '50%',
+                              background: 'rgba(255, 255, 255, 0.9)',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0px 0px 10px 0px #dddddd',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
+                            }}
+                          >
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="#388896">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </button>
+                        )}
+                        {!isEditing && !isStoryMediaVideo && (
+                          <button
+                            style={{
+                              position: 'absolute',
+                              left: '50%',
+                              top: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '48px',
+                              height: '48px',
+                              borderRadius: '50%',
+                              background: '#ffffff',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0px 0px 10px 0px #dddddd',
+                            }}
+                          >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
+                              <polygon points="5 3 19 12 5 21 5 3" />
+                            </svg>
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Story Text */}
-                <div style={{
-                  background: '#ffffff',
-                  borderRadius: '30px',
-                  padding: '20px',
-                  width: '100%',
-                }}>
-                  {isEditing ? (
-                    <textarea
-                      value={editData.my_story}
-                      onChange={(e) => setEditData({ ...editData, my_story: e.target.value })}
-                      style={{
-                        width: '100%',
-                        minHeight: '160px',
-                        fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '22px',
-                        color: '#192126',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '12px',
-                        padding: '12px',
-                        resize: 'vertical',
-                        outline: 'none',
-                      }}
-                    />
-                  ) : (
+                {/* Story Text Preview */}
+                {userStory && userStory.story_text && (
+                  <div style={{
+                    background: '#ffffff',
+                    borderRadius: '30px',
+                    padding: '20px',
+                    width: '100%',
+                  }}>
                     <p style={{
                       fontFamily: 'Roboto, sans-serif',
                       fontSize: '14px',
@@ -1345,41 +1568,54 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       textAlign: 'justify',
                       margin: 0,
                       whiteSpace: 'pre-wrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 7,
+                      WebkitBoxOrient: 'vertical',
                     }}>
-                      {editData.my_story || ''}
+                      {userStory.story_text}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                {/* Read More Button */}
-                <button
-                  onClick={() => {/* TODO: Open modal */}}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#388896';
-                    e.currentTarget.style.color = '#ffffff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#ffffff';
-                    e.currentTarget.style.color = '#388896';
-                  }}
-                  style={{
-                    background: '#ffffff',
-                    border: 'none',
-                    borderRadius: '24px',
-                    padding: '8px 24px',
-                    fontFamily: 'Roboto, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    color: '#388896',
-                    cursor: 'pointer',
-                    boxShadow: '0px 0px 10px 0px #dddddd',
-                    width: '130px',
-                    height: '46px',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {t.profile.readMore}
-                </button>
+                {/* Read More / Edit Button */}
+                {(userStory || isEditing) && (
+                  <button
+                    onClick={() => {
+                      if (isEditing) {
+                        setEditStoryModalOpen(true);
+                      } else {
+                        setViewStoryModalOpen(true);
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#388896';
+                      e.currentTarget.style.color = '#ffffff';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#ffffff';
+                      e.currentTarget.style.color = '#388896';
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: 'none',
+                      borderRadius: '24px',
+                      padding: '8px 24px',
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      color: '#388896',
+                      cursor: 'pointer',
+                      boxShadow: '0px 0px 10px 0px #dddddd',
+                      width: '130px',
+                      height: '46px',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {isEditing ? t.profile.editStory : t.profile.readMore}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1947,6 +2183,27 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         </div>
       </div>
         </div>
+      )}
+
+      {/* View Story Modal */}
+      {userStory && (
+        <ViewStoryModal
+          isOpen={viewStoryModalOpen}
+          onClose={() => setViewStoryModalOpen(false)}
+          story={userStory}
+        />
+      )}
+
+      {/* Edit Story Modal */}
+      {user && (
+        <EditStoryModal
+          isOpen={editStoryModalOpen}
+          onClose={() => setEditStoryModalOpen(false)}
+          userId={user.id}
+          existingStory={userStory}
+          onSave={fetchUserStory}
+          user={user}
+        />
       )}
     </div>
   );

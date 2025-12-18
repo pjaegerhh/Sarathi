@@ -44,9 +44,9 @@ interface BucketConfig {
 const bucketsConfig: BucketConfig[] = [
   {
     name: 'profile-media',
-    public: false,
-    fileSizeLimit: 10 * 1024 * 1024, // 10 MB
-    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    public: false, // Private bucket - only authenticated users
+    fileSizeLimit: 50 * 1024 * 1024, // 50 MB (increased for videos)
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm', 'video/ogg']
   },
   {
     name: 'post-media',
@@ -332,6 +332,9 @@ main().catch((error) => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });
+
+
+
 
 
 
