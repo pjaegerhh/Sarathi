@@ -466,6 +466,27 @@ export interface Translations {
     discard: string;
     saving: string;
     save: string;
+    // Story Modal
+    myStoryTitle: string;
+    editStory: string;
+    viewStory: string;
+    addMedia: string;
+    uploadPhotos: string;
+    uploadVideos: string;
+    writeYourStory: string;
+    storyPlaceholder: string;
+    noStoryYet: string;
+    noStoryDescription: string;
+    createYourStory: string;
+    storyUpdated: string;
+    storyCreated: string;
+    deleteStory: string;
+    deleteStoryConfirm: string;
+    mediaUploaded: string;
+    uploadingMedia: string;
+    maxFilesReached: string;
+    invalidFileType: string;
+    fileTooLarge: string;
   };
 }
 
@@ -917,6 +938,27 @@ export const translations: Record<Language, Translations> = {
       saving: 'Saving...',
       save: 'Save',
       unsavedChangesMessage: 'You have unsaved changes. What would you like to do?',
+      // Story Modal
+      myStoryTitle: 'My Story',
+      editStory: 'Edit Story',
+      viewStory: 'View Story',
+      addMedia: 'Add Media',
+      uploadPhotos: 'Upload Photos',
+      uploadVideos: 'Upload Videos',
+      writeYourStory: 'Write your story',
+      storyPlaceholder: 'Share your journey, experiences, and inspire others...',
+      noStoryYet: 'No story yet',
+      noStoryDescription: 'Share your inspiring journey with the community',
+      createYourStory: 'Create Your Story',
+      storyUpdated: 'Story updated successfully',
+      storyCreated: 'Story created successfully',
+      deleteStory: 'Delete Story',
+      deleteStoryConfirm: 'Are you sure you want to delete this story? This action cannot be undone.',
+      mediaUploaded: 'Media uploaded successfully',
+      uploadingMedia: 'Uploading media...',
+      maxFilesReached: 'Maximum number of files reached',
+      invalidFileType: 'Invalid file type. Please upload images or videos only.',
+      fileTooLarge: 'File is too large. Maximum size is 50MB.',
     },
   },
   hi: {
@@ -1358,6 +1400,35 @@ export const translations: Record<Language, Translations> = {
       video: 'वीडियो',
       logOut: 'लॉग आउट',
       deleteAccount: 'खाता हटाएं',
+      coverPhotoUploaded: 'कवर फोटो सफलतापूर्वक अपलोड हुआ',
+      profilePhotoUploaded: 'प्रोफ़ाइल फोटो सफलतापूर्वक अपलोड हुआ',
+      profileSaved: 'प्रोफ़ाइल सफलतापूर्वक सहेजी गई',
+      saveProfile: 'प्रोफ़ाइल सहेजें',
+      discard: 'रद्द करें',
+      saving: 'सहेज रहे हैं...',
+      save: 'सहेजें',
+      unsavedChangesMessage: 'आपके पास असहेजे परिवर्तन हैं। आप क्या करना चाहेंगे?',
+      // Story Modal
+      myStoryTitle: 'मेरी कहानी',
+      editStory: 'कहानी संपादित करें',
+      viewStory: 'कहानी देखें',
+      addMedia: 'मीडिया जोड़ें',
+      uploadPhotos: 'फोटो अपलोड करें',
+      uploadVideos: 'वीडियो अपलोड करें',
+      writeYourStory: 'अपनी कहानी लिखें',
+      storyPlaceholder: 'अपनी यात्रा, अनुभव साझा करें और दूसरों को प्रेरित करें...',
+      noStoryYet: 'अभी तक कोई कहानी नहीं',
+      noStoryDescription: 'समुदाय के साथ अपनी प्रेरणादायक यात्रा साझा करें',
+      createYourStory: 'अपनी कहानी बनाएं',
+      storyUpdated: 'कहानी सफलतापूर्वक अपडेट हुई',
+      storyCreated: 'कहानी सफलतापूर्वक बनाई गई',
+      deleteStory: 'कहानी हटाएं',
+      deleteStoryConfirm: 'क्या आप वाकई इस कहानी को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।',
+      mediaUploaded: 'मीडिया सफलतापूर्वक अपलोड हुआ',
+      uploadingMedia: 'मीडिया अपलोड हो रहा है...',
+      maxFilesReached: 'अधिकतम फ़ाइलों की संख्या पूरी हो गई',
+      invalidFileType: 'अमान्य फ़ाइल प्रकार। कृपया केवल चित्र या वीडियो अपलोड करें।',
+      fileTooLarge: 'फ़ाइल बहुत बड़ी है। अधिकतम आकार 50MB है।',
     },
   },
 };

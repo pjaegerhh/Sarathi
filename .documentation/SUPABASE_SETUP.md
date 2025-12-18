@@ -247,6 +247,70 @@ Visit your deployed URLs and verify:
 - Review GitHub Actions logs in the Actions tab
 - Check browser console for client-side errors
 
+## CORS Configuration for Custom Domains
+
+When deploying to a custom domain (e.g., `testing.sarathiapp.co.in`), you need to configure authentication redirect URLs in Supabase. **Note:** Supabase has removed the "Additional Allowed Origins" setting from the dashboard, but you still need to configure redirect URLs for authentication.
+
+### Steps to Fix CORS/Authentication Errors
+
+1. **Go to Supabase Dashboard**
+   - Navigate to: [Supabase Dashboard](https://supabase.com/dashboard/project/axytclwosgvuanglpvii)
+   - Select your project: `axytclwosgvuanglpvii`
+
+2. **Navigate to Authentication Settings**
+   - In the left sidebar, click on **"Authentication"**
+   - Within Authentication, click on **"Settings"** (or **"URL Configuration"**)
+
+3. **Configure Site URL and Redirect URLs**
+   - **Site URL**: Set this to your primary domain (e.g., `https://testing.sarathiapp.co.in`)
+   - **Redirect URLs**: Add your custom domain(s) to the allowed redirect URLs list:
+     - `https://testing.sarathiapp.co.in/**` (for testing environment - note the `/**` wildcard)
+     - `https://sarathiapp.co.in/**` (for production, if applicable)
+     - `https://www.sarathiapp.co.in/**` (if using www subdomain)
+   - Each URL should be on a new line
+   - Click **"Save"** or **"Update"**
+
+4. **Alternative: Check Project Settings**
+   - If you don't see the above options, try:
+     - Go to **Project Settings** (gear icon in sidebar)
+     - Look for **"API"** or **"Authentication"** sections
+     - Check for **"Site URL"** or **"Redirect URLs"** fields
+
+5. **Wait for Propagation**
+   - Changes may take 2-5 minutes to propagate
+   - If errors persist, wait a few more minutes and try again
+
+6. **Verify Configuration**
+   - After adding the domain, test login again
+   - Check browser console for any remaining CORS errors
+
+### Important Notes
+
+- **Supabase automatically handles CORS** for REST API requests, so you don't need to configure CORS headers manually for API calls
+- **Authentication redirects** must be explicitly configured in the Redirect URLs field
+- The `/**` wildcard allows all paths under that domain
+- Make sure to use `https://` (not `http://`) for production domains
+
+### Common CORS Error Messages
+
+- `Access to fetch at '...' has been blocked by CORS policy`
+- `No 'Access-Control-Allow-Origin' header is present`
+- `Failed to fetch` (when combined with CORS errors)
+
+### Troubleshooting
+
+**Error 521 (Service Temporarily Unavailable)**
+- This occurs when Supabase project is paused and resumed
+- Services need 2-5 minutes to fully start up
+- Wait a few minutes and try again
+
+**CORS Errors Persist After Adding Domain**
+- Ensure you're using `https://` (not `http://`)
+- Check for typos in the domain name
+- Verify the domain is saved in Supabase dashboard
+- Clear browser cache and try again
+- Wait 5-10 minutes for DNS/propagation
+
 ## Security Best Practices
 
 1. ✅ **Never commit `.env` files** to the repository
@@ -254,7 +318,7 @@ Visit your deployed URLs and verify:
 3. ✅ **Rotate keys** if they are exposed
 4. ✅ **Use Row Level Security (RLS)** in Supabase (already configured)
 5. ✅ **Enable email verification** in Supabase Auth settings
-6. ✅ **Set up proper CORS** policies in Supabase
+6. ✅ **Set up proper CORS** policies in Supabase (add custom domains)
 
 ## Summary Checklist
 
