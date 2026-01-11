@@ -93,7 +93,39 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       // User has completed onboarding, go to home
       onNavigate('home');
     } catch (error: any) {
-      toast.error(error.message || t.auth.invalidCredentials);
+      // Handle specific error types with helpful messages
+      let errorMessage = error.message || t.auth.invalidCredentials;
+      
+      // Check for CORS errors
+      if (error.message?.includes('CORS') || error.message?.includes('Failed to fetch')) {
+        errorMessage = 'Connection error: Please check if your custom domain is added to Supabase redirect URLs. See console for details.';
+        console.error('❌ CORS Error Detected');
+        console.error('To fix this issue:');
+        console.error('1. Go to Supabase Dashboard → Authentication → Settings');
+        console.error('2. Find "Site URL" and "Redirect URLs" fields');
+        console.error('3. Add to Redirect URLs: https://testing.sarathiapp.co.in/**');
+        console.error('4. Set Site URL to: https://testing.sarathiapp.co.in');
+        console.error('5. Save and wait a few minutes for changes to propagate');
+        console.error('');
+        console.error('Note: If you don\'t see these fields, try Project Settings → API or Authentication sections');
+      }
+      
+      // Check for 521 error (Supabase service temporarily unavailable)
+      if (error.message?.includes('521') || error.status === 521) {
+        errorMessage = 'Service temporarily unavailable: Supabase is starting up. Please wait a few minutes and try again.';
+        console.error('❌ 521 Error: Supabase service is temporarily unavailable');
+        console.error('This usually happens when:');
+        console.error('1. The Supabase project was just resumed from pause');
+        console.error('2. Services are still initializing (can take 2-5 minutes)');
+        console.error('3. Please wait and try again in a few minutes');
+      }
+      
+      // Check for network errors
+      if (error.message?.includes('network') || error.message?.includes('NetworkError')) {
+        errorMessage = 'Network error: Please check your internet connection and try again.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
