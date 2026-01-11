@@ -1,0 +1,19 @@
+# Figma to Tailwind Rules
+
+You are an expert Frontend Engineer specialized in Tailwind CSS. When using the Figma MCP tools, follow these rules:
+
+## 1. Styling Protocol
+- **Always use Tailwind utility classes.** Never write raw CSS in style tags or external files.
+- **Strictly adhere to the Figma spacing/color variables.**
+- If a Figma value (e.g., `spacing: 13px`) does not exist in the default Tailwind scale, use **arbitrary values**: `p-[13px]`, `w-[342px]`.
+- Use **Flexbox** (`flex`, `items-center`, `justify-between`) or **Grid** (`grid`, `grid-cols-n`) based on the Figma Auto Layout properties.
+
+## 2. Design-to-Code Workflow
+- Before implementing, always run `get_design_context` for the node ID.
+- If the node has images or icons, use the `get_images` or `get_assets` tool.
+- For icons, prefer using the existing icon library in the project (e.g., Lucide, Heroicons) unless the Figma icon is a custom brand asset.
+
+## 3. Component Architecture
+- Use functional React components with TypeScript.
+- Define `interface Props` for all component inputs.
+- Ensure accessibility (ARIA labels) is added to interactive elements found in Figma.

@@ -6,6 +6,9 @@ import { toast } from 'sonner';
 import { ImageCropDialog } from './ImageCropDialog';
 import { ViewStoryModal } from './ViewStoryModal';
 import { EditStoryModal } from './EditStoryModal';
+import { ConnectionsList } from './community/ConnectionsList';
+import { ConnectionSearch } from './community/ConnectionSearch';
+import { CreatePost } from './community/CreatePost';
 import locationIcon from '../assets/svg/location.svg';
 import locationPrimaryIcon from '../assets/svg/location_primary.svg';
 import achievementIcon from '../assets/svg/achievement.svg';
@@ -579,17 +582,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     });
   };
 
-  // Mock data for uploads, connections, and activities (to be replaced with real data later)
+  // Mock data for uploads and activities (to be replaced with real data later)
   const uploads = [
     { id: 1, image: null },
     { id: 2, image: null },
     { id: 3, image: null },
-  ];
-
-  const connections = [
-    { id: 1, name: 'Brijesh Mohan', image: null },
-    { id: 2, name: 'Shruti Apte', image: null },
-    { id: 3, name: 'Rishika Sharma', image: null },
   ];
 
   const activities = [
@@ -1141,64 +1138,23 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               borderRadius: '30px',
               padding: '20px',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '22px' }}>
+              <div style={{ marginBottom: '20px' }}>
                 <h2 style={{
                   fontFamily: 'Roboto, sans-serif',
                   fontSize: '22px',
                   fontWeight: 400,
                   lineHeight: '32px',
                   color: '#192126',
-                  margin: 0,
+                  margin: '0 0 16px 0',
                 }}>
                   {t.profile.connections}
                 </h2>
-                <button 
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#388896';
-                    e.currentTarget.style.color = '#ffffff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#ffffff';
-                    e.currentTarget.style.color = '#388896';
-                  }}
-                  style={{
-                    background: '#ffffff',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '8px 24px',
-                    fontFamily: 'Roboto, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    color: '#388896',
-                    cursor: 'pointer',
-                    boxShadow: '0px 0px 10px 0px #dddddd',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {t.profile.seeAllConnections}
-                </button>
+                <ConnectionsList />
               </div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                {connections.map((connection) => (
-                  <div key={connection.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', width: '150px' }}>
-                    <div style={{
-                      width: '100px',
-                      height: '100px',
-                      borderRadius: '50px',
-                      background: '#f2f2f7',
-                    }} />
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '18px',
-                      fontWeight: 500,
-                      lineHeight: '28px',
-                      color: '#192126',
-                      textAlign: 'center',
-                    }}>
-                      {connection.name}
-                    </span>
-                  </div>
-                ))}
+              
+              {/* Add Connection Search */}
+              <div style={{ marginTop: '20px' }}>
+                <ConnectionSearch />
               </div>
             </div>
 
@@ -1636,78 +1592,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               }}>
                 {t.profile.makeAPost}
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                {/* Post Input */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    background: '#f2f2f7',
-                  }} />
-                  <div style={{
-                    flex: 1,
-                    height: '50px',
-                    background: '#f2f2f7',
-                    borderRadius: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 29px',
-                  }}>
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '22px',
-                      color: '#979797',
-                    }}>
-                      {t.profile.shareAThought}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Photo/Video Options */}
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}>
-                    <img src={imageIcon} alt="photo" width="24" height="24" />
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '22px',
-                      color: '#979797',
-                    }}>
-                      {t.profile.photo}
-                    </span>
-                  </button>
-                  <button style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                  }}>
-                    <img src={videoIcon} alt="video" width="24" height="24" />
-                    <span style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '22px',
-                      color: '#979797',
-                    }}>
-                      {t.profile.video}
-                    </span>
-                  </button>
-                </div>
-              </div>
+              <CreatePost onPostCreated={() => {
+                // Optionally navigate to community page after posting
+                // onNavigate('community');
+              }} />
             </div>
 
             {/* Community Activities Section */}

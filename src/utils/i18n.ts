@@ -346,6 +346,134 @@ export interface Translations {
     view: string;
   };
 
+  // Community
+  community: {
+    // Feed
+    feed: string;
+    noPosts: string;
+    noPostsDescription: string;
+    loadMore: string;
+    // Posts
+    post: string;
+    posts: string;
+    writePost: string;
+    postPlaceholder: string;
+    addPhotos: string;
+    addVideos: string;
+    publishPost: string;
+    editPost: string;
+    deletePost: string;
+    deletePostConfirm: string;
+    deleteComment: string;
+    deleteCommentConfirm: string;
+    deleteCommentWithRepliesConfirm: string;
+    postCreated: string;
+    postUpdated: string;
+    postDeleted: string;
+    // Likes
+    like: string;
+    liked: string;
+    likes: string;
+    likedBy: string;
+    andOthers: string;
+    // Comments
+    comment: string;
+    comments: string;
+    writeComment: string;
+    addComment: string;
+    viewComments: string;
+    hideComments: string;
+    replyTo: string;
+    commentDeleted: string;
+    noComments: string;
+    noCommentsYet: string;
+    // Reposts
+    repost: string;
+    reposts: string;
+    reposted: string;
+    repostWith: string;
+    repostWithComment: string;
+    addRepostComment: string;
+    repostDeleted: string;
+    originalPost: string;
+    // Translation
+    translate: string;
+    translateTo: string;
+    showOriginal: string;
+    translatedFrom: string;
+    translating: string;
+    // Reactions/Feelings
+    react: string;
+    reactions: string;
+    reactedWith: string;
+    translationFailed: string;
+    howAreYouFeeling: string;
+    searchFeelings: string;
+    // Feeling labels (matching Figma design)
+    reactionSad: string;
+    reactionShocked: string;
+    reactionAngry: string;
+    reactionCrying: string;
+    reactionExcited: string;
+    reactionLoved: string;
+    reactionWonderful: string;
+    reactionRelaxed: string;
+    reactionGood: string;
+    reactionNervous: string;
+    reactionInDisbelief: string;
+    reactionAmazing: string;
+    reactionDisappointed: string;
+    reactionWow: string;
+    reactionHappy: string;
+    reactionAnnoyed: string;
+    // Moderation
+    contentUnderReview: string;
+    contentFlagged: string;
+    inappropriateContent: string;
+    // Time
+    justNow: string;
+    minutesAgo: string;
+    hoursAgo: string;
+    daysAgo: string;
+    weeksAgo: string;
+    // Connections
+    connections: string;
+    addConnection: string;
+    removeConnection: string;
+    acceptConnection: string;
+    declineConnection: string;
+    connectionRequests: string;
+    myConnections: string;
+    findConnections: string;
+    searchUsers: string;
+    noConnectionsYet: string;
+    noConnectionsDescription: string;
+    connectionRequestSent: string;
+    connectionAccepted: string;
+    connectionDeclined: string;
+    connectionRemoved: string;
+    pendingRequest: string;
+    requestPending: string;
+    connected: string;
+    connectWith: string;
+    // Errors
+    failedToLoadPosts: string;
+    failedToCreatePost: string;
+    failedToEditPost: string;
+    failedToLikePost: string;
+    failedToLoadConnections: string;
+    failedToSendRequest: string;
+    failedToLoadComments: string;
+    failedToCreateComment: string;
+    failedToEditComment: string;
+    failedToLoadComments: string;
+    failedToCreateComment: string;
+    failedToRepost: string;
+    postTooLong: string;
+    commentTooLong: string;
+    noContent: string;
+  };
+
   // Profile
   profile: {
     title: string;
@@ -468,6 +596,7 @@ export interface Translations {
     save: string;
     // Story Modal
     myStoryTitle: string;
+    journey: string;
     editStory: string;
     viewStory: string;
     addMedia: string;
@@ -818,6 +947,132 @@ export const translations: Record<Language, Translations> = {
       edit: 'Edit',
       view: 'View',
     },
+    community: {
+      // Feed
+      feed: 'Feed',
+      noPosts: 'No posts yet',
+      noPostsDescription: 'Be the first to share something with the community',
+      loadMore: 'Load More',
+      // Posts
+      post: 'Post',
+      posts: 'Posts',
+      writePost: 'Write a post',
+      postPlaceholder: 'Share your thoughts, experiences, or ask a question...',
+      addPhotos: 'Add Photos',
+      addVideos: 'Add Videos',
+      publishPost: 'Publish',
+      editPost: 'Edit Post',
+      deletePost: 'Delete Post',
+      deletePostConfirm: 'Are you sure you want to delete this post? This action cannot be undone.',
+      deleteComment: 'Delete Comment',
+      deleteCommentConfirm: 'Are you sure you want to delete this comment?',
+      deleteCommentWithRepliesConfirm: 'This comment has {count} reply/replies. Are you sure you want to delete this comment and all its replies? This action cannot be undone.',
+      postCreated: 'Post created successfully',
+      postUpdated: 'Post updated successfully',
+      postDeleted: 'Post deleted successfully',
+      // Likes
+      like: 'Like',
+      liked: 'Liked',
+      likes: 'Likes',
+      likedBy: 'Liked by',
+      andOthers: 'and others',
+      // Comments
+      comment: 'Comment',
+      comments: 'Comments',
+      writeComment: 'Write a comment...',
+      addComment: 'Add Comment',
+      viewComments: 'View Comments',
+      hideComments: 'Hide Comments',
+      replyTo: 'Reply to',
+      commentDeleted: 'Comment deleted',
+      noComments: 'No comments',
+      noCommentsYet: 'No comments yet',
+      // Reposts
+      repost: 'Repost',
+      reposts: 'Reposts',
+      reposted: 'Reposted',
+      repostWith: 'Repost with comment',
+      repostWithComment: 'Add your thoughts...',
+      addRepostComment: 'Add comment (optional)',
+      repostDeleted: 'Repost removed',
+      originalPost: 'Original post by',
+      // Translation
+      translate: 'Translate',
+      translateTo: 'Translate to',
+      showOriginal: 'Show original',
+      translatedFrom: 'Translated from',
+      translating: 'Translating...',
+      translationFailed: 'Translation failed',
+      // Reactions/Feelings
+      react: 'React',
+      reactions: 'Reactions',
+      reactedWith: 'reacted with',
+      howAreYouFeeling: 'How are you feeling?',
+      searchFeelings: 'Search feelings',
+      // Feeling labels (matching Figma design)
+      reactionSad: 'sad',
+      reactionShocked: 'shocked',
+      reactionAngry: 'angry',
+      reactionCrying: 'crying',
+      reactionExcited: 'excited',
+      reactionLoved: 'loved',
+      reactionWonderful: 'wonderful',
+      reactionRelaxed: 'relaxed',
+      reactionGood: 'good',
+      reactionNervous: 'nervous',
+      reactionInDisbelief: 'in disbelief',
+      reactionAmazing: 'amazing',
+      reactionDisappointed: 'disappointed',
+      reactionWow: 'wow',
+      reactionHappy: 'happy',
+      reactionAnnoyed: 'annoyed',
+      // Moderation
+      contentUnderReview: 'Content under review',
+      contentFlagged: 'This content has been flagged',
+      inappropriateContent: 'Inappropriate content detected',
+      // Time
+      justNow: 'Just now',
+      minutesAgo: 'm ago',
+      hoursAgo: 'h ago',
+      daysAgo: 'd ago',
+      weeksAgo: 'w ago',
+      // Connections
+      connections: 'Connections',
+      addConnection: 'Add Connection',
+      removeConnection: 'Remove Connection',
+      acceptConnection: 'Accept',
+      declineConnection: 'Decline',
+      connectionRequests: 'Connection Requests',
+      myConnections: 'My Connections',
+      findConnections: 'Find Connections',
+      searchUsers: 'Search users...',
+      noConnectionsYet: 'No connections yet',
+      noConnectionsDescription: 'Start connecting with other members of the community',
+      connectionRequestSent: 'Connection request sent',
+      connectionAccepted: 'Connection accepted',
+      connectionDeclined: 'Connection declined',
+      connectionRemoved: 'Connection removed',
+      pendingRequest: 'Pending',
+      requestPending: 'Request pending',
+      connected: 'Connected',
+      connectWith: 'Connect',
+      // Errors
+      failedToLoadPosts: 'Failed to load posts',
+      failedToCreatePost: 'Failed to create post',
+      failedToEditPost: 'Failed to edit post',
+      failedToLikePost: 'Failed to like post',
+      failedToLoadConnections: 'Failed to load connections',
+      failedToSendRequest: 'Failed to send connection request',
+      failedToLoadComments: 'Failed to load comments',
+      failedToCreateComment: 'Failed to create comment',
+      failedToEditComment: 'Failed to edit comment',
+      failedToLoadComments: 'Failed to load comments',
+      failedToCreateComment: 'Failed to create comment',
+      failedToRepost: 'Failed to repost',
+      postTooLong: 'Post is too long (max 5000 characters)',
+      commentTooLong: 'Comment is too long (max 2000 characters)',
+      noContent: 'Please add some content to your post',
+    },
     profile: {
       title: 'Profile',
       accountInfo: 'Account Information',
@@ -881,28 +1136,11 @@ export const translations: Record<Language, Translations> = {
       latestActivities: 'Latest Activities',
       noRecentActivities: 'No recent activities',
       savingChanges: 'Saving...',
-      // New profile page fields
-      about: 'About',
-      myStory: 'My Story',
-      profession: 'Profession',
-      workplace: 'Workplace',
-      placeOfResidence: 'Place of Residence',
       location: 'Location',
-      worksAt: 'Works at',
-      from: 'From',
-      uploads: 'Uploads',
-      connections: 'Connections',
-      makeAPost: 'Make a post',
-      shareAThought: 'Share a thought..',
-      photoVideo: 'Photo / Video',
-      seeAllPosts: 'See all posts',
-      seeAllConnections: 'See all connections',
-      readMore: 'Read More',
       verifiedUser: 'Verified User',
       coverPicture: 'Cover Picture',
       profilePicture: 'Profile Picture',
       changePicture: 'Change Picture',
-      latestActivities: 'Latest Activities',
       youCommented: 'You Commented on',
       youLiked: 'You Liked',
       youJoinedGroup: 'You Joined group:',
@@ -923,7 +1161,6 @@ export const translations: Record<Language, Translations> = {
       interestsAndActivities: 'Interests and Activities',
       challengesFaced: 'Challenges faced',
       communityActivities: 'Community Activities',
-      prostheticType: 'Prosthesis type',
       usageDuration: 'Usage Duration',
       addCoverPhoto: 'Add cover photo',
       photo: 'Photo',
@@ -937,9 +1174,9 @@ export const translations: Record<Language, Translations> = {
       discard: 'Discard',
       saving: 'Saving...',
       save: 'Save',
-      unsavedChangesMessage: 'You have unsaved changes. What would you like to do?',
       // Story Modal
       myStoryTitle: 'My Story',
+      journey: "'s journey",
       editStory: 'Edit Story',
       viewStory: 'View Story',
       addMedia: 'Add Media',
@@ -1288,6 +1525,132 @@ export const translations: Record<Language, Translations> = {
       edit: 'संपादित करें',
       view: 'देखें',
     },
+    community: {
+      // Feed
+      feed: 'फ़ीड',
+      noPosts: 'अभी तक कोई पोस्ट नहीं',
+      noPostsDescription: 'समुदाय के साथ कुछ साझा करने वाले पहले व्यक्ति बनें',
+      loadMore: 'और लोड करें',
+      // Posts
+      post: 'पोस्ट',
+      posts: 'पोस्ट',
+      writePost: 'पोस्ट लिखें',
+      postPlaceholder: 'अपने विचार, अनुभव साझा करें या सवाल पूछें...',
+      addPhotos: 'फोटो जोड़ें',
+      addVideos: 'वीडियो जोड़ें',
+      publishPost: 'प्रकाशित करें',
+      editPost: 'पोस्ट संपादित करें',
+      deletePost: 'पोस्ट हटाएं',
+      deletePostConfirm: 'क्या आप वाकई इस पोस्ट को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।',
+      deleteComment: 'टिप्पणी हटाएं',
+      deleteCommentConfirm: 'क्या आप वाकई इस टिप्पणी को हटाना चाहते हैं?',
+      deleteCommentWithRepliesConfirm: 'इस टिप्पणी में {count} उत्तर हैं। क्या आप वाकई इस टिप्पणी और इसके सभी उत्तरों को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।',
+      postCreated: 'पोस्ट सफलतापूर्वक बनाई गई',
+      postUpdated: 'पोस्ट सफलतापूर्वक अपडेट हुई',
+      postDeleted: 'पोस्ट सफलतापूर्वक हटाई गई',
+      // Likes
+      like: 'पसंद',
+      liked: 'पसंद किया',
+      likes: 'पसंद',
+      likedBy: 'पसंद किया',
+      andOthers: 'और अन्य',
+      // Comments
+      comment: 'टिप्पणी',
+      comments: 'टिप्पणियाँ',
+      writeComment: 'टिप्पणी लिखें...',
+      addComment: 'टिप्पणी जोड़ें',
+      viewComments: 'टिप्पणियाँ देखें',
+      hideComments: 'टिप्पणियाँ छुपाएं',
+      replyTo: 'जवाब दें',
+      commentDeleted: 'टिप्पणी हटाई गई',
+      noComments: 'कोई टिप्पणी नहीं',
+      noCommentsYet: 'अभी तक कोई टिप्पणी नहीं',
+      // Reposts
+      repost: 'रीपोस्ट',
+      reposts: 'रीपोस्ट',
+      reposted: 'रीपोस्ट किया',
+      repostWith: 'टिप्पणी के साथ रीपोस्ट करें',
+      repostWithComment: 'अपने विचार जोड़ें...',
+      addRepostComment: 'टिप्पणी जोड़ें (वैकल्पिक)',
+      repostDeleted: 'रीपोस्ट हटाया गया',
+      originalPost: 'मूल पोस्ट द्वारा',
+      // Translation
+      translate: 'अनुवाद करें',
+      translateTo: 'में अनुवाद करें',
+      showOriginal: 'मूल दिखाएं',
+      translatedFrom: 'से अनुवादित',
+      translating: 'अनुवाद हो रहा है...',
+      translationFailed: 'अनुवाद विफल',
+      // Reactions/Feelings
+      react: 'प्रतिक्रिया',
+      reactions: 'प्रतिक्रियाएं',
+      reactedWith: 'ने प्रतिक्रिया दी',
+      howAreYouFeeling: 'आप कैसा महसूस कर रहे हैं?',
+      searchFeelings: 'भावनाएं खोजें',
+      // Feeling labels (matching Figma design)
+      reactionSad: 'दुखी',
+      reactionShocked: 'हैरान',
+      reactionAngry: 'गुस्से में',
+      reactionCrying: 'रो रहे',
+      reactionExcited: 'उत्साहित',
+      reactionLoved: 'प्यार',
+      reactionWonderful: 'अद्भुत',
+      reactionRelaxed: 'आराम',
+      reactionGood: 'अच्छा',
+      reactionNervous: 'घबराया',
+      reactionInDisbelief: 'अविश्वास में',
+      reactionAmazing: 'आश्चर्यजनक',
+      reactionDisappointed: 'निराश',
+      reactionWow: 'वाह',
+      reactionHappy: 'खुश',
+      reactionAnnoyed: 'नाराज',
+      // Moderation
+      contentUnderReview: 'सामग्री समीक्षाधीन',
+      contentFlagged: 'यह सामग्री को फ्लैग किया गया है',
+      inappropriateContent: 'अनुचित सामग्री का पता चला',
+      // Time
+      justNow: 'अभी',
+      minutesAgo: 'मिनट पहले',
+      hoursAgo: 'घंटे पहले',
+      daysAgo: 'दिन पहले',
+      weeksAgo: 'सप्ताह पहले',
+      // Connections
+      connections: 'कनेक्शन',
+      addConnection: 'कनेक्शन जोड़ें',
+      removeConnection: 'कनेक्शन हटाएं',
+      acceptConnection: 'स्वीकार करें',
+      declineConnection: 'अस्वीकार करें',
+      connectionRequests: 'कनेक्शन अनुरोध',
+      myConnections: 'मेरे कनेक्शन',
+      findConnections: 'कनेक्शन खोजें',
+      searchUsers: 'उपयोगकर्ता खोजें...',
+      noConnectionsYet: 'अभी तक कोई कनेक्शन नहीं',
+      noConnectionsDescription: 'समुदाय के अन्य सदस्यों से जुड़ना शुरू करें',
+      connectionRequestSent: 'कनेक्शन अनुरोध भेजा गया',
+      connectionAccepted: 'कनेक्शन स्वीकार किया गया',
+      connectionDeclined: 'कनेक्शन अस्वीकार किया गया',
+      connectionRemoved: 'कनेक्शन हटाया गया',
+      pendingRequest: 'लंबित',
+      requestPending: 'अनुरोध लंबित',
+      connected: 'कनेक्ट किया गया',
+      connectWith: 'कनेक्ट करें',
+      // Errors
+      failedToLoadPosts: 'पोस्ट लोड करने में विफल',
+      failedToCreatePost: 'पोस्ट बनाने में विफल',
+      failedToEditPost: 'पोस्ट संपादित करने में विफल',
+      failedToLikePost: 'पोस्ट पसंद करने में विफल',
+      failedToLoadConnections: 'कनेक्शन लोड करने में विफल',
+      failedToSendRequest: 'कनेक्शन अनुरोध भेजने में विफल',
+      failedToLoadComments: 'टिप्पणियाँ लोड करने में विफल',
+      failedToCreateComment: 'टिप्पणी बनाने में विफल',
+      failedToEditComment: 'टिप्पणी संपादित करने में विफल',
+      failedToLoadComments: 'टिप्पणियाँ लोड करने में विफल',
+      failedToCreateComment: 'टिप्पणी बनाने में विफल',
+      failedToRepost: 'रीपोस्ट करने में विफल',
+      postTooLong: 'पोस्ट बहुत लंबी है (अधिकतम 5000 वर्ण)',
+      commentTooLong: 'टिप्पणी बहुत लंबी है (अधिकतम 2000 वर्ण)',
+      noContent: 'कृपया अपनी पोस्ट में कुछ सामग्री जोड़ें',
+    },
     profile: {
       title: 'प्रोफ़ाइल',
       accountInfo: 'खाता जानकारी',
@@ -1351,28 +1714,11 @@ export const translations: Record<Language, Translations> = {
       latestActivities: 'नवीनतम गतिविधियाँ',
       noRecentActivities: 'कोई हाल की गतिविधि नहीं',
       savingChanges: 'सहेज रहे हैं...',
-      // New profile page fields
-      about: 'के बारे में',
-      myStory: 'मेरी कहानी',
-      profession: 'पेशा',
-      workplace: 'कार्यस्थल',
-      placeOfResidence: 'निवास स्थान',
       location: 'स्थान',
-      worksAt: 'में काम करता है',
-      from: 'से',
-      uploads: 'अपलोड',
-      connections: 'कनेक्शन',
-      makeAPost: 'पोस्ट बनाएं',
-      shareAThought: 'एक विचार साझा करें..',
-      photoVideo: 'फोटो / वीडियो',
-      seeAllPosts: 'सभी पोस्ट देखें',
-      seeAllConnections: 'सभी कनेक्शन देखें',
-      readMore: 'और पढ़ें',
       verifiedUser: 'सत्यापित उपयोगकर्ता',
       coverPicture: 'कवर चित्र',
       profilePicture: 'प्रोफ़ाइल चित्र',
       changePicture: 'चित्र बदलें',
-      latestActivities: 'नवीनतम गतिविधियाँ',
       youCommented: 'आपने टिप्पणी की',
       youLiked: 'आपने पसंद किया',
       youJoinedGroup: 'आप समूह में शामिल हुए:',
@@ -1393,7 +1739,6 @@ export const translations: Record<Language, Translations> = {
       interestsAndActivities: 'रुचियाँ और गतिविधियाँ',
       challengesFaced: 'चुनौतियाँ',
       communityActivities: 'समुदाय गतिविधियाँ',
-      prostheticType: 'कृत्रिम अंग प्रकार',
       usageDuration: 'उपयोग अवधि',
       addCoverPhoto: 'कवर फोटो जोड़ें',
       photo: 'फोटो',
@@ -1407,9 +1752,9 @@ export const translations: Record<Language, Translations> = {
       discard: 'रद्द करें',
       saving: 'सहेज रहे हैं...',
       save: 'सहेजें',
-      unsavedChangesMessage: 'आपके पास असहेजे परिवर्तन हैं। आप क्या करना चाहेंगे?',
       // Story Modal
       myStoryTitle: 'मेरी कहानी',
+      journey: ' की यात्रा',
       editStory: 'कहानी संपादित करें',
       viewStory: 'कहानी देखें',
       addMedia: 'मीडिया जोड़ें',
