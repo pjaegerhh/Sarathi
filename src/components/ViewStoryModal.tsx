@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
 interface ViewStoryModalProps {
@@ -16,7 +17,9 @@ interface ViewStoryModalProps {
 
 export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [mediaUrls, setMediaUrls] = useState<{ [key: string]: string }>({});
+  const [isCloseHovered, setIsCloseHovered] = useState(false);
 
   // Load signed URLs for all media when modal opens
   useEffect(() => {
@@ -86,30 +89,49 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
             justifyContent: 'space-between',
           }}
         >
-          <h2
-            style={{
-              fontFamily: 'Roboto, sans-serif',
-              fontSize: '24px',
-              fontWeight: 500,
-              color: '#192126',
-              margin: 0,
-            }}
-          >
-            {t.profile.myStoryTitle}
-          </h2>
+          <div>
+            <h2
+              style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '24px',
+                fontWeight: 500,
+                color: '#192126',
+                margin: 0,
+              }}
+            >
+              {t.profile.myStoryTitle}
+            </h2>
+            {user?.firstName && (
+              <p
+                style={{
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '16px',
+                  fontWeight: 400,
+                  color: '#979797',
+                  margin: '4px 0 0 0',
+                }}
+              >
+                {user.firstName}{t.profile.journey}
+              </p>
+            )}
+          </div>
           <button
             onClick={onClose}
+            onMouseEnter={() => setIsCloseHovered(true)}
+            onMouseLeave={() => setIsCloseHovered(false)}
             style={{
-              background: 'transparent',
+              background: isCloseHovered ? '#388896' : 'transparent',
               border: 'none',
               cursor: 'pointer',
               padding: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              borderRadius: '50%',
+              transition: 'background 0.2s ease',
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#192126" strokeWidth="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={isCloseHovered ? '#ffffff' : '#192126'} strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
