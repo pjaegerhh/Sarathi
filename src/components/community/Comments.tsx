@@ -9,9 +9,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PostComment } from '../../types/community';
 import { moderateContent, logModerationResult } from '../../services/moderationService';
-import { translateText } from '../../services/translationService';
 import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from './FeelingPicker';
-import { Heart, Send, MoreVertical, Trash2, Globe, Smile } from 'lucide-react';
+import { LocationModal } from './LocationModal';
+import { Lightbox } from './Lightbox';
+import { Heart, Send, MoreVertical, Trash2, Smile, MapPin, Image as ImageIcon, Video } from 'lucide-react';
 
 interface CommentsProps {
   postId: string;
@@ -44,6 +45,18 @@ export const Comments: React.FC<CommentsProps> = ({
   const [showFeelingModalId, setShowFeelingModalId] = useState<string | null>(null);
   const [commentReactions, setCommentReactions] = useState<{ [key: string]: ReactionType | null }>({});
   const [showReactionTooltipId, setShowReactionTooltipId] = useState<string | null>(null);
+  
+  // New comment form states
+  const [newCommentLocation, setNewCommentLocation] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [newCommentReaction, setNewCommentReaction] = useState<ReactionType | null>(null);
+  const [showNewCommentFeelingModal, setShowNewCommentFeelingModal] = useState(false);
+  const [showNewCommentFeelingPicker, setShowNewCommentFeelingPicker] = useState(false);
+  const [newCommentMedia, setNewCommentMedia] = useState<File[]>([]);
+  const [newCommentMediaPreviews, setNewCommentMediaPreviews] = useState<string[]>([]);
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxMediaUrls, setLightboxMediaUrls] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // Load comments
   useEffect(() => {
@@ -190,6 +203,27 @@ export const Comments: React.FC<CommentsProps> = ({
         return;
       }
 
+      // Upload media files if any
+      let mediaUrls: string[] = [];
+      if (newCommentMedia.length > 0) {
+        for (const file of newCommentMedia) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+          const filePath = `${user.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('post-media')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('Error uploading media:', uploadError);
+            throw uploadError;
+          }
+
+          mediaUrls.push(filePath);
+        }
+      }
+
       const { data, error } = await supabase
         .from('post_comments')
         .insert({
@@ -198,7 +232,9 @@ export const Comments: React.FC<CommentsProps> = ({
           comment_text: commentToSave,
           parent_comment_id: replyingTo === 'root' ? null : replyingTo,
           moderation_status: 'approved', // TODO: Change to 'pending' when moderation is enabled
-          original_language: language
+          original_language: language,
+          location: newCommentLocation || null,
+          media_urls: mediaUrls.length > 0 ? mediaUrls : null
         })
         .select(`
           *,
@@ -212,6 +248,17 @@ export const Comments: React.FC<CommentsProps> = ({
         .single();
 
       if (error) throw error;
+
+      // Add reaction if selected
+      if (newCommentReaction && data) {
+        await supabase
+          .from('comment_reactions')
+          .insert({
+            comment_id: data.id,
+            user_id: user.id,
+            reaction_type: newCommentReaction
+          });
+      }
 
       // Create new comment object
       const newCommentObj: PostComment = {
@@ -254,6 +301,11 @@ export const Comments: React.FC<CommentsProps> = ({
       setReplyingTo(null);
       setInitialMention('');
       setIsMentionModified(false);
+      setNewCommentLocation('');
+      setNewCommentReaction(null);
+      setNewCommentMedia([]);
+      newCommentMediaPreviews.forEach(url => URL.revokeObjectURL(url));
+      setNewCommentMediaPreviews([]);
     } catch (err) {
       console.error('Error creating comment:', err);
       setError(t.community.failedToCreateComment);
@@ -671,7 +723,15 @@ export const Comments: React.FC<CommentsProps> = ({
               </span>
             </div>
 
-            <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+            <div style={{ 
+              fontSize: '14px', 
+              marginBottom: '8px',
+              fontFamily: 'Roboto, sans-serif',
+              lineHeight: '20px',
+              color: '#192126',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+            }}>
               {editingCommentId === comment.id ? (
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <input
@@ -734,6 +794,54 @@ export const Comments: React.FC<CommentsProps> = ({
               )}
             </div>
 
+            {/* Media Display */}
+            {comment.media_urls && comment.media_urls.length > 0 && (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                {comment.media_urls.map((url, index) => {
+                  const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
+                  return (
+                    <div 
+                      key={index} 
+                      onClick={() => {
+                        setLightboxMediaUrls(comment.media_urls!);
+                        setLightboxIndex(index);
+                        setShowLightbox(true);
+                      }}
+                      style={{ 
+                        maxWidth: '200px', 
+                        borderRadius: '8px', 
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {isVideo ? (
+                        <video 
+                          src={url} 
+                          controls 
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} 
+                        />
+                      ) : (
+                        <img 
+                          src={url} 
+                          alt="comment media" 
+                          style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} 
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Location Display */}
+            {comment.location && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+                <MapPin size={12} />
+                <span>{comment.location}</span>
+              </div>
+            )}
+
             {/* Actions */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <button
@@ -771,7 +879,7 @@ export const Comments: React.FC<CommentsProps> = ({
                       setReplyingTo(comment.id);
                       const firstName = comment.user?.first_name || '';
                       const lastName = comment.user?.name || '';
-                      const mention = `${firstName} ${lastName} `;
+                      const mention = `@${firstName} ${lastName} `;
                       setNewComment(mention);
                       setInitialMention(mention);
                       setIsMentionModified(false);
@@ -790,123 +898,104 @@ export const Comments: React.FC<CommentsProps> = ({
                 </button>
               )}
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleTranslate(comment.id);
-                }}
-                disabled={comment.isTranslating}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  fontSize: '12px',
-                  color: '#666'
-                }}
-              >
-                <Globe size={16} />
-                {comment.isTranslating ? t.community.translating : (comment.showTranslation ? t.community.showOriginal : t.community.translate)}
-              </button>
-
-              {/* Feeling/Reaction Button */}
-              <div 
-                style={{ 
-                  position: 'relative',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                }}
-              >
-                {/* Invisible hover area extending upward */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '0',
-                    left: '0',
-                    right: '0',
-                    height: '60px',
-                    zIndex: 1,
+              {/* Feeling/Reaction Button - Only visible to comment author */}
+              {user?.id === comment.user_id && (
+                <div 
+                  style={{ 
+                    position: 'relative',
+                    display: 'inline-flex',
+                    alignItems: 'center',
                   }}
-                  onMouseEnter={() => setShowFeelingPickerId(comment.id)}
-                  onMouseLeave={() => setShowFeelingPickerId(null)}
-                />
-
-                {/* Tooltip for selected reaction */}
-                {commentReactions[comment.id] && showReactionTooltipId === comment.id && (
+                >
+                  {/* Invisible hover area extending upward */}
                   <div
                     style={{
                       position: 'absolute',
-                      bottom: 'calc(100% + 8px)',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      background: 'rgba(0, 0, 0, 0.8)',
-                      color: '#fff',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      whiteSpace: 'nowrap',
-                      pointerEvents: 'none',
-                      zIndex: 99,
+                      bottom: '0',
+                      left: '0',
+                      right: '0',
+                      height: '60px',
+                      zIndex: 1,
+                    }}
+                    onMouseEnter={() => setShowFeelingPickerId(comment.id)}
+                    onMouseLeave={() => setShowFeelingPickerId(null)}
+                  />
+
+                  {/* Tooltip for selected reaction */}
+                  {commentReactions[comment.id] && showReactionTooltipId === comment.id && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 'calc(100% + 8px)',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        color: '#fff',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        whiteSpace: 'nowrap',
+                        pointerEvents: 'none',
+                        zIndex: 99,
+                      }}
+                    >
+                      {getReactionLabel(commentReactions[comment.id]!, t)}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowFeelingModalId(comment.id);
+                    }}
+                    onMouseEnter={(e) => {
+                      setShowFeelingPickerId(comment.id);
+                      if (commentReactions[comment.id]) {
+                        setShowReactionTooltipId(comment.id);
+                        e.currentTarget.style.transform = 'scale(1.3)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      setShowReactionTooltipId(null);
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: commentReactions[comment.id] ? '16px' : '12px',
+                      color: commentReactions[comment.id] ? '#388896' : '#666',
+                      transition: 'transform 0.2s ease',
+                      transform: 'scale(1)',
+                      position: 'relative',
+                      zIndex: 2,
                     }}
                   >
-                    {getReactionLabel(commentReactions[comment.id]!, t)}
-                  </div>
-                )}
+                    {commentReactions[comment.id] ? getReactionEmoji(commentReactions[comment.id]!) : '😊'}
+                  </button>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowFeelingModalId(comment.id);
-                  }}
-                  onMouseEnter={(e) => {
-                    setShowFeelingPickerId(comment.id);
-                    if (commentReactions[comment.id]) {
-                      setShowReactionTooltipId(comment.id);
-                      e.currentTarget.style.transform = 'scale(1.3)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    setShowReactionTooltipId(null);
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontSize: commentReactions[comment.id] ? '16px' : '12px',
-                    color: commentReactions[comment.id] ? '#388896' : '#666',
-                    transition: 'transform 0.2s ease',
-                    transform: 'scale(1)',
-                    position: 'relative',
-                    zIndex: 2,
-                  }}
-                >
-                  {commentReactions[comment.id] ? getReactionEmoji(commentReactions[comment.id]!) : '😊'}
-                </button>
+                  {/* Quick Feeling Picker (on hover) - only show if no reaction is set */}
+                  <FeelingPicker
+                    isOpen={showFeelingPickerId === comment.id && showFeelingModalId !== comment.id && !commentReactions[comment.id]}
+                    onClose={() => setShowFeelingPickerId(null)}
+                    onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
+                    currentReaction={commentReactions[comment.id]}
+                    mode="quick"
+                  />
 
-                {/* Quick Feeling Picker (on hover) - only show if no reaction is set */}
-                <FeelingPicker
-                  isOpen={showFeelingPickerId === comment.id && showFeelingModalId !== comment.id && !commentReactions[comment.id]}
-                  onClose={() => setShowFeelingPickerId(null)}
-                  onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
-                  currentReaction={commentReactions[comment.id]}
-                  mode="quick"
-                />
-
-                {/* Full Modal (on click) */}
-                <FeelingPicker
-                  isOpen={showFeelingModalId === comment.id}
-                  onClose={() => setShowFeelingModalId(null)}
-                  onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
-                  currentReaction={commentReactions[comment.id]}
-                  mode="modal"
-                />
-              </div>
+                  {/* Full Modal (on click) */}
+                  <FeelingPicker
+                    isOpen={showFeelingModalId === comment.id}
+                    onClose={() => setShowFeelingModalId(null)}
+                    onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
+                    currentReaction={commentReactions[comment.id]}
+                    mode="modal"
+                  />
+                </div>
+              )}
 
               {user?.id === comment.user_id && (
                 <div style={{ position: 'relative' }}>
@@ -1152,69 +1241,191 @@ export const Comments: React.FC<CommentsProps> = ({
               {t.community.writeComment}
             </div>
           ) : replyingTo === 'root' && (
-            <div style={{ marginTop: '16px', display: 'flex', gap: '12px' }}>
-              <input
-                type="text"
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #E0E0E0' }}>
+              {/* Text Input */}
+              <textarea
                 value={newComment}
                 onChange={e => setNewComment(e.target.value)}
                 placeholder={t.community.writeComment}
                 disabled={isSubmitting}
                 autoFocus
                 style={{
-                  flex: 1,
+                  width: '100%',
+                  minHeight: '60px',
                   padding: '12px 16px',
-                  borderRadius: '24px',
+                  borderRadius: '12px',
                   border: '1px solid #E0E0E0',
                   fontSize: '14px',
-                  outline: 'none'
-                }}
-                onKeyPress={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmitComment();
-                  }
+                  outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: 'Roboto, sans-serif'
                 }}
               />
-              <button
-                onClick={handleSubmitComment}
-                disabled={!newComment.trim() || isSubmitting}
-                style={{
-                  background: '#388896',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '44px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  opacity: !newComment.trim() || isSubmitting ? 0.5 : 1
-                }}
-              >
-                <Send size={20} />
-              </button>
-              <button
-                onClick={() => {
-                  setReplyingTo(null);
-                  setNewComment('');
-                  setInitialMention('');
-                  setIsMentionModified(false);
-                }}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #E0E0E0',
-                  borderRadius: '50%',
-                  width: '44px',
-                  height: '44px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer'
-                }}
-              >
-                ✕
-              </button>
+              
+              {/* Media Previews */}
+              {newCommentMediaPreviews.length > 0 && (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {newCommentMediaPreviews.map((preview, index) => (
+                    <div key={index} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                      {newCommentMedia[index]?.type.startsWith('video/') ? (
+                        <video src={preview} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                      ) : (
+                        <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                      )}
+                      <button
+                        onClick={() => {
+                          setNewCommentMedia(prev => prev.filter((_, i) => i !== index));
+                          setNewCommentMediaPreviews(prev => {
+                            URL.revokeObjectURL(prev[index]);
+                            return prev.filter((_, i) => i !== index);
+                          });
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: 'rgba(0, 0, 0, 0.6)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '24px',
+                          height: '24px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons Row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* Media Upload */}
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  style={{ display: 'none' }}
+                  id="comment-media-upload"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    if (files.length > 0) {
+                      setNewCommentMedia(prev => [...prev, ...files]);
+                      files.forEach(file => {
+                        const url = URL.createObjectURL(file);
+                        setNewCommentMediaPreviews(prev => [...prev, url]);
+                      });
+                    }
+                  }}
+                />
+                <label htmlFor="comment-media-upload" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px', background: '#F5F5F5' }}>
+                  {newCommentMedia.some(f => f.type.startsWith('video/')) ? <Video size={20} color="#388896" /> : <ImageIcon size={20} color="#388896" />}
+                </label>
+
+                {/* Location Button */}
+                <button
+                  onClick={() => setShowLocationModal(true)}
+                  style={{
+                    padding: '8px 12px',
+                    background: newCommentLocation ? '#e0ebe3' : '#F5F5F5',
+                    border: 'none',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    color: '#388896'
+                  }}
+                >
+                  <MapPin size={16} />
+                  {newCommentLocation ? newCommentLocation.substring(0, 15) + (newCommentLocation.length > 15 ? '...' : '') : ''}
+                  {newCommentLocation && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNewCommentLocation('');
+                      }}
+                      style={{ marginLeft: '4px' }}
+                    >
+                      ✕
+                    </span>
+                  )}
+                </button>
+
+                {/* Feelings Button */}
+                <button
+                  onClick={() => setShowNewCommentFeelingModal(true)}
+                  onMouseEnter={() => setShowNewCommentFeelingPicker(true)}
+                  onMouseLeave={() => setShowNewCommentFeelingPicker(false)}
+                  style={{
+                    padding: '8px',
+                    background: newCommentReaction ? '#e0ebe3' : '#F5F5F5',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '20px'
+                  }}
+                >
+                  {newCommentReaction ? getReactionEmoji(newCommentReaction) : <Smile size={20} color="#388896" />}
+                </button>
+
+                <div style={{ flex: 1 }} />
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim() || isSubmitting}
+                  style={{
+                    background: '#388896',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    opacity: !newComment.trim() || isSubmitting ? 0.5 : 1
+                  }}
+                >
+                  <Send size={20} />
+                </button>
+
+                {/* Cancel Button */}
+                <button
+                  onClick={() => {
+                    setReplyingTo(null);
+                    setNewComment('');
+                    setInitialMention('');
+                    setIsMentionModified(false);
+                    setNewCommentLocation('');
+                    setNewCommentReaction(null);
+                    setNewCommentMedia([]);
+                    newCommentMediaPreviews.forEach(url => URL.revokeObjectURL(url));
+                    setNewCommentMediaPreviews([]);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #E0E0E0',
+                    borderRadius: '50%',
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
         </>
@@ -1302,6 +1513,39 @@ export const Comments: React.FC<CommentsProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Location Modal for New Comment */}
+      {showLocationModal && (
+        <LocationModal
+          onClose={() => setShowLocationModal(false)}
+          onSelectLocation={(location) => {
+            setNewCommentLocation(location);
+            setShowLocationModal(false);
+          }}
+        />
+      )}
+
+      {/* Feeling Picker for New Comment */}
+      {showNewCommentFeelingModal && (
+        <FeelingPicker
+          onSelect={(reaction) => {
+            setNewCommentReaction(reaction);
+            setShowNewCommentFeelingModal(false);
+          }}
+          onClose={() => setShowNewCommentFeelingModal(false)}
+          currentReaction={newCommentReaction}
+        />
+      )}
+
+      {/* Lightbox for viewing media */}
+      {showLightbox && (
+        <Lightbox
+          mediaUrls={lightboxMediaUrls}
+          currentIndex={lightboxIndex}
+          onClose={() => setShowLightbox(false)}
+          onNavigate={setLightboxIndex}
+        />
       )}
     </div>
   );

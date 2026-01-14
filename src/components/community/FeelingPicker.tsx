@@ -242,6 +242,27 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               justifyContent: 'center',
               cursor: 'pointer',
               boxShadow: '0px 0px 10px 0px #ddd',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.1)';
+              e.currentTarget.style.background = '#388896';
+              e.currentTarget.style.boxShadow = '0px 0px 15px rgba(56, 136, 150, 0.5)';
+              const icon = e.currentTarget.querySelector('svg');
+              if (icon) {
+                icon.setAttribute('stroke', '#ffffff');
+                icon.setAttribute('color', '#ffffff');
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.boxShadow = '0px 0px 10px 0px #ddd';
+              const icon = e.currentTarget.querySelector('svg');
+              if (icon) {
+                icon.setAttribute('stroke', '#505050');
+                icon.setAttribute('color', '#505050');
+              }
             }}
           >
             <X size={24} color="#505050" />
