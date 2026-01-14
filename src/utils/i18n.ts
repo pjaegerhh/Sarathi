@@ -360,6 +360,30 @@ export interface Translations {
     postPlaceholder: string;
     addPhotos: string;
     addVideos: string;
+    addLocation: string;
+    searchLocation: string;
+    addCurrentLocation: string;
+    getCurrentLocation: string;
+    findNearby: string;
+    suggested: string;
+    allLocations: string;
+    searchResults: string;
+    noLocationsFound: string;
+    locationError: string;
+    locationNotSupported: string;
+    gettingLocation: string;
+    useExactLocation: string;
+    searchingNearbyCities: string;
+    nearbyCities: string;
+    citiesWithin50km: string;
+    away: string;
+    noCitiesNearby: string;
+    selectOnMap: string;
+    pickLocationFromMap: string;
+    selectLocationOnMap: string;
+    clickMapToSelect: string;
+    selectLocation: string;
+    cancel: string;
     publishPost: string;
     editPost: string;
     deletePost: string;
@@ -409,6 +433,7 @@ export interface Translations {
     translationFailed: string;
     howAreYouFeeling: string;
     searchFeelings: string;
+    addFeeling: string;
     // Feeling labels (matching Figma design)
     reactionSad: string;
     reactionShocked: string;
@@ -446,6 +471,15 @@ export interface Translations {
     myConnections: string;
     findConnections: string;
     searchUsers: string;
+    searchPlaceholder: string;
+    communityStories: string;
+    everyJourneyInspires: string;
+    communityDescription: string;
+    activeMembers: string;
+    storiesShared: string;
+    supportGiven: string;
+    userStories: string;
+    viewAll: string;
     noConnectionsYet: string;
     noConnectionsDescription: string;
     connectionRequestSent: string;
@@ -960,6 +994,30 @@ export const translations: Record<Language, Translations> = {
       postPlaceholder: 'Share your thoughts, experiences, or ask a question...',
       addPhotos: 'Add Photos',
       addVideos: 'Add Videos',
+      addLocation: 'Add Location',
+      searchLocation: 'Search Location',
+      addCurrentLocation: 'Add current location',
+      getCurrentLocation: 'Get your current location',
+      findNearby: "Find what's around you",
+      suggested: 'Suggested',
+      allLocations: 'All Locations',
+      searchResults: 'Search Results',
+      noLocationsFound: 'No locations found',
+      locationError: 'Unable to get current location',
+      locationNotSupported: 'Geolocation not supported',
+      gettingLocation: 'Getting location...',
+      useExactLocation: 'Use exact location',
+      searchingNearbyCities: 'Searching for nearby cities...',
+      nearbyCities: 'Nearby Cities',
+      citiesWithin50km: 'Cities within 50km',
+      away: 'away',
+      noCitiesNearby: 'No cities found within 50km',
+      selectOnMap: 'Select on map',
+      pickLocationFromMap: 'Pick location from interactive map',
+      selectLocationOnMap: 'Select Location on Map',
+      clickMapToSelect: 'Click on the map to select a location',
+      selectLocation: 'Select Location',
+      cancel: 'Cancel',
       publishPost: 'Publish',
       editPost: 'Edit Post',
       deletePost: 'Delete Post',
@@ -1009,6 +1067,7 @@ export const translations: Record<Language, Translations> = {
       reactedWith: 'reacted with',
       howAreYouFeeling: 'How are you feeling?',
       searchFeelings: 'Search feelings',
+      addFeeling: 'Add feeling',
       // Feeling labels (matching Figma design)
       reactionSad: 'sad',
       reactionShocked: 'shocked',
@@ -1046,6 +1105,15 @@ export const translations: Record<Language, Translations> = {
       myConnections: 'My Connections',
       findConnections: 'Find Connections',
       searchUsers: 'Search users...',
+      searchPlaceholder: 'Search stories, discussions, topics....',
+      communityStories: 'COMMUNITY STORIES',
+      everyJourneyInspires: 'Every Journey Inspires, Every Voice Matters',
+      communityDescription: "Connect with thousands of individuals sharing their experiences, triumphs, and insights. Together, we're building a supportive community that celebrates resilience and innovation.",
+      activeMembers: 'Active Members',
+      storiesShared: 'Stories Shared',
+      supportGiven: 'Support Given',
+      userStories: 'User Stories',
+      viewAll: 'View all',
       noConnectionsYet: 'No connections yet',
       noConnectionsDescription: 'Start connecting with other members of the community',
       connectionRequestSent: 'Connection request sent',
@@ -1538,6 +1606,30 @@ export const translations: Record<Language, Translations> = {
       postPlaceholder: 'अपने विचार, अनुभव साझा करें या सवाल पूछें...',
       addPhotos: 'फोटो जोड़ें',
       addVideos: 'वीडियो जोड़ें',
+      addLocation: 'स्थान जोड़ें',
+      searchLocation: 'स्थान खोजें',
+      addCurrentLocation: 'वर्तमान स्थान जोड़ें',
+      getCurrentLocation: 'अपना वर्तमान स्थान प्राप्त करें',
+      findNearby: 'अपने आसपास क्या है खोजें',
+      suggested: 'सुझाए गए',
+      allLocations: 'सभी स्थान',
+      searchResults: 'खोज परिणाम',
+      noLocationsFound: 'कोई स्थान नहीं मिला',
+      locationError: 'वर्तमान स्थान प्राप्त करने में असमर्थ',
+      locationNotSupported: 'भूस्थान समर्थित नहीं है',
+      gettingLocation: 'स्थान प्राप्त कर रहे हैं...',
+      useExactLocation: 'सटीक स्थान का उपयोग करें',
+      searchingNearbyCities: 'आस-पास के शहरों की खोज कर रहे हैं...',
+      nearbyCities: 'आस-पास के शहर',
+      citiesWithin50km: '50 किमी के भीतर शहर',
+      away: 'दूर',
+      noCitiesNearby: '50 किमी के भीतर कोई शहर नहीं मिला',
+      selectOnMap: 'मानचित्र पर चुनें',
+      pickLocationFromMap: 'इंटरैक्टिव मानचित्र से स्थान चुनें',
+      selectLocationOnMap: 'मानचित्र पर स्थान चुनें',
+      clickMapToSelect: 'स्थान चुनने के लिए मानचित्र पर क्लिक करें',
+      selectLocation: 'स्थान चुनें',
+      cancel: 'रद्द करें',
       publishPost: 'प्रकाशित करें',
       editPost: 'पोस्ट संपादित करें',
       deletePost: 'पोस्ट हटाएं',
@@ -1587,6 +1679,7 @@ export const translations: Record<Language, Translations> = {
       reactedWith: 'ने प्रतिक्रिया दी',
       howAreYouFeeling: 'आप कैसा महसूस कर रहे हैं?',
       searchFeelings: 'भावनाएं खोजें',
+      addFeeling: 'भावना जोड़ें',
       // Feeling labels (matching Figma design)
       reactionSad: 'दुखी',
       reactionShocked: 'हैरान',
@@ -1624,6 +1717,15 @@ export const translations: Record<Language, Translations> = {
       myConnections: 'मेरे कनेक्शन',
       findConnections: 'कनेक्शन खोजें',
       searchUsers: 'उपयोगकर्ता खोजें...',
+      searchPlaceholder: 'कहानियाँ, चर्चाएँ, विषय खोजें....',
+      communityStories: 'सामुदायिक कहानियाँ',
+      everyJourneyInspires: 'हर यात्रा प्रेरित करती है, हर आवाज़ महत्वपूर्ण है',
+      communityDescription: 'हजारों लोगों से जुड़ें जो अपने अनुभव, सफलताएं और अंतर्दृष्टि साझा कर रहे हैं। साथ मिलकर, हम एक सहायक समुदाय बना रहे हैं जो लचीलापन और नवाचार का जश्न मनाता है।',
+      activeMembers: 'सक्रिय सदस्य',
+      storiesShared: 'साझा की गई कहानियाँ',
+      supportGiven: 'दिया गया समर्थन',
+      userStories: 'उपयोगकर्ता कहानियाँ',
+      viewAll: 'सभी देखें',
       noConnectionsYet: 'अभी तक कोई कनेक्शन नहीं',
       noConnectionsDescription: 'समुदाय के अन्य सदस्यों से जुड़ना शुरू करें',
       connectionRequestSent: 'कनेक्शन अनुरोध भेजा गया',
