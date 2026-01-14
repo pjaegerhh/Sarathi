@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { CreatePost } from './community/CreatePost';
 import { PostCard } from './community/PostCard';
+import { CommunityHeader } from './community/CommunityHeader';
+import { HeroBanner } from './community/HeroBanner';
+import { UserStoriesPreview } from './community/UserStoriesPreview';
 
 interface CommunityPageProps {
   onNavigate: (page: string) => void;
@@ -21,6 +24,8 @@ interface Post {
   user_name: string;
   user_first_name: string;
   user_profile_picture: string | null;
+  location?: string | null;
+  reaction_type?: string | null;
 }
 
 export function CommunityPage({ onNavigate }: CommunityPageProps) {
@@ -30,6 +35,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const POSTS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -56,6 +62,8 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
           comment_count,
           repost_count,
           created_at,
+          location,
+          reaction_type,
           user:user_id (
             name,
             first_name,
@@ -77,6 +85,8 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
         comment_count: post.comment_count || 0,
         repost_count: post.repost_count || 0,
         created_at: post.created_at,
+        location: post.location,
+        reaction_type: post.reaction_type || null,
         user_name: post.user?.name || '',
         user_first_name: post.user?.first_name || '',
         user_profile_picture: post.user?.profile_picture_url || null,
@@ -111,6 +121,20 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
   const handleLoadMore = () => {
     loadPosts(page + 1);
   };
+
+  // Filter posts based on search query
+  const filteredPosts = posts.filter(post => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const postText = (post.post_text || '').toLowerCase();
+    const userName = `${post.user_first_name} ${post.user_name}`.toLowerCase();
+    const location = (post.location || '').toLowerCase();
+    
+    return postText.includes(query) || 
+           userName.includes(query) || 
+           location.includes(query);
+  });
 
   // Check if user is allowed to access community
   if (!user) {
@@ -184,7 +208,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
         minHeight: '100vh',
         background: '#f8f9fa',
         padding: '20px',
-        paddingTop: '120px',
+        paddingTop: '61px',
         paddingBottom: '100px',
       }}
     >
@@ -194,32 +218,24 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
           margin: '0 auto',
         }}
       >
-        {/* Header */}
-        <div
-          style={{
-            marginBottom: '32px',
+        {/* Community Header */}
+        <CommunityHeader 
+          onSearch={setSearchQuery}
+          onNotificationClick={() => {
+            // TODO: Implement notifications
+            console.log('Notifications clicked');
           }}
-        >
-          <h1
-            style={{
-              fontFamily: 'Roboto, sans-serif',
-              fontSize: '32px',
-              fontWeight: 700,
-              color: '#192126',
-              marginBottom: '8px',
-            }}
-          >
-            {t.community.feed}
-          </h1>
-          <p
-            style={{
-              fontFamily: 'Roboto, sans-serif',
-              fontSize: '16px',
-              color: '#979797',
-            }}
-          >
-            Share your story, connect with others, and find support
-          </p>
+          hasNotifications={false}
+        />
+
+        {/* Hero Banner - 30px gap from header */}
+        <div style={{ marginTop: '30px' }}>
+          <HeroBanner />
+        </div>
+
+        {/* User Stories Preview - 30px gap from hero banner */}
+        <div style={{ marginTop: '30px' }}>
+          <UserStoriesPreview />
         </div>
 
         {/* Create Post */}
@@ -239,7 +255,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
           >
             {t.common.loading}
           </div>
-        ) : posts.length === 0 ? (
+        ) : filteredPosts.length === 0 ? (
           <div
             style={{
               background: '#ffffff',
@@ -254,7 +270,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
                 marginBottom: '16px',
               }}
             >
-              📝
+              {searchQuery ? '🔍' : '📝'}
             </div>
             <h3
               style={{
@@ -265,7 +281,7 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
                 marginBottom: '8px',
               }}
             >
-              {t.community.noPosts}
+              {searchQuery ? 'No results found' : t.community.noPosts}
             </h3>
             <p
               style={{
@@ -274,12 +290,14 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
                 color: '#979797',
               }}
             >
-              {t.community.noPostsDescription}
+              {searchQuery 
+                ? 'Try different keywords or clear your search' 
+                : t.community.noPostsDescription}
             </p>
           </div>
         ) : (
           <>
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <PostCard
                 key={post.id}
                 post={post}

@@ -5,7 +5,10 @@ import { supabase } from '../../lib/supabase';
 import { Comments } from './Comments';
 import { RepostButton } from './RepostButton';
 import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from './FeelingPicker';
-import { MessageCircle, Smile } from 'lucide-react';
+import { LocationModal } from './LocationModal';
+import { MediaUploadModal } from './MediaUploadModal';
+import { Lightbox } from './Lightbox';
+import { MessageCircle, Smile, MapPin, Image as ImageIcon, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 
 interface Post {
   id: string;
@@ -19,6 +22,8 @@ interface Post {
   user_name: string;
   user_first_name: string;
   user_profile_picture: string | null;
+  location?: string | null;
+  reaction_type?: string | null;
 }
 
 interface PostCardProps {
@@ -36,15 +41,27 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
   const [repostCount, setRepostCount] = useState(post.repost_count || 0);
   const [showComments, setShowComments] = useState(false);
   const [mediaUrls, setMediaUrls] = useState<{ [key: string]: string }>({});
+  const [thumbnailUrls, setThumbnailUrls] = useState<{ [key: string]: string }>({});
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(post.post_text || '');
+  const [editLocation, setEditLocation] = useState(post.location || '');
+  const [currentLocation, setCurrentLocation] = useState<string | null>(post.location || null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
   const [showFeelingPicker, setShowFeelingPicker] = useState(false);
   const [showFeelingModal, setShowFeelingModal] = useState(false);
-  const [currentReaction, setCurrentReaction] = useState<ReactionType | null>(null);
+  const [currentReaction, setCurrentReaction] = useState<ReactionType | null>((post.reaction_type as ReactionType) || null);
   const [showReactionTooltip, setShowReactionTooltip] = useState(false);
+  const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
+  const [editMediaFiles, setEditMediaFiles] = useState<File[]>([]);
+  const [editMediaPreviews, setEditMediaPreviews] = useState<string[]>([]);
+  const [editExistingMedia, setEditExistingMedia] = useState<string[]>(post.media_urls || []);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   // Check if user has liked this post
   useEffect(() => {
@@ -71,21 +88,53 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
   const loadMediaUrls = async () => {
     if (!post.media_urls) return;
 
-    const urls: { [key: string]: string } = {};
+    const fullUrls: { [key: string]: string } = {};
+    const thumbUrls: { [key: string]: string } = {};
     
     for (const path of post.media_urls) {
-      const { data, error } = await supabase.storage
-        .from('post-media')
-        .createSignedUrl(path, 3600);
+      const isVideo = path.match(/\.(mp4|webm|ogg)$/i);
+      
+      if (isVideo) {
+        // Videos don't have thumbnails
+        const { data, error } = await supabase.storage
+          .from('post-media')
+          .createSignedUrl(path, 3600);
 
-      if (data?.signedUrl) {
-        urls[path] = data.signedUrl;
-      } else if (error) {
-        console.error('Error loading media URL:', error);
+        if (data?.signedUrl) {
+          fullUrls[path] = data.signedUrl;
+          thumbUrls[path] = data.signedUrl; // Same for video
+        } else if (error) {
+          console.error('Error loading video URL:', error);
+        }
+      } else {
+        // Load full size for lightbox
+        const { data: fullData, error: fullError } = await supabase.storage
+          .from('post-media')
+          .createSignedUrl(path, 3600);
+
+        if (fullData?.signedUrl) {
+          fullUrls[path] = fullData.signedUrl;
+        } else if (fullError) {
+          console.error('Error loading full image URL:', fullError);
+        }
+
+        // Load thumbnail for feed (derive path by replacing /full/ with /thumbnails/)
+        const thumbPath = path.replace('/full/', '/thumbnails/');
+        const { data: thumbData, error: thumbError } = await supabase.storage
+          .from('post-media')
+          .createSignedUrl(thumbPath, 3600);
+
+        if (thumbData?.signedUrl) {
+          thumbUrls[path] = thumbData.signedUrl;
+        } else if (thumbError) {
+          // Fallback to full image if thumbnail doesn't exist (for old posts)
+          thumbUrls[path] = fullUrls[path] || '';
+        }
       }
     }
 
-    setMediaUrls(urls);
+    setMediaUrls(fullUrls);
+    setThumbnailUrls(thumbUrls);
   };
 
   const loadProfilePicture = async () => {
@@ -181,14 +230,62 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
     if (!user || user.id !== post.user_id) return;
 
     try {
+      // Upload new media files if any
+      let newMediaUrls: string[] = [];
+      if (editMediaFiles.length > 0) {
+        setIsUploadingMedia(true);
+        for (let i = 0; i < editMediaFiles.length; i++) {
+          const file = editMediaFiles[i];
+          setUploadProgress(`Uploading media ${i + 1} of ${editMediaFiles.length}...`);
+          
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+          const filePath = `${user.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('post-media')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('Error uploading media:', uploadError);
+            setIsUploadingMedia(false);
+            throw uploadError;
+          }
+
+          newMediaUrls.push(filePath);
+        }
+        setIsUploadingMedia(false);
+        setUploadProgress('');
+      }
+
+      // Combine existing media URLs with new ones
+      const updatedMediaUrls = [
+        ...editExistingMedia,
+        ...newMediaUrls
+      ];
+
       const { error } = await supabase
         .from('posts')
-        .update({ post_text: editText })
+        .update({ 
+          post_text: editText,
+          location: editLocation || null,
+          media_urls: updatedMediaUrls.length > 0 ? updatedMediaUrls : null
+        })
         .eq('id', post.id)
         .eq('user_id', user.id);
 
       if (error) throw error;
 
+      // Update local post object
+      post.post_text = editText;
+      post.location = editLocation || null;
+      post.media_urls = updatedMediaUrls.length > 0 ? updatedMediaUrls : null;
+
+      // Clean up previews
+      editMediaPreviews.forEach(url => URL.revokeObjectURL(url));
+      setEditMediaPreviews([]);
+      setEditMediaFiles([]);
+      setEditExistingMedia(updatedMediaUrls);
       setIsEditing(false);
       if (onPostUpdated) {
         onPostUpdated();
@@ -466,6 +563,189 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                   resize: 'vertical'
                 }}
               />
+              
+              {/* Existing Media Management */}
+              {editExistingMedia.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ 
+                    fontSize: '14px', 
+                    fontWeight: 600, 
+                    marginBottom: '8px',
+                    color: '#192126',
+                    fontFamily: 'Roboto, sans-serif'
+                  }}>
+                    Current Media
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {editExistingMedia.map((mediaPath, index) => {
+                      const signedUrl = mediaUrls[mediaPath];
+                      const isVideo = mediaPath.match(/\.(mp4|webm|ogg)$/i);
+                      return (
+                        <div key={mediaPath} style={{ position: 'relative', width: '120px', height: '120px' }}>
+                          {signedUrl && (
+                            isVideo ? (
+                              <video 
+                                src={signedUrl} 
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
+                              />
+                            ) : (
+                              <img 
+                                src={signedUrl} 
+                                alt="existing media" 
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
+                              />
+                            )
+                          )}
+                          {/* Reorder Left */}
+                          {index > 0 && (
+                            <button
+                              onClick={() => {
+                                const newMedia = [...editExistingMedia];
+                                [newMedia[index - 1], newMedia[index]] = [newMedia[index], newMedia[index - 1]];
+                                setEditExistingMedia(newMedia);
+                              }}
+                              style={{
+                                position: 'absolute',
+                                left: '4px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'rgba(0, 0, 0, 0.7)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '28px',
+                                height: '28px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0,
+                              }}
+                            >
+                              <ChevronLeft size={18} />
+                            </button>
+                          )}
+                          {/* Reorder Right */}
+                          {index < editExistingMedia.length - 1 && (
+                            <button
+                              onClick={() => {
+                                const newMedia = [...editExistingMedia];
+                                [newMedia[index], newMedia[index + 1]] = [newMedia[index + 1], newMedia[index]];
+                                setEditExistingMedia(newMedia);
+                              }}
+                              style={{
+                                position: 'absolute',
+                                right: '4px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'rgba(0, 0, 0, 0.7)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '28px',
+                                height: '28px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0,
+                              }}
+                            >
+                              <ChevronRight size={18} />
+                            </button>
+                          )}
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => {
+                              setEditExistingMedia(prev => prev.filter((_, i) => i !== index));
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '4px',
+                              right: '4px',
+                              background: 'rgba(220, 38, 38, 0.9)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '28px',
+                              height: '28px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: 0,
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Media Previews */}
+              {editMediaPreviews.length > 0 && (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {editMediaPreviews.map((preview, index) => (
+                    <div key={index} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                      {editMediaFiles[index]?.type.startsWith('video/') ? (
+                        <video src={preview} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                      ) : (
+                        <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                      )}
+                      <button
+                        onClick={() => {
+                          setEditMediaFiles(prev => prev.filter((_, i) => i !== index));
+                          setEditMediaPreviews(prev => {
+                            URL.revokeObjectURL(prev[index]);
+                            return prev.filter((_, i) => i !== index);
+                          });
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: 'rgba(0, 0, 0, 0.6)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '24px',
+                          height: '24px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Media Upload Button */}
+              <button
+                onClick={() => setShowMediaUploadModal(true)}
+                style={{
+                  padding: '10px 16px',
+                  background: '#fff',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '24px',
+                  fontFamily: 'Roboto, sans-serif',
+                  fontSize: '14px',
+                  color: '#388896',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                <ImageIcon size={16} />
+                <span>Add Photos/Videos</span>
+              </button>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button
                   onClick={handleEdit}
@@ -487,6 +767,11 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                   onClick={() => {
                     setIsEditing(false);
                     setEditText(post.post_text || '');
+                    setEditLocation(post.location || '');
+                    setEditExistingMedia(post.media_urls || []);
+                    editMediaPreviews.forEach(url => URL.revokeObjectURL(url));
+                    setEditMediaPreviews([]);
+                    setEditMediaFiles([]);
                   }}
                   style={{
                     background: 'transparent',
@@ -505,7 +790,16 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
               </div>
             </div>
           ) : (
-            renderPostText(post.post_text)
+            <div style={{ 
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '16px',
+              lineHeight: '24px',
+              color: '#192126',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+            }}>
+              {renderPostText(post.post_text)}
+            </div>
           )}
         </div>
       )}
@@ -524,14 +818,18 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
           }}
         >
           {post.media_urls.map((mediaUrl, index) => {
-            const signedUrl = mediaUrls[mediaUrl];
+            const thumbUrl = thumbnailUrls[mediaUrl];
             const isVideo = mediaUrl.match(/\.(mp4|webm|ogg)$/i);
 
-            if (!signedUrl) return null;
+            if (!thumbUrl) return null;
 
             return (
               <div
                 key={index}
+                onClick={() => {
+                  setLightboxIndex(index);
+                  setShowLightbox(true);
+                }}
                 style={{
                   borderRadius: '12px',
                   overflow: 'hidden',
@@ -541,12 +839,15 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: 'pointer',
+                  position: 'relative',
                 }}
               >
                 {isVideo ? (
                   <video
-                    src={signedUrl}
+                    src={thumbUrl}
                     controls
+                    onClick={(e) => e.stopPropagation()}
                     style={{
                       width: '100%',
                       height: '100%',
@@ -555,8 +856,9 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
                   />
                 ) : (
                   <img
-                    src={signedUrl}
+                    src={thumbUrl}
                     alt={`Post media ${index + 1}`}
+                    loading="lazy"
                     style={{
                       width: '100%',
                       height: '100%',
@@ -649,91 +951,163 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
           onRepostCountChange={setRepostCount}
         />
 
-        {/* Feeling/Reaction Button */}
-        <div 
-          style={{ 
-            position: 'relative',
-            paddingTop: '60px', // Add padding to extend hover area upward to reach picker
-          }}
-          onMouseEnter={() => setShowFeelingPicker(true)}
-          onMouseLeave={() => setShowFeelingPicker(false)}
-        >
-          {/* Tooltip for selected reaction */}
-          {currentReaction && showReactionTooltip && (
-            <div
+        {/* Feeling/Reaction Button - Only visible to post author */}
+        {user?.id === post.user_id && (
+          <div 
+            style={{ 
+              position: 'relative',
+              paddingTop: '60px', // Add padding to extend hover area upward to reach picker
+            }}
+            onMouseEnter={() => setShowFeelingPicker(true)}
+            onMouseLeave={() => setShowFeelingPicker(false)}
+          >
+            {/* Tooltip for selected reaction */}
+            {currentReaction && showReactionTooltip && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 'calc(100% + 8px)', // Position just above the button (not adjusted for padding)
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(0, 0, 0, 0.8)',
+                  color: '#fff',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                  pointerEvents: 'none',
+                  zIndex: 99,
+                }}
+              >
+                {getReactionLabel(currentReaction, t)}
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowFeelingModal(true)}
+              onMouseEnter={(e) => {
+                setShowFeelingPicker(true);
+                if (currentReaction) {
+                  setShowReactionTooltip(true);
+                }
+                e.currentTarget.style.background = '#f8f9fa';
+                if (currentReaction) {
+                  e.currentTarget.style.transform = 'scale(1.2)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                setShowReactionTooltip(false);
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
               style={{
-                position: 'absolute',
-                bottom: 'calc(100% + 8px)', // Position just above the button (not adjusted for padding)
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'rgba(0, 0, 0, 0.8)',
-                color: '#fff',
-                padding: '6px 12px',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: currentReaction ? '24px' : '20px',
+                color: currentReaction ? '#388896' : '#979797',
+                padding: '8px 12px',
                 borderRadius: '8px',
-                fontSize: '12px',
-                whiteSpace: 'nowrap',
-                pointerEvents: 'none',
-                zIndex: 99,
+                transition: 'background 0.2s ease, transform 0.2s ease',
+                marginTop: '-60px', // Compensate for the padding added to parent
               }}
             >
-              {getReactionLabel(currentReaction, t)}
-            </div>
-          )}
+              {currentReaction ? getReactionEmoji(currentReaction) : '😊'}
+            </button>
 
+            {/* Quick Feeling Picker (on hover) - only show if no reaction is set */}
+            <FeelingPicker
+              isOpen={showFeelingPicker && !showFeelingModal && !currentReaction}
+              onClose={() => setShowFeelingPicker(false)}
+              onSelect={handleReaction}
+              currentReaction={currentReaction}
+              mode="quick"
+            />
+
+            {/* Full Modal (on click) */}
+            <FeelingPicker
+              isOpen={showFeelingModal}
+              onClose={() => setShowFeelingModal(false)}
+              onSelect={handleReaction}
+              currentReaction={currentReaction}
+              mode="modal"
+            />
+          </div>
+        )}
+
+        {/* Location Display/Edit */}
+        {currentLocation ? (
           <button
-            onClick={() => setShowFeelingModal(true)}
-            onMouseEnter={(e) => {
-              setShowFeelingPicker(true);
-              if (currentReaction) {
-                setShowReactionTooltip(true);
+            onClick={(e) => {
+              e.stopPropagation();
+              if (user?.id === post.user_id) {
+                setShowLocationModal(true);
               }
-              e.currentTarget.style.background = '#f8f9fa';
-              if (currentReaction) {
-                e.currentTarget.style.transform = 'scale(1.2)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              setShowReactionTooltip(false);
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.transform = 'scale(1)';
             }}
             style={{
               background: 'transparent',
               border: 'none',
-              cursor: 'pointer',
+              cursor: user?.id === post.user_id ? 'pointer' : 'default',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: currentReaction ? '24px' : '20px',
-              color: currentReaction ? '#388896' : '#979797',
+              fontSize: '16px',
+              color: '#979797',
               padding: '8px 12px',
               borderRadius: '8px',
-              transition: 'background 0.2s ease, transform 0.2s ease',
-              marginTop: '-60px', // Compensate for the padding added to parent
+              transition: 'background 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (user?.id === post.user_id) {
+                e.currentTarget.style.background = '#f8f9fa';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
             }}
           >
-            {currentReaction ? getReactionEmoji(currentReaction) : '😊'}
+            <MapPin size={20} />
+            <span>{currentLocation}</span>
           </button>
-
-          {/* Quick Feeling Picker (on hover) - only show if no reaction is set */}
-          <FeelingPicker
-            isOpen={showFeelingPicker && !showFeelingModal && !currentReaction}
-            onClose={() => setShowFeelingPicker(false)}
-            onSelect={handleReaction}
-            currentReaction={currentReaction}
-            mode="quick"
-          />
-
-          {/* Full Modal (on click) */}
-          <FeelingPicker
-            isOpen={showFeelingModal}
-            onClose={() => setShowFeelingModal(false)}
-            onSelect={handleReaction}
-            currentReaction={currentReaction}
-            mode="modal"
-          />
-        </div>
+        ) : (
+          // Show "Add Location" button only to author
+          user?.id === post.user_id && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowLocationModal(true);
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '16px',
+                color: '#979797',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                transition: 'background 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f8f9fa';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <MapPin size={20} />
+              <span>{t.community.addLocation}</span>
+            </button>
+          )
+        )}
       </div>
 
       {/* Comments Section */}
@@ -741,6 +1115,127 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         <Comments
           postId={post.id}
           onCommentCountChange={setCommentCount}
+        />
+      )}
+
+      {/* Location Modal (for editing) */}
+      {isEditing && (
+        <LocationModal
+          isOpen={showLocationModal}
+          onClose={() => setShowLocationModal(false)}
+          onSelectLocation={(location) => {
+            setEditLocation(location);
+            setShowLocationModal(false);
+          }}
+          currentLocation={editLocation}
+        />
+      )}
+
+      {/* Location Modal (for quick location change) */}
+      {!isEditing && showLocationModal && (
+        <LocationModal
+          onClose={() => setShowLocationModal(false)}
+          onSelectLocation={async (location) => {
+            try {
+              const { error } = await supabase
+                .from('posts')
+                .update({ location: location || null })
+                .eq('id', post.id);
+
+              if (error) throw error;
+
+              // Update local state to trigger re-render
+              setCurrentLocation(location || null);
+              setShowLocationModal(false);
+            } catch (err) {
+              console.error('Error updating location:', err);
+              alert('Failed to update location');
+            }
+          }}
+        />
+      )}
+
+      {/* Media Upload Modal */}
+      {showMediaUploadModal && (
+        <MediaUploadModal
+          onClose={() => setShowMediaUploadModal(false)}
+          onUpload={(files) => {
+            setEditMediaFiles(prev => [...prev, ...files]);
+            files.forEach(file => {
+              const url = URL.createObjectURL(file);
+              setEditMediaPreviews(prev => [...prev, url]);
+            });
+            setShowMediaUploadModal(false);
+          }}
+        />
+      )}
+
+      {/* Upload Spinner Overlay */}
+      {isUploadingMedia && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '16px',
+              padding: '40px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '20px',
+            }}
+          >
+            {/* Spinner */}
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                border: '4px solid #e0ebe3',
+                borderTop: '4px solid #388896',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+            <p
+              style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '16px',
+                fontWeight: 600,
+                color: '#192126',
+                margin: 0,
+              }}
+            >
+              {uploadProgress}
+            </p>
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox for viewing media */}
+      {showLightbox && post.media_urls && (
+        <Lightbox
+          mediaUrls={post.media_urls.map(url => mediaUrls[url]).filter(Boolean)}
+          currentIndex={lightboxIndex}
+          onClose={() => setShowLightbox(false)}
+          onNavigate={setLightboxIndex}
         />
       )}
     </div>

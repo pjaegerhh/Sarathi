@@ -3,6 +3,11 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { moderateContent } from '../../services/moderationService';
+import { resizeImages } from '../../utils/imageResizer';
+import { LocationModal } from './LocationModal';
+import { MediaUploadModal } from './MediaUploadModal';
+import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from './FeelingPicker';
+import { MapPin, Smile } from 'lucide-react';
 
 interface CreatePostProps {
   onPostCreated?: () => void;
@@ -21,9 +26,18 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [location, setLocation] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
+  const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(null);
+  const [showFeelingModal, setShowFeelingModal] = useState(false);
+  const [showFeelingPicker, setShowFeelingPicker] = useState(false);
+  const [hoveredButton, setHoveredButton] = useState<'media' | 'location' | 'feeling' | null>(null);
   
   // Mention functionality
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
@@ -94,7 +108,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
     if (lastAtIndex !== -1) {
-      const mention = `@${mentionedUser.first_name || mentionedUser.name}`;
+      const firstName = mentionedUser.first_name || '';
+      const lastName = mentionedUser.name || '';
+      const mention = `@${firstName} ${lastName}`;
       const newText = 
         textBeforeCursor.slice(0, lastAtIndex) + 
         mention + ' ' + 
@@ -137,7 +153,10 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    
+    handleFilesAdded(files);
+  };
+
+  const handleFilesAdded = (files: File[]) => {
     const validFiles = files.filter((file) => {
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
@@ -215,23 +234,70 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const mediaUrls: string[] = [];
 
       if (selectedFiles.length > 0) {
+        setIsUploading(true);
+        
+        // Resize images
+        setUploadProgress('Preparing images...');
+        const { thumbnails, fulls } = await resizeImages(selectedFiles, (current, total) => {
+          setUploadProgress(`Processing image ${current} of ${total}...`);
+        });
+        
         for (let i = 0; i < selectedFiles.length; i++) {
           const file = selectedFiles[i];
+          const isVideo = file.type.startsWith('video/');
           const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}-${i}.${fileExt}`;
-          const filePath = `${user.id}/${postId}/${fileName}`;
+          const fileName = `${Date.now()}-${i}`;
+          
+          if (isVideo) {
+            // Upload video as-is
+            setUploadProgress(`Uploading video ${i + 1} of ${selectedFiles.length}...`);
+            const filePath = `${user.id}/${postId}/${fileName}.${fileExt}`;
+            
+            const { error: uploadError } = await supabase.storage
+              .from('post-media')
+              .upload(filePath, file);
 
-          const { error: uploadError } = await supabase.storage
-            .from('post-media')
-            .upload(filePath, file);
+            if (uploadError) {
+              console.error('Error uploading video:', uploadError);
+              setIsUploading(false);
+              throw new Error('Failed to upload video');
+            }
+            
+            mediaUrls.push(filePath);
+          } else {
+            // Upload both thumbnail and full size
+            setUploadProgress(`Uploading image ${i + 1} of ${selectedFiles.length}...`);
+            
+            // Upload thumbnail
+            const thumbPath = `${user.id}/${postId}/thumbnails/${fileName}.jpg`;
+            const { error: thumbError } = await supabase.storage
+              .from('post-media')
+              .upload(thumbPath, thumbnails[i]);
 
-          if (uploadError) {
-            console.error('Error uploading file:', uploadError);
-            throw new Error('Failed to upload media');
+            if (thumbError) {
+              console.error('Error uploading thumbnail:', thumbError);
+              setIsUploading(false);
+              throw new Error('Failed to upload thumbnail');
+            }
+
+            // Upload full size
+            const fullPath = `${user.id}/${postId}/full/${fileName}.jpg`;
+            const { error: fullError } = await supabase.storage
+              .from('post-media')
+              .upload(fullPath, fulls[i]);
+
+            if (fullError) {
+              console.error('Error uploading full image:', fullError);
+              setIsUploading(false);
+              throw new Error('Failed to upload full image');
+            }
+
+            // Store the full path, we'll derive thumbnail path when displaying
+            mediaUrls.push(fullPath);
           }
-
-          mediaUrls.push(filePath);
         }
+        setIsUploading(false);
+        setUploadProgress('');
       }
 
       const { error: postError } = await supabase
@@ -241,6 +307,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           user_id: user.id,
           post_text: postText.trim() || null,
           media_urls: mediaUrls.length > 0 ? mediaUrls : null,
+          location: location || null,
+          reaction_type: selectedReaction || null,
         });
 
       if (postError) {
@@ -252,6 +320,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setSelectedFiles([]);
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
       setPreviewUrls([]);
+      setLocation(''); // Clear location
+      setSelectedReaction(null); // Clear reaction
 
       if (onPostCreated) {
         onPostCreated();
@@ -447,26 +517,180 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           style={{ display: 'none' }}
         />
         <button
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => setShowMediaUploadModal(true)}
+          onMouseEnter={() => setHoveredButton('media')}
+          onMouseLeave={() => setHoveredButton(null)}
           disabled={isSubmitting || selectedFiles.length >= 10}
           style={{
             padding: '10px 20px',
-            background: 'transparent',
+            background: hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) ? '#388896' : 'transparent',
             border: '1px solid #e0e0e0',
             borderRadius: '24px',
             fontFamily: 'Roboto, sans-serif',
             fontSize: '14px',
-            color: '#388896',
+            color: hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) ? '#ffffff' : '#388896',
             cursor: isSubmitting || selectedFiles.length >= 10 ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
             opacity: isSubmitting || selectedFiles.length >= 10 ? 0.5 : 1,
+            transform: hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) ? 'scale(1.1)' : 'scale(1)',
+            boxShadow: hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) 
+              ? '0px 0px 15px rgba(56, 136, 150, 0.5)' 
+              : '0px 0px 10px rgba(221, 221, 221, 1)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
           }}
         >
           <span>📷</span>
           {t.community.addPhotos}
         </button>
+
+        {/* Add Location Button */}
+        <button
+          onClick={() => setShowLocationModal(true)}
+          onMouseEnter={() => setHoveredButton('location')}
+          onMouseLeave={() => setHoveredButton(null)}
+          disabled={isSubmitting}
+          style={{
+            padding: '10px 20px',
+            background: hoveredButton === 'location' && !isSubmitting 
+              ? '#388896' 
+              : location ? '#e0ebe3' : 'transparent',
+            border: '1px solid #e0e0e0',
+            borderRadius: '24px',
+            fontFamily: 'Roboto, sans-serif',
+            fontSize: '14px',
+            color: hoveredButton === 'location' && !isSubmitting ? '#ffffff' : '#388896',
+            cursor: isSubmitting ? 'not-allowed' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            opacity: isSubmitting ? 0.5 : 1,
+            maxWidth: '200px',
+            transform: hoveredButton === 'location' && !isSubmitting ? 'scale(1.1)' : 'scale(1)',
+            boxShadow: hoveredButton === 'location' && !isSubmitting 
+              ? '0px 0px 15px rgba(56, 136, 150, 0.5)' 
+              : '0px 0px 10px rgba(221, 221, 221, 1)',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
+          }}
+        >
+          <MapPin size={16} style={{ 
+            color: hoveredButton === 'location' && !isSubmitting ? '#ffffff' : '#388896',
+            transition: 'color 0.2s ease',
+          }} />
+          <span style={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {location || t.community.addLocation}
+          </span>
+          {location && (
+            <span
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocation('');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                marginLeft: '4px',
+                color: hoveredButton === 'location' && !isSubmitting ? '#ffffff' : '#388896',
+                fontSize: '16px',
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </span>
+          )}
+        </button>
+
+        {/* Add Feeling Button */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowFeelingModal(true)}
+            onMouseEnter={() => {
+              setHoveredButton('feeling');
+              if (!selectedReaction) setShowFeelingPicker(true);
+            }}
+            onMouseLeave={() => {
+              setHoveredButton(null);
+              setShowFeelingPicker(false);
+            }}
+            disabled={isSubmitting}
+            style={{
+              padding: '10px 20px',
+              background: hoveredButton === 'feeling' && !isSubmitting 
+                ? '#388896' 
+                : selectedReaction ? '#e0ebe3' : 'transparent',
+              border: '1px solid #e0e0e0',
+              borderRadius: '24px',
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '14px',
+              color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              opacity: isSubmitting ? 0.5 : 1,
+              transform: hoveredButton === 'feeling' && !isSubmitting ? 'scale(1.1)' : 'scale(1)',
+              boxShadow: hoveredButton === 'feeling' && !isSubmitting 
+                ? '0px 0px 15px rgba(56, 136, 150, 0.5)' 
+                : '0px 0px 10px rgba(221, 221, 221, 1)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
+            }}
+          >
+            {selectedReaction ? (
+              <>
+                <span style={{ fontSize: '16px' }}>{getReactionEmoji(selectedReaction)}</span>
+                <span>{getReactionLabel(selectedReaction, t)}</span>
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedReaction(null);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    marginLeft: '4px',
+                    color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
+                    fontSize: '16px',
+                    lineHeight: 1,
+                  }}
+                >
+                  ×
+                </span>
+              </>
+            ) : (
+              <>
+                <Smile size={16} style={{ 
+                  color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
+                  transition: 'color 0.2s ease',
+                }} />
+                <span>{t.community.addFeeling}</span>
+              </>
+            )}
+          </button>
+
+          <FeelingPicker
+            isOpen={showFeelingModal}
+            showQuickPicker={showFeelingPicker && !selectedReaction}
+            onClose={() => {
+              setShowFeelingModal(false);
+              setShowFeelingPicker(false);
+            }}
+            onSelect={(reaction) => {
+              setSelectedReaction(reaction);
+              setShowFeelingModal(false);
+              setShowFeelingPicker(false);
+            }}
+            selectedReaction={selectedReaction}
+          />
+        </div>
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />
@@ -495,6 +719,84 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           {isSubmitting ? t.common.saving : t.community.publishPost}
         </button>
       </div>
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        onSelectLocation={setLocation}
+        currentLocation={location}
+      />
+
+      {/* Media Upload Modal */}
+      {showMediaUploadModal && (
+        <MediaUploadModal
+          onClose={() => setShowMediaUploadModal(false)}
+          onUpload={(files) => {
+            handleFilesAdded(files);
+            setShowMediaUploadModal(false);
+          }}
+        />
+      )}
+
+      {/* Upload Spinner Overlay */}
+      {isUploading && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '16px',
+              padding: '40px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '20px',
+            }}
+          >
+            {/* Spinner */}
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                border: '4px solid #e0ebe3',
+                borderTop: '4px solid #388896',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+              }}
+            />
+            <p
+              style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontSize: '16px',
+                fontWeight: 600,
+                color: '#192126',
+                margin: 0,
+              }}
+            >
+              {uploadProgress}
+            </p>
+            <style>{`
+              @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
