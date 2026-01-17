@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { loadMediaUrl } from '../../utils/mediaLoader';
 import { moderateContent } from '../../services/moderationService';
 import { resizeImages } from '../../utils/imageResizer';
 import { LocationModal } from './LocationModal';
@@ -38,6 +39,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [showFeelingModal, setShowFeelingModal] = useState(false);
   const [showFeelingPicker, setShowFeelingPicker] = useState(false);
   const [hoveredButton, setHoveredButton] = useState<'media' | 'location' | 'feeling' | null>(null);
+  const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
+  const [userInitials, setUserInitials] = useState<string>('');
   
   // Mention functionality
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
@@ -45,6 +48,47 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [mentionResults, setMentionResults] = useState<User[]>([]);
   const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
   const [cursorPosition, setCursorPosition] = useState(0);
+
+  // Load user profile picture and initials
+  useEffect(() => {
+    if (user) {
+      loadUserProfile();
+    }
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data: userData, error } = await supabase
+        .from('sarathi_user')
+        .select('first_name, name, profile_picture_url')
+        .eq('uuid', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading user profile:', error);
+        return;
+      }
+
+      if (userData) {
+        const firstName = userData.first_name || '';
+        const lastName = userData.name || '';
+        const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+        setUserInitials(initials);
+
+        if (userData.profile_picture_url) {
+          // Use cache to load profile picture
+          const profileUrl = await loadMediaUrl(userData.profile_picture_url);
+          if (profileUrl) {
+            setProfilePicUrl(profileUrl);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+    }
+  };
 
   // Search for users when @ is typed
   useEffect(() => {
@@ -345,73 +389,105 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         position: 'relative',
       }}
     >
-      {/* Text Input with Mention Support */}
-      <div style={{ position: 'relative' }}>
-        <textarea
-          ref={textareaRef}
-          value={postText}
-          onChange={handleTextChange}
-          onKeyDown={handleKeyDown}
-          placeholder={t.community.postPlaceholder + ' (Use @ to mention users)'}
-          disabled={isSubmitting}
+      {/* Text Input with Avatar and Mention Support */}
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+        {/* User Avatar */}
+        <div
           style={{
-            width: '100%',
-            minHeight: '120px',
-            padding: '16px',
-            fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
-            lineHeight: '24px',
-            color: '#192126',
-            border: '1px solid #e0e0e0',
-            borderRadius: '12px',
-            resize: 'vertical',
-            outline: 'none',
-            marginBottom: '16px',
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            background: profilePicUrl 
+              ? `url(${profilePicUrl}) center/cover` 
+              : 'linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%), linear-gradient(180deg, rgba(105, 181, 124, 1) 0%, rgba(56, 136, 150, 1) 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
-        />
+        >
+          {!profilePicUrl && userInitials && (
+            <span
+              style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontWeight: 700,
+                fontSize: '16px',
+                lineHeight: '24px',
+                color: '#ffffff',
+              }}
+            >
+              {userInitials}
+            </span>
+          )}
+        </div>
 
-        {/* Mention Dropdown */}
-        {showMentionDropdown && mentionResults.length > 0 && (
-          <div
+        {/* Text Input Area */}
+        <div style={{ position: 'relative', flex: 1 }}>
+          <textarea
+            ref={textareaRef}
+            value={postText}
+            onChange={handleTextChange}
+            onKeyDown={handleKeyDown}
+            placeholder={t.community.postPlaceholder + ' (Use @ to mention users)'}
+            disabled={isSubmitting}
             style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: 0,
-              right: 0,
-              background: '#ffffff',
+              width: '100%',
+              minHeight: '120px',
+              padding: '16px',
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '16px',
+              lineHeight: '24px',
+              color: '#192126',
+              border: '1px solid #e0e0e0',
               borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              zIndex: 1000,
-              marginBottom: '8px',
+              resize: 'vertical',
+              outline: 'none',
             }}
-          >
-            {mentionResults.map((mentionUser, index) => (
-              <div
-                key={mentionUser.uuid}
-                onClick={() => insertMention(mentionUser)}
-                style={{
-                  padding: '12px 16px',
-                  cursor: 'pointer',
-                  background: index === selectedMentionIndex ? '#f0f9fa' : 'transparent',
-                  borderBottom: index < mentionResults.length - 1 ? '1px solid #f2f2f7' : 'none',
-                  fontFamily: 'Roboto, sans-serif',
-                  fontSize: '14px',
-                  color: '#192126',
-                }}
-                onMouseEnter={() => setSelectedMentionIndex(index)}
-              >
-                <strong>@{mentionUser.first_name || mentionUser.name}</strong>
-                {mentionUser.name && mentionUser.first_name && (
-                  <span style={{ color: '#979797', marginLeft: '8px' }}>
-                    {mentionUser.name}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+          />
+
+          {/* Mention Dropdown */}
+          {showMentionDropdown && mentionResults.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: 0,
+                right: 0,
+                background: '#ffffff',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                zIndex: 1000,
+                marginBottom: '8px',
+              }}
+            >
+              {mentionResults.map((mentionUser, index) => (
+                <div
+                  key={mentionUser.uuid}
+                  onClick={() => insertMention(mentionUser)}
+                  style={{
+                    padding: '12px 16px',
+                    cursor: 'pointer',
+                    background: index === selectedMentionIndex ? '#f0f9fa' : 'transparent',
+                    borderBottom: index < mentionResults.length - 1 ? '1px solid #f2f2f7' : 'none',
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '14px',
+                    color: '#192126',
+                  }}
+                  onMouseEnter={() => setSelectedMentionIndex(index)}
+                >
+                  <strong>@{mentionUser.first_name || mentionUser.name}</strong>
+                  {mentionUser.name && mentionUser.first_name && (
+                    <span style={{ color: '#979797', marginLeft: '8px' }}>
+                      {mentionUser.name}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Preview Media */}
@@ -504,8 +580,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         </div>
       )}
 
-      {/* Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Actions - Right Aligned */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'flex-end' }}>
         {/* Add Media Button */}
         <input
           ref={fileInputRef}
@@ -542,7 +618,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           }}
         >
           <span>📷</span>
-          {t.community.addPhotos}
+          Media
         </button>
 
         {/* Add Location Button */}
@@ -583,7 +659,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
           }}>
-            {location || t.community.addLocation}
+            {location || 'Location'}
           </span>
           {location && (
             <span
@@ -671,7 +747,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
                   transition: 'color 0.2s ease',
                 }} />
-                <span>{t.community.addFeeling}</span>
+                <span>Feeling</span>
               </>
             )}
           </button>
@@ -691,9 +767,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             selectedReaction={selectedReaction}
           />
         </div>
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
 
         {/* Submit Button */}
         <button
@@ -716,7 +789,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 : 'pointer',
           }}
         >
-          {isSubmitting ? t.common.saving : t.community.publishPost}
+          {isSubmitting ? t.common.saving : 'Post'}
         </button>
       </div>
 

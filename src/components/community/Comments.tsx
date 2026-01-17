@@ -18,12 +18,14 @@ interface CommentsProps {
   postId: string;
   initialComments?: PostComment[];
   onCommentCountChange?: (count: number) => void;
+  onNavigate?: (page: string, data?: any) => void;
 }
 
 export const Comments: React.FC<CommentsProps> = ({
   postId,
   initialComments = [],
-  onCommentCountChange
+  onCommentCountChange,
+  onNavigate
 }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -687,6 +689,11 @@ export const Comments: React.FC<CommentsProps> = ({
         >
           {/* Avatar */}
           <div
+            onClick={() => {
+              if (onNavigate && comment.user_id) {
+                onNavigate('user-profile', { userId: comment.user_id, previousPage: 'community' });
+              }
+            }}
             style={{
               width: '40px',
               height: '40px',
@@ -698,7 +705,8 @@ export const Comments: React.FC<CommentsProps> = ({
               justifyContent: 'center',
               fontWeight: 'bold',
               flexShrink: 0,
-              overflow: 'hidden'
+              overflow: 'hidden',
+              cursor: onNavigate ? 'pointer' : 'default',
             }}
           >
             {comment.user?.profile_picture_url ? (
@@ -715,7 +723,18 @@ export const Comments: React.FC<CommentsProps> = ({
           {/* Content */}
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '14px' }}>
+              <span
+                onClick={() => {
+                  if (onNavigate && comment.user_id) {
+                    onNavigate('user-profile', { userId: comment.user_id, previousPage: 'community' });
+                  }
+                }}
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                  cursor: onNavigate ? 'pointer' : 'default',
+                }}
+              >
                 {comment.user?.first_name} {comment.user?.name}
               </span>
               <span style={{ color: '#666', fontSize: '12px' }}>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { loadSignedUrl } from '../../utils/mediaLoader';
 import { Comments } from './Comments';
 import { RepostButton } from './RepostButton';
 import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from './FeelingPicker';
@@ -30,9 +31,12 @@ interface PostCardProps {
   post: Post;
   onPostDeleted?: () => void;
   onPostUpdated?: () => void;
+  onNavigate?: (page: string, data?: any) => void;
+  readOnly?: boolean;
+  onPostClick?: (postId: string) => void;
 }
 
-export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) {
+export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readOnly = false, onPostClick }: PostCardProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
@@ -95,38 +99,28 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
       const isVideo = path.match(/\.(mp4|webm|ogg)$/i);
       
       if (isVideo) {
-        // Videos don't have thumbnails
-        const { data, error } = await supabase.storage
-          .from('post-media')
-          .createSignedUrl(path, 3600);
+        // Videos don't have thumbnails - use cache
+        const signedUrl = await loadSignedUrl('post-media', path);
 
-        if (data?.signedUrl) {
-          fullUrls[path] = data.signedUrl;
-          thumbUrls[path] = data.signedUrl; // Same for video
-        } else if (error) {
-          console.error('Error loading video URL:', error);
+        if (signedUrl) {
+          fullUrls[path] = signedUrl;
+          thumbUrls[path] = signedUrl; // Same for video
         }
       } else {
-        // Load full size for lightbox
-        const { data: fullData, error: fullError } = await supabase.storage
-          .from('post-media')
-          .createSignedUrl(path, 3600);
+        // Load full size for lightbox - use cache
+        const fullUrl = await loadSignedUrl('post-media', path);
 
-        if (fullData?.signedUrl) {
-          fullUrls[path] = fullData.signedUrl;
-        } else if (fullError) {
-          console.error('Error loading full image URL:', fullError);
+        if (fullUrl) {
+          fullUrls[path] = fullUrl;
         }
 
-        // Load thumbnail for feed (derive path by replacing /full/ with /thumbnails/)
+        // Load thumbnail for feed (derive path by replacing /full/ with /thumbnails/) - use cache
         const thumbPath = path.replace('/full/', '/thumbnails/');
-        const { data: thumbData, error: thumbError } = await supabase.storage
-          .from('post-media')
-          .createSignedUrl(thumbPath, 3600);
+        const thumbUrl = await loadSignedUrl('post-media', thumbPath);
 
-        if (thumbData?.signedUrl) {
-          thumbUrls[path] = thumbData.signedUrl;
-        } else if (thumbError) {
+        if (thumbUrl) {
+          thumbUrls[path] = thumbUrl;
+        } else {
           // Fallback to full image if thumbnail doesn't exist (for old posts)
           thumbUrls[path] = fullUrls[path] || '';
         }
@@ -146,14 +140,11 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
       return;
     }
 
-    const { data, error } = await supabase.storage
-      .from('profile-media')
-      .createSignedUrl(post.user_profile_picture, 3600);
+    // Use cache
+    const signedUrl = await loadSignedUrl('profile-media', post.user_profile_picture);
 
-    if (data?.signedUrl) {
-      setProfilePictureUrl(data.signedUrl);
-    } else if (error) {
-      console.error('Error loading profile picture:', error);
+    if (signedUrl) {
+      setProfilePictureUrl(signedUrl);
     }
   };
 
@@ -401,18 +392,29 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
 
   return (
     <div
+      onClick={() => {
+        if (readOnly && onPostClick) {
+          onPostClick(post.id);
+        }
+      }}
       style={{
         background: '#ffffff',
         borderRadius: '20px',
         padding: '24px',
         marginBottom: '20px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        cursor: readOnly ? 'pointer' : 'default',
       }}
     >
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
         {/* Profile Picture */}
         <div
+          onClick={() => {
+            if (onNavigate) {
+              onNavigate('user-profile', { userId: post.user_id, previousPage: 'community' });
+            }
+          }}
           style={{
             width: '48px',
             height: '48px',
@@ -423,6 +425,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            cursor: onNavigate ? 'pointer' : 'default',
           }}
         >
           {profilePictureUrl ? (
@@ -441,11 +444,17 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         {/* User Info */}
         <div style={{ flex: 1 }}>
           <div
+            onClick={() => {
+              if (onNavigate) {
+                onNavigate('user-profile', { userId: post.user_id, previousPage: 'community' });
+              }
+            }}
             style={{
               fontFamily: 'Roboto, sans-serif',
               fontSize: '16px',
               fontWeight: 600,
               color: '#192126',
+              cursor: onNavigate ? 'pointer' : 'default',
             }}
           >
             {post.user_first_name} {post.user_name}
@@ -952,7 +961,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         />
 
         {/* Feeling/Reaction Button - Only visible to post author */}
-        {user?.id === post.user_id && (
+        {!readOnly && user?.id === post.user_id && (
           <div 
             style={{ 
               position: 'relative',
@@ -1044,14 +1053,14 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
           <button
             onClick={(e) => {
               e.stopPropagation();
-              if (user?.id === post.user_id) {
+              if (!readOnly && user?.id === post.user_id) {
                 setShowLocationModal(true);
               }
             }}
             style={{
               background: 'transparent',
               border: 'none',
-              cursor: user?.id === post.user_id ? 'pointer' : 'default',
+              cursor: (!readOnly && user?.id === post.user_id) ? 'pointer' : 'default',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
@@ -1063,7 +1072,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
               transition: 'background 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              if (user?.id === post.user_id) {
+              if (!readOnly && user?.id === post.user_id) {
                 e.currentTarget.style.background = '#f8f9fa';
               }
             }}
@@ -1076,7 +1085,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
           </button>
         ) : (
           // Show "Add Location" button only to author
-          user?.id === post.user_id && (
+          !readOnly && user?.id === post.user_id && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -1115,6 +1124,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated }: PostCardProps) 
         <Comments
           postId={post.id}
           onCommentCountChange={setCommentCount}
+          onNavigate={onNavigate}
         />
       )}
 

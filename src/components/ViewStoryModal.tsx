@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { loadSignedUrl } from '../utils/mediaLoader';
 
 interface ViewStoryModalProps {
   isOpen: boolean;
@@ -34,14 +35,11 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
     const urls: { [key: string]: string } = {};
     
     for (const path of story.media_urls) {
-      const { data, error } = await supabase.storage
-        .from('profile-media')
-        .createSignedUrl(path, 3600); // Valid for 1 hour
+      // Use cache
+      const signedUrl = await loadSignedUrl('profile-media', path);
 
-      if (data?.signedUrl) {
-        urls[path] = data.signedUrl;
-      } else if (error) {
-        console.error('Error loading media URL:', error);
+      if (signedUrl) {
+        urls[path] = signedUrl;
       }
     }
 
