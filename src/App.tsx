@@ -13,13 +13,15 @@ import { ProfileOnboardingPage } from './components/ProfileOnboardingPage';
 import { CommunityPage } from './components/CommunityPage';
 import { StoriesPage } from './components/StoriesPage';
 import { ProfilePage } from './components/ProfilePage';
+import { UserProfileView } from './components/UserProfileView';
+import { AllStoriesPage } from './components/AllStoriesPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { OnboardingPage } from './components/OnboardingPage';
 import { OnboardingFlowPage } from './components/OnboardingFlowPage';
 import { Toaster } from './components/ui/sonner';
 import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
+type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'user-profile' | 'all-stories' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
@@ -37,7 +39,19 @@ function AppContent() {
   const { user, loading } = useAuth();
 
   // Protected pages that require authentication
-  const protectedPages: Page[] = ['community', 'stories', 'profile', 'daily-tips', 'help-center', 'admin'];
+  const protectedPages: Page[] = ['community', 'stories', 'profile', 'user-profile', 'all-stories', 'daily-tips', 'help-center', 'admin'];
+
+  // Set initial history state on mount
+  useEffect(() => {
+    // Only set if there's no existing state (first load)
+    if (!window.history.state || !window.history.state.page) {
+      window.history.replaceState(
+        { page: currentPage, data: pageData },
+        '',
+        currentPage === 'home' ? '/' : `/${currentPage}`
+      );
+    }
+  }, []); // Run only once on mount
 
   useEffect(() => {
     // Detect if mobile based on screen width
@@ -91,6 +105,30 @@ function AppContent() {
     }
   }, [user, loading, currentPage]);
 
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state && event.state.page) {
+        setCurrentPage(event.state.page as Page);
+        setPageData(event.state.data || null);
+      } else {
+        // If no state, try to infer from URL
+        const path = window.location.pathname;
+        if (path === '/') {
+          setCurrentPage('home');
+          setPageData(null);
+        } else {
+          const page = path.replace('/', '') as Page;
+          setCurrentPage(page);
+          setPageData(null);
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // Add PWA meta tags
   useEffect(() => {
     // Add manifest link
@@ -133,7 +171,7 @@ function AppContent() {
     // Check if page requires authentication
     if (!user && protectedPages.includes(page as Page)) {
       setCurrentPage('auth');
-      window.history.pushState({}, '', '/');
+      window.history.pushState({ page: 'auth', data: null }, '', '/');
       return;
     }
     setCurrentPage(page as Page);
@@ -141,7 +179,7 @@ function AppContent() {
     
     // Update browser URL to match the page
     const pageUrl = page === 'home' ? '/' : `/${page}`;
-    window.history.pushState({}, '', pageUrl);
+    window.history.pushState({ page, data }, '', pageUrl);
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -180,11 +218,24 @@ function AppContent() {
       case 'onboarding-flow':
         return <OnboardingFlowPage onNavigate={handleNavigate} />;
       case 'community':
-        return <CommunityPage onNavigate={handleNavigate} />;
+        return <CommunityPage onNavigate={handleNavigate} scrollToPostId={pageData?.scrollToPostId} />;
       case 'stories':
         return <StoriesPage />;
       case 'profile':
         return <ProfilePage onNavigate={handleNavigate} />;
+      case 'user-profile':
+        return (
+          <UserProfileView
+            userId={pageData?.userId}
+            onBack={() => {
+              // Use browser's back button to maintain proper history
+              window.history.back();
+            }}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'all-stories':
+        return <AllStoriesPage onNavigate={handleNavigate} />;
       case 'admin':
         return <AdminDashboard onNavigate={handleNavigate} />;
       case 'tutorial':
@@ -232,7 +283,7 @@ function AppContent() {
       )}
 
       {/* Page Content */}
-      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && currentPage !== 'profile' && !isMobile ? 'pt-[72px]' : ''}>
+      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && currentPage !== 'profile' && currentPage !== 'user-profile' && !isMobile ? 'pt-[72px]' : ''}>
         {renderPage()}
       </main>
 

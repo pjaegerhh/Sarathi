@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
+import { loadSignedUrl } from '../utils/mediaLoader';
 import { toast } from 'sonner';
 import imageIcon from '../assets/svg/image.svg';
 import videoIcon from '../assets/svg/video.svg';
@@ -102,12 +103,11 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
     
     for (const path of existingMediaUrls) {
       try {
-        const { data, error } = await supabase.storage
-          .from('profile-media')
-          .createSignedUrl(path, 3600); // Valid for 1 hour
+        // Use cache
+        const signedUrl = await loadSignedUrl('profile-media', path);
 
-        if (data?.signedUrl && !error) {
-          urls[path] = data.signedUrl;
+        if (signedUrl) {
+          urls[path] = signedUrl;
           validUrls.push(path);
         } else {
           console.warn('File not found in storage, will be removed:', path);

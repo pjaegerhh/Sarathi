@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { supabase } from '../../lib/supabase';
+import { ViewStoryModal } from '../ViewStoryModal';
+import { loadSignedUrl } from '../../utils/mediaLoader';
 
 // Image assets from Figma (valid for 7 days)
 const img1 = "https://www.figma.com/api/mcp/asset/d8db5493-6a14-4364-8c2b-a0d33a05d2b9";
@@ -14,16 +17,31 @@ interface UserStory {
   userInitials: string;
   storyTitle: string;
   imageUrl: string;
+  profilePictureUrl?: string;
+  isMockup?: boolean;  // Flag to identify mockup stories
 }
 
-// Sample user stories data
-const userStories: UserStory[] = [
+interface RealUserStory {
+  id: string;
+  user_id: string;
+  story_text: string | null;
+  media_urls: string[] | null;
+  user: {
+    first_name: string;
+    name: string;
+    profile_picture_url: string | null;
+  };
+}
+
+// Sample/mockup user stories data (used when we have < 10 real stories)
+const mockupStories: UserStory[] = [
   {
     id: '1',
     userName: 'Manisha Rajput',
     userInitials: 'MR',
     storyTitle: '"How yoga changed me"',
     imageUrl: img1,
+    isMockup: true,
   },
   {
     id: '2',
@@ -31,6 +49,7 @@ const userStories: UserStory[] = [
     userInitials: 'RR',
     storyTitle: '"Running is my passion"',
     imageUrl: img2,
+    isMockup: true,
   },
   {
     id: '3',
@@ -38,6 +57,7 @@ const userStories: UserStory[] = [
     userInitials: 'HA',
     storyTitle: '"I train for cricket better now"',
     imageUrl: img3,
+    isMockup: true,
   },
   {
     id: '4',
@@ -45,6 +65,7 @@ const userStories: UserStory[] = [
     userInitials: 'RM',
     storyTitle: '"I express through art"',
     imageUrl: img4,
+    isMockup: true,
   },
   {
     id: '5',
@@ -52,6 +73,7 @@ const userStories: UserStory[] = [
     userInitials: 'SM',
     storyTitle: '6 Months Post Surgery',
     imageUrl: img4,
+    isMockup: true,
   },
   {
     id: '6',
@@ -59,6 +81,7 @@ const userStories: UserStory[] = [
     userInitials: 'RM',
     storyTitle: '"I express through art"',
     imageUrl: img4,
+    isMockup: true,
   },
   {
     id: '7',
@@ -66,6 +89,7 @@ const userStories: UserStory[] = [
     userInitials: 'MR',
     storyTitle: '"How yoga changed me"',
     imageUrl: img1,
+    isMockup: true,
   },
   {
     id: '8',
@@ -73,6 +97,7 @@ const userStories: UserStory[] = [
     userInitials: 'RR',
     storyTitle: '"Running is my passion"',
     imageUrl: img2,
+    isMockup: true,
   },
   {
     id: '9',
@@ -80,6 +105,7 @@ const userStories: UserStory[] = [
     userInitials: 'HA',
     storyTitle: '"I train for cricket better now"',
     imageUrl: img3,
+    isMockup: true,
   },
   {
     id: '10',
@@ -87,6 +113,7 @@ const userStories: UserStory[] = [
     userInitials: 'SM',
     storyTitle: '6 Months Post Surgery',
     imageUrl: img4,
+    isMockup: true,
   },
 ];
 
@@ -96,6 +123,35 @@ interface UserStoryCardProps {
 }
 
 const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
+  const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (story.profilePictureUrl) {
+      loadProfilePicture();
+    }
+  }, [story.profilePictureUrl]);
+
+  const loadProfilePicture = async () => {
+    if (!story.profilePictureUrl) return;
+
+    try {
+      // If it's already a full URL (signed URL), use it directly
+      if (story.profilePictureUrl.startsWith('http')) {
+        setProfilePicUrl(story.profilePictureUrl);
+        return;
+      }
+
+      // Otherwise, create a signed URL from the file path with cache
+      const signedUrl = await loadSignedUrl('profile-media', story.profilePictureUrl);
+
+      if (signedUrl) {
+        setProfilePicUrl(signedUrl);
+      }
+    } catch (error) {
+      console.error('Error loading profile picture:', error);
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -147,7 +203,7 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
           }}
         />
 
-        {/* Profile Button with initials */}
+        {/* Profile Button with initials or avatar */}
         <div
           style={{
             position: 'absolute',
@@ -160,23 +216,36 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
-          <p
-            style={{
-              fontFamily: 'Roboto, sans-serif',
-              fontWeight: 700,
-              fontSize: '16px',
-              lineHeight: '24px',
-              margin: 0,
-              background: 'linear-gradient(180deg, rgba(105, 181, 124, 1) 0%, rgba(56, 136, 150, 1) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            {story.userInitials}
-          </p>
+          {profilePicUrl ? (
+            <img
+              src={profilePicUrl}
+              alt={story.userName}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <p
+              style={{
+                fontFamily: 'Roboto, sans-serif',
+                fontWeight: 700,
+                fontSize: '16px',
+                lineHeight: '24px',
+                margin: 0,
+                background: 'linear-gradient(180deg, rgba(105, 181, 124, 1) 0%, rgba(56, 136, 150, 1) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              {story.userInitials}
+            </p>
+          )}
         </div>
 
         {/* User name at bottom */}
@@ -232,32 +301,181 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
   );
 };
 
-export const UserStoriesPreview: React.FC = () => {
+interface UserStoriesPreviewProps {
+  onNavigate?: (page: string, data?: any) => void;
+}
+
+export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNavigate }) => {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(0);
+  const [realStories, setRealStories] = useState<UserStory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedStory, setSelectedStory] = useState<any | null>(null);
+  const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
   const storiesPerPage = 5;
-  const totalPages = Math.ceil(userStories.length / storiesPerPage);
+
+  useEffect(() => {
+    loadRealUserStories();
+  }, []);
+
+  const loadRealUserStories = async () => {
+    try {
+      console.log('Loading user stories...');
+      const { data, error } = await supabase
+        .from('user_stories')
+        .select(`
+          id,
+          user_id,
+          story_text,
+          media_urls,
+          user:sarathi_user!user_stories_user_id_fkey(
+            first_name,
+            name,
+            profile_picture_url
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      console.log('Raw user stories data:', data);
+      console.log('Error:', error);
+
+      if (error) {
+        console.error('Error loading user stories:', error);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data) {
+        console.log(`Found ${data.length} total stories`);
+        
+        // Filter for stories with at least one image (checking ALL media files)
+        const storiesWithImages = data.filter((story: any) => {
+          if (!story.media_urls || story.media_urls.length === 0) {
+            console.log('Story has no media:', story.id);
+            return false;
+          }
+          
+          // Check if ANY media file is an image
+          const hasImage = story.media_urls.some((mediaUrl: string) => 
+            /\.(jpg|jpeg|png|gif|webp)$/i.test(mediaUrl)
+          );
+          
+          console.log('Story media check:', story.id, 'has image:', hasImage, 'media count:', story.media_urls.length);
+          return hasImage;
+        });
+
+        console.log(`${storiesWithImages.length} stories with images`);
+
+        const transformedStories: UserStory[] = await Promise.all(
+          storiesWithImages.map(async (story: any) => {
+              const user = Array.isArray(story.user) ? story.user[0] : story.user;
+              console.log('User data for story:', story.id, user);
+              const firstName = user?.first_name || '';
+              const lastName = user?.name || '';
+              const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+
+              // Get first sentence (up to 45 characters)
+              let storyTitle = '';
+              if (story.story_text) {
+                const firstSentence = story.story_text.split(/[.!?]/)[0].trim();
+                storyTitle = firstSentence.length > 45 
+                  ? firstSentence.substring(0, 45) + '...' 
+                  : firstSentence;
+              }
+
+              // Find the FIRST image in the media_urls array (skip videos)
+              let imageUrl = '';
+              if (story.media_urls && story.media_urls.length > 0) {
+                const firstImagePath = story.media_urls.find((mediaUrl: string) => 
+                  /\.(jpg|jpeg|png|gif|webp)$/i.test(mediaUrl)
+                );
+                
+                if (firstImagePath) {
+                  try {
+                    console.log('Loading signed URL for first image:', firstImagePath);
+                    const signedUrl = await loadSignedUrl('profile-media', firstImagePath);
+                    
+                    if (signedUrl) {
+                      imageUrl = signedUrl;
+                      console.log('Got signed URL (cached):', imageUrl.substring(0, 50) + '...');
+                    }
+                  } catch (err) {
+                    console.error('Error loading story image:', err);
+                  }
+                }
+              }
+
+              return {
+                id: story.id,
+                userName: `${firstName} ${lastName}`.trim(),
+                userInitials: initials,
+                storyTitle,
+                imageUrl,
+                profilePictureUrl: user?.profile_picture_url || undefined,
+              };
+            })
+        );
+
+        console.log('Transformed stories:', transformedStories);
+        setRealStories(transformedStories);
+      }
+    } catch (error) {
+      console.error('Error in loadRealUserStories:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Combine real stories with mockup data
+  const allStories = [...realStories, ...mockupStories];
+  const totalPages = Math.ceil(allStories.length / storiesPerPage);
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(0, prev - 1));
   };
 
   const handleNext = () => {
-    setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
+    setCurrentPage((prev) => Math.min(displayTotalPages - 1, prev + 1));
   };
 
   const handleViewAll = () => {
-    // TODO: Navigate to stories page
-    console.log('View all stories');
+    if (onNavigate) {
+      onNavigate('all-stories');
+    }
   };
 
-  const handleStoryClick = (storyId: string) => {
-    // TODO: Open story detail
-    console.log('Story clicked:', storyId);
+  const handleStoryClick = async (storyId: string, isMockup?: boolean) => {
+    if (isMockup) {
+      // Don't open mockup stories
+      return;
+    }
+    
+    // Fetch the full story data from Supabase
+    const { data, error } = await supabase
+      .from('user_stories')
+      .select('*')
+      .eq('id', storyId)
+      .single();
+
+    if (error) {
+      console.error('Error loading story:', error);
+      return;
+    }
+
+    if (data) {
+      setSelectedStory(data);
+      setViewStoryModalOpen(true);
+    }
   };
 
   const startIndex = currentPage * storiesPerPage;
-  const visibleStories = userStories.slice(startIndex, startIndex + storiesPerPage);
+  const visibleStories = allStories.slice(startIndex, startIndex + storiesPerPage);
+
+  // Only show mockup stories if we have less than 10 real stories
+  const shouldShowMockup = realStories.length < 10;
+  const displayStories = shouldShowMockup ? allStories : realStories;
+  const displayVisibleStories = displayStories.slice(startIndex, startIndex + storiesPerPage);
+  const displayTotalPages = Math.ceil(displayStories.length / storiesPerPage);
 
   return (
     <div
@@ -320,9 +538,23 @@ export const UserStoriesPreview: React.FC = () => {
           width: '100%',
         }}
       >
-        {visibleStories.map((story) => (
-          <UserStoryCard key={story.id} story={story} onClick={() => handleStoryClick(story.id)} />
-        ))}
+        {isLoading ? (
+          <div style={{ padding: '40px', textAlign: 'center', width: '100%', color: '#979797' }}>
+            Loading stories...
+          </div>
+        ) : displayVisibleStories.length === 0 ? (
+          <div style={{ padding: '40px', textAlign: 'center', width: '100%', color: '#979797' }}>
+            No stories yet
+          </div>
+        ) : (
+          displayVisibleStories.map((story) => (
+            <UserStoryCard 
+              key={story.id} 
+              story={story} 
+              onClick={() => handleStoryClick(story.id, story.isMockup)} 
+            />
+          ))
+        )}
       </div>
 
       {/* Pagination Controls */}
@@ -355,7 +587,7 @@ export const UserStoriesPreview: React.FC = () => {
 
         {/* Page Indicators */}
         <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-          {Array.from({ length: totalPages }).map((_, index) => (
+          {Array.from({ length: displayTotalPages }).map((_, index) => (
             <div
               key={index}
               style={{
@@ -372,22 +604,31 @@ export const UserStoriesPreview: React.FC = () => {
         {/* Next Button */}
         <button
           onClick={handleNext}
-          disabled={currentPage === totalPages - 1}
+          disabled={currentPage === displayTotalPages - 1}
           style={{
             background: 'none',
             border: 'none',
-            cursor: currentPage === totalPages - 1 ? 'default' : 'pointer',
+            cursor: currentPage === displayTotalPages - 1 ? 'default' : 'pointer',
             padding: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: currentPage === totalPages - 1 ? 0.3 : 1,
+            opacity: currentPage === displayTotalPages - 1 ? 0.3 : 1,
             transition: 'opacity 0.2s ease',
           }}
         >
           <ChevronRight size={24} color="#192126" />
         </button>
       </div>
+
+      {/* View Story Modal */}
+      {selectedStory && (
+        <ViewStoryModal
+          isOpen={viewStoryModalOpen}
+          onClose={() => setViewStoryModalOpen(false)}
+          story={selectedStory}
+        />
+      )}
     </div>
   );
 };
