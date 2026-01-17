@@ -9,6 +9,9 @@ import { EditStoryModal } from './EditStoryModal';
 import { ConnectionsList } from './community/ConnectionsList';
 import { ConnectionSearch } from './community/ConnectionSearch';
 import { CreatePost } from './community/CreatePost';
+import { PostCard } from './community/PostCard';
+import { Lightbox } from './community/Lightbox';
+import { loadMediaUrl } from '../utils/mediaLoader';
 import locationIcon from '../assets/svg/location.svg';
 import locationPrimaryIcon from '../assets/svg/location_primary.svg';
 import achievementIcon from '../assets/svg/achievement.svg';
@@ -71,6 +74,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [activitiesModalOpen, setActivitiesModalOpen] = useState(false);
   const [challengesModalOpen, setChallengesModalOpen] = useState(false);
 
+  // Media state
+  const [userMedia, setUserMedia] = useState<string[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   // Story state
   const [userStory, setUserStory] = useState<{
     id: string;
@@ -85,6 +94,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
   const [editStoryModalOpen, setEditStoryModalOpen] = useState(false);
+
+  // Posts state (identical to UserProfileView)
+  const [posts, setPosts] = useState<any[]>([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [postsPage, setPostsPage] = useState(0);
+  const POSTS_PER_PAGE = 10;
 
   const activityOptions = [
     'rehabilitation',
@@ -140,6 +156,151 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     fetchUserStory();
   }, [user?.id]);
 
+  // Fetch user media from posts
+  useEffect(() => {
+    fetchUserMedia();
+    loadUserPosts(); // Load user's posts
+  }, [user?.id]);
+
+  const fetchUserMedia = async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoadingMedia(true);
+      
+      // Fetch all posts with media from this user
+      const { data: posts, error } = await supabase
+        .from('posts')
+        .select('media_urls')
+        .eq('user_id', user.id)
+        .not('media_urls', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching user media:', error);
+        setLoadingMedia(false);
+        return;
+      }
+
+      if (posts && posts.length > 0) {
+        console.log('📸 Fetched posts with media:', posts);
+        
+        // Flatten all media URLs from all posts
+        const allMedia: string[] = [];
+        for (const post of posts) {
+          if (post.media_urls && Array.isArray(post.media_urls)) {
+            console.log('📁 Processing media_urls:', post.media_urls);
+            
+            for (const mediaPath of post.media_urls) {
+              try {
+                // Use the cached media loader
+                const signedUrl = await loadMediaUrl(mediaPath);
+                
+                if (signedUrl) {
+                  allMedia.push(signedUrl);
+                }
+              } catch (err) {
+                console.error('❌ Error processing media URL:', err);
+              }
+            }
+          }
+        }
+        
+        console.log('📊 Total media loaded:', allMedia.length);
+        setUserMedia(allMedia);
+      } else {
+        console.log('📭 No posts with media found');
+        setUserMedia([]);
+      }
+    } catch (error) {
+      console.error('Error fetching user media:', error);
+    } finally {
+      setLoadingMedia(false);
+    }
+  };
+
+  const loadUserPosts = async (pageNum: number = 0) => {
+    if (!user?.id) return;
+    
+    setIsLoadingPosts(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          user_id,
+          post_text,
+          media_urls,
+          created_at,
+          location,
+          reaction_type,
+          like_count,
+          comment_count,
+          repost_count,
+          sarathi_user!posts_user_id_fkey (
+            uuid,
+            name,
+            first_name,
+            profile_picture_url
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .range(pageNum * POSTS_PER_PAGE, (pageNum + 1) * POSTS_PER_PAGE - 1);
+
+      if (error) {
+        console.error('Error loading user posts:', error);
+        return;
+      }
+
+      if (data) {
+        const transformedPosts = data.map((post: any) => {
+          const postUser = Array.isArray(post.sarathi_user)
+            ? post.sarathi_user[0]
+            : post.sarathi_user;
+
+          return {
+            id: post.id,
+            user_id: post.user_id,
+            post_text: post.post_text,
+            media_urls: post.media_urls,
+            created_at: post.created_at,
+            location: post.location || null,
+            reaction_type: post.reaction_type || null,
+            like_count: post.like_count || 0,
+            comment_count: post.comment_count || 0,
+            repost_count: post.repost_count || 0,
+            user_name: postUser?.name || '',
+            user_first_name: postUser?.first_name || '',
+            user_profile_picture: postUser?.profile_picture_url || null,
+          };
+        });
+
+        if (pageNum === 0) {
+          setPosts(transformedPosts);
+        } else {
+          setPosts((prev) => [...prev, ...transformedPosts]);
+        }
+
+        setHasMorePosts(transformedPosts.length === POSTS_PER_PAGE);
+        setPostsPage(pageNum);
+      }
+    } catch (error) {
+      console.error('Error in loadUserPosts:', error);
+    } finally {
+      setIsLoadingPosts(false);
+    }
+  };
+
+  const handlePostDeleted = () => {
+    loadUserPosts(0); // Reload posts from the beginning
+  };
+
+  const handleLoadMorePosts = () => {
+    loadUserPosts(postsPage + 1);
+  };
+
   const fetchUserStory = async () => {
     if (!user?.id) return;
 
@@ -182,15 +343,14 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     const isVideo = path.match(/\.(mp4|webm|ogg)$/i);
     setIsStoryMediaVideo(!!isVideo);
     
-    const { data, error } = await supabase.storage
-      .from('profile-media')
-      .createSignedUrl(path, 3600); // Valid for 1 hour
+    // Use cache
+    const signedUrl = await loadMediaUrl(path);
 
-    if (data?.signedUrl) {
-      console.log('🔗 Generated signed URL for:', path);
-      setStoryMediaUrl(data.signedUrl);
-    } else if (error) {
-      console.error('❌ Failed to load story media:', error);
+    if (signedUrl) {
+      console.log('🔗 Generated signed URL (cached) for:', path);
+      setStoryMediaUrl(signedUrl);
+    } else {
+      console.error('❌ Failed to load story media');
     }
   };
 
@@ -287,25 +447,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         throw uploadError;
       }
 
-      // Get public URL (or signed URL if bucket is private)
-      const { data: publicUrlData } = supabase.storage
-        .from('profile-media')
-        .getPublicUrl(fileName);
-
-      // If bucket is private, get signed URL instead
-      let imageUrl = publicUrlData.publicUrl;
-      
-      // Try to get signed URL (for private buckets)
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from('profile-media')
-        .createSignedUrl(fileName, 31536000); // 1 year expiry
-
-      if (!signedUrlError && signedUrlData) {
-        imageUrl = signedUrlData.signedUrl;
-      }
-
-      // Update profile with the URL
-      await updateProfile({ cover_picture_url: imageUrl });
+      // Update profile with just the filename (path), not the full URL
+      // The loadMediaUrl utility will handle getting signed URLs with caching
+      await updateProfile({ cover_picture_url: fileName });
       
       // Clear preview and close dialog
       setCoverPhotoPreview(null);
@@ -343,25 +487,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         throw uploadError;
       }
 
-      // Get public URL (or signed URL if bucket is private)
-      const { data: publicUrlData } = supabase.storage
-        .from('profile-media')
-        .getPublicUrl(fileName);
-
-      // If bucket is private, get signed URL instead
-      let imageUrl = publicUrlData.publicUrl;
-      
-      // Try to get signed URL (for private buckets)
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-        .from('profile-media')
-        .createSignedUrl(fileName, 31536000); // 1 year expiry
-
-      if (!signedUrlError && signedUrlData) {
-        imageUrl = signedUrlData.signedUrl;
-      }
-
-      // Update profile with the URL
-      await updateProfile({ profile_picture_url: imageUrl });
+      // Update profile with just the filename (path), not the full URL
+      // The loadMediaUrl utility will handle getting signed URLs with caching
+      await updateProfile({ profile_picture_url: fileName });
       
       // Clear preview and close dialog
       setProfilePhotoPreview(null);
@@ -583,12 +711,6 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   };
 
   // Mock data for uploads and activities (to be replaced with real data later)
-  const uploads = [
-    { id: 1, image: null },
-    { id: 2, image: null },
-    { id: 3, image: null },
-  ];
-
   const activities = [
     { type: 'like', text: 'Ravi liked your comment on "Running with a Below-Knee Prosthetic"', detail: '"Great stretching routine! I\'ve been trying…" — 3 hrs ago' },
     { type: 'comment', text: 'You Commented on "Running with a Below-Knee Prosthetic"', detail: '"Great stretching routine! I\'ve been trying…" — 3 hrs ago' },
@@ -841,6 +963,113 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         }}>
           {/* Left Column */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Prosthesis Info Section */}
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #f2f2f7',
+              borderRadius: '30px',
+              padding: '28px',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {user.userType === 'amputee' ? (
+                  <>
+                    {isEditing ? (
+                      <select
+                        value={editData.prosthesisType}
+                        onChange={(e) => setEditData({ ...editData, prosthesisType: e.target.value === '__clear__' ? '' : e.target.value })}
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '16px',
+                          padding: '10px 12px',
+                          borderRadius: '12px',
+                          border: '1px solid #d9d9d9',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="__clear__">Clear</option>
+                        <option value="above_knee">{t.profile.aboveKnee}</option>
+                        <option value="below_knee">{t.profile.belowKnee}</option>
+                      </select>
+                    ) : (
+                      editData.prosthesisType && (
+                        <p style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '18px',
+                          fontWeight: 500,
+                          lineHeight: '28px',
+                          color: '#192126',
+                          margin: 0,
+                        }}>
+                          <span style={{ fontWeight: 400 }}>{t.profile.prostheticType}:</span>
+                          <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                            {editData.prosthesisType === 'below_knee' ? t.profile.belowKnee : t.profile.aboveKnee}
+                          </span>
+                        </p>
+                      )
+                    )}
+
+                    {isEditing ? (
+                      <select
+                        value={editData.lengthUsage}
+                        onChange={(e) => setEditData({ ...editData, lengthUsage: e.target.value === '__clear__' ? '' : e.target.value })}
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '16px',
+                          padding: '10px 12px',
+                          borderRadius: '12px',
+                          border: '1px solid #d9d9d9',
+                          outline: 'none',
+                        }}
+                      >
+                        <option value="__clear__">Clear</option>
+                        <option value="less_than_6_month">{t.profile.lessThan6Months}</option>
+                        <option value="more_than_1_year">{t.profile.moreThan1Year}</option>
+                        <option value="more_than_5_years">{t.profile.moreThan5Years}</option>
+                      </select>
+                    ) : (
+                      editData.lengthUsage && (
+                        <p style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '18px',
+                          fontWeight: 500,
+                          lineHeight: '28px',
+                          color: '#192126',
+                          margin: 0,
+                        }}>
+                          <span style={{ fontWeight: 400 }}>{t.profile.usageDuration}:</span>
+                          <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                            {editData.lengthUsage === 'less_than_6_month' 
+                              ? t.profile.lessThan6Months 
+                              : editData.lengthUsage === 'more_than_1_year'
+                              ? t.profile.moreThan1Year
+                              : t.profile.moreThan5Years}
+                          </span>
+                        </p>
+                      )
+                    )}
+                  </>
+                ) : (
+                  <p style={{
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    lineHeight: '28px',
+                    color: '#192126',
+                    margin: 0,
+                  }}>
+                    <span style={{ fontWeight: 400 }}>{t.profile.userType}:</span>
+                    <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                      {user.userType === 'caregiver' ? t.onboarding.iAmCaregiver :
+                       user.userType === 'volunteer' ? t.onboarding.iAmVolunteer :
+                       user.userType === 'doctor' ? t.onboarding.iAmDoctor :
+                       user.userType === 'practitioner' ? t.onboarding.iAmPractitioner :
+                       user.userType}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* About Section */}
             <div style={{
               background: '#ffffff',
@@ -964,114 +1193,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               </div>
             </div>
 
-            {/* Prosthesis Info Section */}
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '28px',
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {user.userType === 'amputee' ? (
-                  <>
-                    {isEditing ? (
-                      <select
-                        value={editData.prosthesisType}
-                        onChange={(e) => setEditData({ ...editData, prosthesisType: e.target.value === '__clear__' ? '' : e.target.value })}
-                        style={{
-                          fontFamily: 'Roboto, sans-serif',
-                          fontSize: '16px',
-                          padding: '10px 12px',
-                          borderRadius: '12px',
-                          border: '1px solid #d9d9d9',
-                          outline: 'none',
-                        }}
-                      >
-                        <option value="__clear__">Clear</option>
-                        <option value="above_knee">{t.profile.aboveKnee}</option>
-                        <option value="below_knee">{t.profile.belowKnee}</option>
-                      </select>
-                    ) : (
-                      editData.prosthesisType && (
-                        <p style={{
-                          fontFamily: 'Roboto, sans-serif',
-                          fontSize: '18px',
-                          fontWeight: 500,
-                          lineHeight: '28px',
-                          color: '#192126',
-                          margin: 0,
-                        }}>
-                          <span style={{ fontWeight: 400 }}>{t.profile.prostheticType}:</span>
-                          <span style={{ fontWeight: 500, marginLeft: '8px' }}>
-                            {editData.prosthesisType === 'below_knee' ? t.profile.belowKnee : t.profile.aboveKnee}
-                          </span>
-                        </p>
-                      )
-                    )}
-
-                    {isEditing ? (
-                      <select
-                        value={editData.lengthUsage}
-                        onChange={(e) => setEditData({ ...editData, lengthUsage: e.target.value === '__clear__' ? '' : e.target.value })}
-                        style={{
-                          fontFamily: 'Roboto, sans-serif',
-                          fontSize: '16px',
-                          padding: '10px 12px',
-                          borderRadius: '12px',
-                          border: '1px solid #d9d9d9',
-                          outline: 'none',
-                        }}
-                      >
-                        <option value="__clear__">Clear</option>
-                        <option value="less_than_6_month">{t.profile.lessThan6Months}</option>
-                        <option value="more_than_1_year">{t.profile.moreThan1Year}</option>
-                        <option value="more_than_5_years">{t.profile.moreThan5Years}</option>
-                      </select>
-                    ) : (
-                      editData.lengthUsage && (
-                        <p style={{
-                          fontFamily: 'Roboto, sans-serif',
-                          fontSize: '18px',
-                          fontWeight: 500,
-                          lineHeight: '28px',
-                          color: '#192126',
-                          margin: 0,
-                        }}>
-                          <span style={{ fontWeight: 400 }}>{t.profile.usageDuration}:</span>
-                          <span style={{ fontWeight: 500, marginLeft: '8px' }}>
-                            {editData.lengthUsage === 'less_than_6_month' 
-                              ? t.profile.lessThan6Months 
-                              : editData.lengthUsage === 'more_than_1_year'
-                              ? t.profile.moreThan1Year
-                              : t.profile.moreThan5Years}
-                          </span>
-                        </p>
-                      )
-                    )}
-                  </>
-                ) : (
-                  <p style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontSize: '18px',
-                    fontWeight: 500,
-                    lineHeight: '28px',
-                    color: '#192126',
-                    margin: 0,
-                  }}>
-                    <span style={{ fontWeight: 400 }}>{t.profile.userType}:</span>
-                    <span style={{ fontWeight: 500, marginLeft: '8px' }}>
-                      {user.userType === 'caregiver' ? t.onboarding.iAmCaregiver :
-                       user.userType === 'volunteer' ? t.onboarding.iAmVolunteer :
-                       user.userType === 'doctor' ? t.onboarding.iAmDoctor :
-                       user.userType === 'practitioner' ? t.onboarding.iAmPractitioner :
-                       user.userType}
-                    </span>
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Uploads Section */}
+            {/* Media Section */}
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
@@ -1089,46 +1211,113 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 }}>
                   {t.profile.uploads}
                 </h2>
-                <button 
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#388896';
-                    e.currentTarget.style.color = '#ffffff';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#ffffff';
-                    e.currentTarget.style.color = '#388896';
-                  }}
-                  style={{
-                    background: '#ffffff',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '8px 24px',
-                    fontFamily: 'Roboto, sans-serif',
-                    fontSize: '16px',
-                    fontWeight: 700,
-                    color: '#388896',
-                    cursor: 'pointer',
-                    boxShadow: '0px 0px 10px 0px #dddddd',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  {t.profile.seeAllPosts}
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: '20px' }}>
-                {uploads.map((upload) => (
-                  <div
-                    key={upload.id}
-                    style={{
-                      width: '150px',
-                      height: '150px',
-                      borderRadius: '30px',
-                      background: '#f2f2f7',
-                      border: '1px solid #f2f2f7',
+                {userMedia.length > 0 && (
+                  <button 
+                    onClick={() => {
+                      setLightboxIndex(0);
+                      setLightboxOpen(true);
                     }}
-                  />
-                ))}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#388896';
+                      e.currentTarget.style.color = '#ffffff';
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#ffffff';
+                      e.currentTarget.style.color = '#388896';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '8px 24px',
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '16px',
+                      fontWeight: 700,
+                      color: '#388896',
+                      cursor: 'pointer',
+                      boxShadow: '0px 0px 10px 0px #dddddd',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {t.profile.seeAllPosts}
+                  </button>
+                )}
               </div>
+              {loadingMedia ? (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  minHeight: '150px',
+                  color: '#888',
+                  fontFamily: 'Roboto, sans-serif',
+                }}>
+                  Loading media...
+                </div>
+              ) : userMedia.length > 0 ? (
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '20px' 
+                }}>
+                  {userMedia.slice(0, 9).map((mediaUrl, index) => {
+                    const isVideo = mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || mediaUrl.includes('.mov');
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => {
+                          setLightboxIndex(index);
+                          setLightboxOpen(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          aspectRatio: '1/1',
+                          borderRadius: '30px',
+                          background: '#f2f2f7',
+                          border: '1px solid #f2f2f7',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          position: 'relative',
+                        }}
+                      >
+                        {isVideo ? (
+                          <video
+                            src={mediaUrl}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={mediaUrl}
+                            alt={`Media ${index + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  minHeight: '150px',
+                  color: '#888',
+                  fontFamily: 'Roboto, sans-serif',
+                }}>
+                  No media uploaded yet
+                </div>
+              )}
             </div>
 
             {/* Connections Section */}
@@ -1593,81 +1782,64 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 {t.profile.makeAPost}
               </h2>
               <CreatePost onPostCreated={() => {
-                // Optionally navigate to community page after posting
-                // onNavigate('community');
+                // Reload posts after creating a new one
+                loadUserPosts(0);
               }} />
             </div>
 
-            {/* Community Activities Section */}
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '20px',
-            }}>
-              <h2 style={{
-                fontFamily: 'Roboto, sans-serif',
-                fontSize: '22px',
-                fontWeight: 400,
-                lineHeight: '32px',
-                color: '#192126',
-                margin: '0 0 20px 0',
-              }}>
-                {t.profile.communityActivities}
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
-                {activities.map((activity, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #f2f2f7',
-                      borderRadius: '30px',
-                      padding: '14px 26px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                    }}
-                  >
-                    {activity.type === 'like' && <img src={heartIcon} alt="like" width="20" height="18" />}
-                    {activity.type === 'comment' && (
-                      <svg width="20" height="18" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      </svg>
-                    )}
-                    {activity.type === 'group' && <img src={communityIcon} alt="group" width="20" height="18" />}
-                    {activity.type === 'badge' && (
-                      <svg width="20" height="18" viewBox="0 0 24 24" fill="none" stroke="#388896" strokeWidth="2">
-                        <circle cx="12" cy="8" r="7" />
-                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                      </svg>
-                    )}
-                    <div style={{ flex: 1 }}>
-                      <p style={{
+            {/* User Posts */}
+            {posts.length > 0 && (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '24px' }}>
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onPostDeleted={handlePostDeleted}
+                      onNavigate={onNavigate}
+                    />
+                  ))}
+                </div>
+
+                {/* Load More Button */}
+                {hasMorePosts && (
+                  <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                    <button
+                      onClick={handleLoadMorePosts}
+                      disabled={isLoadingPosts}
+                      onMouseEnter={(e) => {
+                        if (!isLoadingPosts) {
+                          e.currentTarget.style.background = '#388896';
+                          e.currentTarget.style.color = '#ffffff';
+                          e.currentTarget.style.borderColor = '#388896';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isLoadingPosts) {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = '#388896';
+                          e.currentTarget.style.borderColor = '#e0e0e0';
+                        }
+                      }}
+                      style={{
+                        padding: '12px 32px',
+                        background: isLoadingPosts ? '#cccccc' : 'transparent',
+                        border: isLoadingPosts ? '1px solid #cccccc' : '1px solid #e0e0e0',
+                        borderRadius: '24px',
                         fontFamily: 'Roboto, sans-serif',
                         fontSize: '16px',
-                        fontWeight: 700,
-                        lineHeight: '24px',
-                        color: '#192126',
-                        margin: '0 0 4px 0',
-                      }}>
-                        {activity.text}
-                      </p>
-                      <p style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '22px',
-                        color: '#192126',
-                        margin: 0,
-                      }}>
-                        {activity.detail}
-                      </p>
-                    </div>
+                        fontWeight: 600,
+                        color: isLoadingPosts ? '#ffffff' : '#388896',
+                        cursor: isLoadingPosts ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {isLoadingPosts ? t.common.loading : 'Load more posts'}
+                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
@@ -2091,6 +2263,16 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           existingStory={userStory}
           onSave={fetchUserStory}
           user={user}
+        />
+      )}
+
+      {/* Media Lightbox */}
+      {lightboxOpen && userMedia.length > 0 && (
+        <Lightbox
+          mediaUrls={userMedia}
+          currentIndex={lightboxIndex}
+          onClose={() => setLightboxOpen(false)}
+          onNavigate={setLightboxIndex}
         />
       )}
     </div>

@@ -10,6 +10,7 @@ import { UserStoriesPreview } from './community/UserStoriesPreview';
 
 interface CommunityPageProps {
   onNavigate: (page: string) => void;
+  scrollToPostId?: string;
 }
 
 interface Post {
@@ -28,7 +29,7 @@ interface Post {
   reaction_type?: string | null;
 }
 
-export function CommunityPage({ onNavigate }: CommunityPageProps) {
+export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -43,6 +44,19 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
       loadPosts();
     }
   }, [user]);
+
+  // Scroll to post when scrollToPostId is provided
+  useEffect(() => {
+    if (scrollToPostId && posts.length > 0) {
+      const timer = setTimeout(() => {
+        const postElement = document.getElementById(`post-${scrollToPostId}`);
+        if (postElement) {
+          postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300); // Small delay to ensure posts are rendered
+      return () => clearTimeout(timer);
+    }
+  }, [scrollToPostId, posts]);
 
   const loadPosts = async (pageNum: number = 0) => {
     if (!user) return;
@@ -235,11 +249,13 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
 
         {/* User Stories Preview - 30px gap from hero banner */}
         <div style={{ marginTop: '30px' }}>
-          <UserStoriesPreview />
+          <UserStoriesPreview onNavigate={onNavigate} />
         </div>
 
-        {/* Create Post */}
-        <CreatePost onPostCreated={handlePostCreated} />
+        {/* Create Post - 24px gap from user stories */}
+        <div style={{ marginTop: '24px' }}>
+          <CreatePost onPostCreated={handlePostCreated} />
+        </div>
 
         {/* Posts Feed */}
         {isLoading && posts.length === 0 ? (
@@ -298,11 +314,13 @@ export function CommunityPage({ onNavigate }: CommunityPageProps) {
         ) : (
           <>
             {filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onPostDeleted={handlePostDeleted}
-              />
+              <div key={post.id} id={`post-${post.id}`}>
+                <PostCard
+                  post={post}
+                  onPostDeleted={handlePostDeleted}
+                  onNavigate={onNavigate}
+                />
+              </div>
             ))}
 
             {/* Load More Button */}
