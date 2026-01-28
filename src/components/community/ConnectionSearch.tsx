@@ -20,6 +20,13 @@ interface ConnectionStatus {
 export function ConnectionSearch() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [connectionStatuses, setConnectionStatuses] = useState<{ [key: string]: ConnectionStatus }>({});
@@ -176,18 +183,19 @@ export function ConnectionSearch() {
       style={{
         background: '#ffffff',
         borderRadius: '20px',
-        padding: '24px',
+        padding: isMobile ? '12px' : '24px',
         marginBottom: '20px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
       }}
     >
       <h2
         style={{
           fontFamily: 'Roboto, sans-serif',
-          fontSize: '20px',
+          fontSize: isMobile ? '18px' : '20px',
           fontWeight: 600,
           color: '#192126',
-          marginBottom: '16px',
+          marginBottom: isMobile ? '12px' : '16px',
         }}
       >
         {t.community.findConnections}
@@ -201,14 +209,15 @@ export function ConnectionSearch() {
         placeholder={t.community.searchUsers}
         style={{
           width: '100%',
-          padding: '12px 16px',
+          padding: isMobile ? '10px 12px' : '12px 16px',
           fontFamily: 'Roboto, sans-serif',
-          fontSize: '16px',
+          fontSize: isMobile ? '14px' : '16px',
           color: '#192126',
           border: '1px solid #e0e0e0',
           borderRadius: '12px',
           outline: 'none',
-          marginBottom: '16px',
+          marginBottom: isMobile ? '12px' : '16px',
+          boxSizing: 'border-box',
         }}
       />
 
@@ -251,38 +260,44 @@ export function ConnectionSearch() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '12px',
+                  padding: isMobile ? '8px' : '12px',
                   borderRadius: '12px',
                   background: '#f8f9fa',
+                  flexWrap: isMobile ? 'wrap' : 'nowrap',
+                  gap: isMobile ? '8px' : '0',
                 }}
               >
                 {/* Profile Picture */}
                 <div
                   style={{
-                    width: '48px',
-                    height: '48px',
+                    width: isMobile ? '40px' : '48px',
+                    height: isMobile ? '40px' : '48px',
                     borderRadius: '50%',
                     background: '#e0e0e0',
-                    marginRight: '12px',
+                    marginRight: isMobile ? '8px' : '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '20px',
+                    fontSize: isMobile ? '16px' : '20px',
                     fontWeight: 600,
                     color: '#979797',
+                    flexShrink: 0,
                   }}
                 >
                   {(searchUser.first_name || searchUser.name || '?')[0].toUpperCase()}
                 </div>
 
                 {/* User Info */}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '16px',
+                      fontSize: isMobile ? '14px' : '16px',
                       fontWeight: 600,
                       color: '#192126',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {searchUser.name || searchUser.first_name}
@@ -290,7 +305,7 @@ export function ConnectionSearch() {
                   <div
                     style={{
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '12px' : '14px',
                       color: '#979797',
                     }}
                   >
@@ -304,16 +319,18 @@ export function ConnectionSearch() {
                     onClick={() => handleSendRequest(searchUser.uuid)}
                     disabled={isLoading}
                     style={{
-                      padding: '8px 20px',
+                      padding: isMobile ? '6px 12px' : '8px 20px',
                       background: '#388896',
                       border: 'none',
                       borderRadius: '20px',
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '12px' : '14px',
                       fontWeight: 600,
                       color: '#ffffff',
                       cursor: isLoading ? 'not-allowed' : 'pointer',
                       opacity: isLoading ? 0.6 : 1,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {isLoading ? t.common.loading : t.community.connectWith}
@@ -323,12 +340,14 @@ export function ConnectionSearch() {
                 {connectionStatus?.status === 'pending_sent' && (
                   <span
                     style={{
-                      padding: '8px 20px',
+                      padding: isMobile ? '6px 12px' : '8px 20px',
                       background: '#e0e0e0',
                       borderRadius: '20px',
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '12px' : '14px',
                       color: '#979797',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {t.community.requestPending}
@@ -336,23 +355,24 @@ export function ConnectionSearch() {
                 )}
 
                 {connectionStatus?.status === 'pending_received' && (
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: isMobile ? 'wrap' : 'nowrap', width: isMobile ? '100%' : 'auto', marginTop: isMobile ? '4px' : '0' }}>
                     <button
                       onClick={() =>
                         handleAcceptRequest(searchUser.uuid, connectionStatus.connectionId!)
                       }
                       disabled={isLoading}
                       style={{
-                        padding: '8px 20px',
+                        padding: isMobile ? '6px 12px' : '8px 20px',
                         background: '#388896',
                         border: 'none',
                         borderRadius: '20px',
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '12px' : '14px',
                         fontWeight: 600,
                         color: '#ffffff',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
                         opacity: isLoading ? 0.6 : 1,
+                        flex: isMobile ? 1 : 'none',
                       }}
                     >
                       {t.community.acceptConnection}
@@ -363,16 +383,17 @@ export function ConnectionSearch() {
                       }
                       disabled={isLoading}
                       style={{
-                        padding: '8px 20px',
+                        padding: isMobile ? '6px 12px' : '8px 20px',
                         background: 'transparent',
                         border: '1px solid #e0e0e0',
                         borderRadius: '20px',
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '12px' : '14px',
                         fontWeight: 600,
                         color: '#979797',
                         cursor: isLoading ? 'not-allowed' : 'pointer',
                         opacity: isLoading ? 0.6 : 1,
+                        flex: isMobile ? 1 : 'none',
                       }}
                     >
                       {t.community.declineConnection}
@@ -383,13 +404,15 @@ export function ConnectionSearch() {
                 {connectionStatus?.status === 'connected' && (
                   <span
                     style={{
-                      padding: '8px 20px',
+                      padding: isMobile ? '6px 12px' : '8px 20px',
                       background: '#d1fae5',
                       borderRadius: '20px',
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '12px' : '14px',
                       color: '#059669',
                       fontWeight: 600,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {t.community.connected}

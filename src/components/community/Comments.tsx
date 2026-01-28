@@ -19,13 +19,15 @@ interface CommentsProps {
   initialComments?: PostComment[];
   onCommentCountChange?: (count: number) => void;
   onNavigate?: (page: string, data?: any) => void;
+  isMobile?: boolean;
 }
 
 export const Comments: React.FC<CommentsProps> = ({
   postId,
   initialComments = [],
   onCommentCountChange,
-  onNavigate
+  onNavigate,
+  isMobile = false
 }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -1003,6 +1005,7 @@ export const Comments: React.FC<CommentsProps> = ({
                     onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
                     currentReaction={commentReactions[comment.id]}
                     mode="quick"
+                    isMobile={isMobile}
                   />
 
                   {/* Full Modal (on click) */}
@@ -1012,6 +1015,7 @@ export const Comments: React.FC<CommentsProps> = ({
                     onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
                     currentReaction={commentReactions[comment.id]}
                     mode="modal"
+                    isMobile={isMobile}
                   />
                 </div>
               )}
@@ -1548,12 +1552,15 @@ export const Comments: React.FC<CommentsProps> = ({
       {/* Feeling Picker for New Comment */}
       {showNewCommentFeelingModal && (
         <FeelingPicker
+          isOpen={showNewCommentFeelingModal}
           onSelect={(reaction) => {
             setNewCommentReaction(reaction);
             setShowNewCommentFeelingModal(false);
           }}
           onClose={() => setShowNewCommentFeelingModal(false)}
           currentReaction={newCommentReaction}
+          mode="modal"
+          isMobile={isMobile}
         />
       )}
 

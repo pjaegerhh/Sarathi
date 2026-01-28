@@ -32,6 +32,8 @@ import sportsIcon from '../assets/svg/sports.svg';
 import guidanceIcon from '../assets/svg/guidance.svg';
 import communityActivityIcon from '../assets/svg/community.svg';
 import maintenanceIcon from '../assets/svg/maintenance.svg';
+import aboveKneeIcon from '../assets/svg/aboveknee_icon.svg';
+import belowKneeIcon from '../assets/svg/belowknee_icon.svg';
 
 interface OnboardingFlowPageProps {
   onNavigate: (page: string) => void;
@@ -986,8 +988,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   // Step 8: Prosthesis Type (amputees only)
   const renderStep8 = () => {
     const prosthesisTypes = [
-      { id: 'above_knee', label: t.onboarding.aboveKnee, icon: '🦿' },
-      { id: 'below_knee', label: t.onboarding.belowKnee, icon: '🦴' },
+      { id: 'above_knee', label: t.onboarding.aboveKnee, icon: aboveKneeIcon },
+      { id: 'below_knee', label: t.onboarding.belowKnee, icon: belowKneeIcon },
     ];
 
     return (
@@ -1129,7 +1131,16 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>{type.icon}</div>
+                  <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'center' }}>
+                    <img 
+                      src={type.icon} 
+                      alt=""
+                      style={{
+                        width: '58px',
+                        height: '58px',
+                      }}
+                    />
+                  </div>
                   <div style={{
                     fontSize: '16px',
                     fontWeight: 500,
