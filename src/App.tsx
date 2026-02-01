@@ -200,9 +200,9 @@ function AppContent() {
     switch (currentPage) {
       case 'home':
         return isMobile ? (
-          <HomePageMobile onNavigate={handleNavigate} />
+          <HomePageMobile onNavigate={handleNavigate} isLoggedIn={!!user} />
         ) : (
-          <HomePageDesktop onNavigate={handleNavigate} />
+          <HomePageDesktop onNavigate={handleNavigate} isLoggedIn={!!user} />
         );
       case 'auth':
         return <LoginPage onNavigate={handleNavigate} />;

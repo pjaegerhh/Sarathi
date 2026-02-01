@@ -4,7 +4,12 @@ import { useLanguage } from '../../../contexts/LanguageContext';
 // ===========================================
 // SECTION 9: CLOSING CTA
 // ===========================================
-export function ClosingCTASectionDesktop() {
+interface ClosingCTASectionProps {
+  onNavigate?: (page: string) => void;
+  isLoggedIn?: boolean;
+}
+
+export function ClosingCTASectionDesktop({ onNavigate, isLoggedIn = false }: ClosingCTASectionProps) {
   const [registerHovered, setRegisterHovered] = React.useState(false);
   const [loginHovered, setLoginHovered] = React.useState(false);
   const { t } = useLanguage();
@@ -19,6 +24,7 @@ export function ClosingCTASectionDesktop() {
       </div>
       <div className="flex gap-[18px] items-center relative shrink-0" data-name="Buttons">
         <button 
+          type="button"
           className="box-border flex gap-2 h-[48px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
           style={{ 
             backgroundColor: registerHovered ? '#388896' : '#ffffff',
@@ -26,6 +32,7 @@ export function ClosingCTASectionDesktop() {
           }}
           onMouseEnter={() => setRegisterHovered(true)}
           onMouseLeave={() => setRegisterHovered(false)}
+          onClick={() => onNavigate?.(isLoggedIn ? 'community' : 'register')}
           data-name="Primary button desktop"
         >
           <div 
@@ -39,6 +46,7 @@ export function ClosingCTASectionDesktop() {
           </div>
         </button>
         <button 
+          type="button"
           className="box-border flex gap-2 h-[50px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
           style={{ 
             backgroundColor: loginHovered ? '#388896' : '#ffffff',
@@ -46,6 +54,7 @@ export function ClosingCTASectionDesktop() {
           }}
           onMouseEnter={() => setLoginHovered(true)}
           onMouseLeave={() => setLoginHovered(false)}
+          onClick={() => onNavigate?.(isLoggedIn ? 'community' : 'auth')}
           data-name="secondary button desktop"
         >
           <div 
@@ -63,7 +72,7 @@ export function ClosingCTASectionDesktop() {
   );
 }
 
-export function ClosingCTASectionMobile() {
+export function ClosingCTASectionMobile({ onNavigate, isLoggedIn = false }: ClosingCTASectionProps) {
   const [registerHovered, setRegisterHovered] = React.useState(false);
   const [loginHovered, setLoginHovered] = React.useState(false);
   const { t } = useLanguage();
@@ -78,6 +87,7 @@ export function ClosingCTASectionMobile() {
       </div>
       <div className="flex gap-[18px] items-center relative shrink-0" data-name="Buttons">
         <button 
+          type="button"
           className="box-border flex gap-2 h-[48px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
           style={{ 
             backgroundColor: registerHovered ? '#388896' : '#ffffff',
@@ -85,6 +95,7 @@ export function ClosingCTASectionMobile() {
           }}
           onMouseEnter={() => setRegisterHovered(true)}
           onMouseLeave={() => setRegisterHovered(false)}
+          onClick={() => onNavigate?.(isLoggedIn ? 'community' : 'register')}
         >
           <div 
             className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
@@ -97,6 +108,7 @@ export function ClosingCTASectionMobile() {
           </div>
         </button>
         <button 
+          type="button"
           className="box-border flex gap-2 h-[50px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
           style={{ 
             backgroundColor: loginHovered ? '#388896' : '#ffffff',
@@ -104,6 +116,7 @@ export function ClosingCTASectionMobile() {
           }}
           onMouseEnter={() => setLoginHovered(true)}
           onMouseLeave={() => setLoginHovered(false)}
+          onClick={() => onNavigate?.(isLoggedIn ? 'community' : 'auth')}
         >
           <div 
             className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
