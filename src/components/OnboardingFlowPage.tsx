@@ -77,6 +77,22 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Lock body vertical scroll on mobile when onboarding is shown (avoids scroll in PWA, keeps swipe working)
+  useEffect(() => {
+    if (!isMobile) return;
+    const prevOverflow = document.body.style.overflow;
+    const prevTouchAction = document.body.style.touchAction;
+    const prevOverscrollBehavior = document.body.style.overscrollBehavior;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'pan-x';
+    document.body.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.touchAction = prevTouchAction;
+      document.body.style.overscrollBehavior = prevOverscrollBehavior;
+    };
+  }, [isMobile]);
+
   // Form data
   const [formData, setFormData] = useState({
     ageInput: '', // Direct age input from user
@@ -2029,11 +2045,26 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   return (
     <div style={{
       width: '100%',
-      minHeight: '100vh',
+      ...(isMobile
+        ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: '100dvh',
+            maxHeight: '100vh',
+            overflow: 'hidden',
+            touchAction: 'pan-x',
+            overscrollBehavior: 'none',
+          }
+        : {
+            minHeight: '100vh',
+            position: 'relative',
+          }),
       backgroundColor: 'white',
-      borderRadius: '8px',
+      borderRadius: isMobile ? 0 : '8px',
       overflow: 'hidden',
-      position: 'relative',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
