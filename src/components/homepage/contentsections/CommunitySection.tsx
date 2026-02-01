@@ -18,7 +18,12 @@ import peopleIcon from '../../../assets/svg/2ppl.svg';
 // ===========================================
 // SECTION 8: COMMUNITY/USER PROFILES
 // ===========================================
-export function CommunitySectionDesktop() {
+interface CommunitySectionProps {
+  onNavigate?: (page: string) => void;
+  isLoggedIn?: boolean;
+}
+
+export function CommunitySectionDesktop({ onNavigate, isLoggedIn = false }: CommunitySectionProps) {
   const [currentIndex, setCurrentIndex] = React.useState(1); // Start at 1 (middle of cloned array)
   const [isTransitioning, setIsTransitioning] = React.useState(false);
   const [showLeftChevron, setShowLeftChevron] = React.useState(false);
@@ -290,13 +295,18 @@ export function CommunitySectionDesktop() {
             <p className="leading-[32px]">{t.home.communitySubtext}</p>
           </div>
         </div>
-        <div className="h-[24px] relative shrink-0 w-[59px]" data-name="Desktop text underline button">
+        <button
+          type="button"
+          className="h-[24px] relative shrink-0 w-[59px] cursor-pointer bg-transparent border-0 p-0 text-left"
+          data-name="Desktop text underline button"
+          onClick={() => onNavigate?.(isLoggedIn ? 'community' : 'register')}
+        >
           <div className="absolute bottom-0 flex flex-col font-bold justify-center leading-[0] left-0 right-[18.64%] text-body-color text-[0px] text-nowrap top-0">
             <p className="[text-underline-position:from-font] decoration-solid leading-[24px] text-disabled-primary text-[16px] underline whitespace-pre">
               {t.home.joinCommunity}
             </p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Carousel Container */}
@@ -413,7 +423,7 @@ export function CommunitySectionDesktop() {
   );
 }
 
-export function CommunitySectionMobile() {
+export function CommunitySectionMobile({ onNavigate, isLoggedIn = false }: CommunitySectionProps) {
   const { t } = useLanguage();
 
   // Base cards data - 4 user profiles
@@ -717,9 +727,13 @@ export function CommunitySectionMobile() {
             <p className="leading-[24px]">{t.home.communitySubtext}</p>
           </div>
         </div>
-        <div className="text-disabled-primary text-[16px] underline">
+        <button
+          type="button"
+          className="text-disabled-primary text-[16px] underline cursor-pointer bg-transparent border-0 p-0"
+          onClick={() => onNavigate?.(isLoggedIn ? 'community' : 'register')}
+        >
           {t.home.joinCommunity}
-        </div>
+        </button>
       </div>
       
       {/* Carousel Container */}

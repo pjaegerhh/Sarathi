@@ -15,9 +15,10 @@ import {
 
 interface HomePageDesktopProps {
   onNavigate: (page: string) => void;
+  isLoggedIn?: boolean;
 }
 
-export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
+export function HomePageDesktop({ onNavigate, isLoggedIn = false }: HomePageDesktopProps) {
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
@@ -120,7 +121,7 @@ export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
             {/* 8. CommunitySection */}
             <section className="w-full flex justify-center">
               <div className="w-full max-w-[1280px] flex items-center justify-center">
-                <CommunitySectionDesktop />
+                <CommunitySectionDesktop onNavigate={onNavigate} isLoggedIn={isLoggedIn} />
               </div>
             </section>
 
@@ -129,7 +130,7 @@ export function HomePageDesktop({ onNavigate }: HomePageDesktopProps) {
             {/* 9. ClosingCTASection */}
             <section className="w-full flex justify-center">
               <div className="w-full max-w-[1280px] flex items-center justify-center">
-                <ClosingCTASectionDesktop />
+                <ClosingCTASectionDesktop onNavigate={onNavigate} isLoggedIn={isLoggedIn} />
               </div>
             </section>
 
