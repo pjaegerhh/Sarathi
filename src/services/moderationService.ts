@@ -1,15 +1,14 @@
 /**
  * Content Moderation Service
  * 
- * This service is prepared for AI-powered content moderation.
- * Currently returns { isApproved: true } for all content.
+ * This service provides secure AI-powered content moderation via Supabase Edge Function.
+ * The OpenAI API key is stored securely on the server, not exposed to clients.
  * 
- * TO IMPLEMENT:
- * 1. Choose moderation provider (see AI_MODERATION_TRANSLATION_PROPOSAL.md)
- * 2. Add API keys to environment variables
- * 3. Uncomment and configure the appropriate provider below
- * 4. Update moderation_status in database after checking
+ * SECURITY: Never call OpenAI or other AI APIs directly from client-side code!
+ * Always use a backend/edge function to protect API keys.
  */
+
+import { supabase } from '../lib/supabase';
 
 // Simple cache to avoid re-checking same content
 const moderationCache = new Map<string, { result: ModerationResult; timestamp: number }>();
@@ -23,7 +22,7 @@ export interface ModerationResult {
 }
 
 /**
- * Moderate content using AI
+ * Moderate content using AI via secure backend
  * @param text - The text to moderate
  * @param language - The language of the text ('en' or 'hi')
  * @returns Moderation result
@@ -48,8 +47,8 @@ export async function moderateContent(
     };
   }
   
-  // OPTION 2B: Use OpenAI Moderation (for Hindi and English) - ENABLED
-  const result = await moderateWithOpenAI(text);
+  // OPTION 2: Use secure backend moderation (Supabase Edge Function)
+  const result = await moderateWithBackend(text, language);
   
   // Cache the result
   moderationCache.set(cacheKey, { result, timestamp: Date.now() });
@@ -77,77 +76,73 @@ async function basicProfanityCheck(text: string): Promise<boolean> {
 }
 
 /**
- * Moderate content using Perspective API
- * FREE: 1M requests/day
- * Good for: English content
+ * @deprecated INSECURE - DO NOT USE
+ * This function exposes API keys in client-side code.
+ * If you want to use Perspective API, create a Supabase Edge Function for it.
  */
-async function moderateWithPerspectiveAPI(text: string): Promise<ModerationResult> {
-  const API_KEY = process.env.VITE_PERSPECTIVE_API_KEY || '';
+async function moderateWithPerspectiveAPI_INSECURE_DO_NOT_USE(text: string): Promise<ModerationResult> {
+  // ❌ SECURITY VULNERABILITY: Same issue as OpenAI - API keys exposed in client code
+  // Use a backend/edge function instead
   
-  if (!API_KEY) {
-    console.warn('Perspective API key not configured');
+  console.warn('Perspective API called from client - this is insecure!');
+  return { isApproved: true };
+}
+
+/**
+ * Moderate content using secure backend (Supabase Edge Function)
+ * This calls our Edge Function which securely stores the OpenAI API key
+ * 
+ * SECURITY: This is the correct way to use third-party APIs from a web app.
+ * The API key never leaves the server and cannot be stolen from client code.
+ */
+async function moderateWithBackend(
+  text: string,
+  language: 'en' | 'hi' = 'en'
+): Promise<ModerationResult> {
+  // Skip backend moderation in development if Edge Function is not available
+  // This prevents CORS errors during local development
+  const isDev = import.meta.env.DEV || window.location.hostname === 'localhost';
+  const skipModeration = import.meta.env.VITE_SKIP_MODERATION === 'true';
+  
+  if (skipModeration) {
+    // Moderation explicitly disabled via environment variable
     return { isApproved: true };
   }
   
   try {
-    const response = await fetch(
-      `https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          comment: { text },
-          languages: ['en'],
-          requestedAttributes: {
-            TOXICITY: {},
-            SEVERE_TOXICITY: {},
-            INSULT: {},
-            PROFANITY: {},
-            THREAT: {}
-          }
-        })
+    const { data, error } = await supabase.functions.invoke('moderate-content', {
+      body: { text, language }
+    });
+
+    if (error) {
+      // On error, approve content (don't block users due to API issues)
+      // In dev mode, this is expected if Edge Function is not deployed
+      if (isDev) {
+        // Silently approve in dev mode
+        return { isApproved: true };
       }
-    );
-    
-    const data = await response.json();
-    const scores = data.attributeScores;
-    
-    // Get highest toxicity score
-    const toxicity = scores.TOXICITY?.summaryScore?.value || 0;
-    const severeToxicity = scores.SEVERE_TOXICITY?.summaryScore?.value || 0;
-    const insult = scores.INSULT?.summaryScore?.value || 0;
-    const profanity = scores.PROFANITY?.summaryScore?.value || 0;
-    const threat = scores.THREAT?.summaryScore?.value || 0;
-    
-    const maxScore = Math.max(toxicity, severeToxicity, insult, profanity, threat);
-    const threshold = 0.7; // Adjust based on your needs
-    
-    const flaggedCategories: string[] = [];
-    if (toxicity > threshold) flaggedCategories.push('toxicity');
-    if (severeToxicity > threshold) flaggedCategories.push('severe_toxicity');
-    if (insult > threshold) flaggedCategories.push('insult');
-    if (profanity > threshold) flaggedCategories.push('profanity');
-    if (threat > threshold) flaggedCategories.push('threat');
-    
-    return {
-      isApproved: maxScore < threshold,
-      confidence: maxScore,
-      flaggedCategories,
-      reason: flaggedCategories.length > 0 ? `Flagged for: ${flaggedCategories.join(', ')}` : undefined
-    };
+      return { isApproved: true };
+    }
+
+    return data as ModerationResult;
   } catch (error) {
-    console.error('Perspective API error:', error);
     // On error, approve content (don't block users due to API issues)
+    // In dev mode, this is expected if Edge Function is not deployed
     return { isApproved: true };
   }
 }
 
 /**
- * Moderate content using OpenAI Moderation API
- * FREE: No official limit
- * Good for: Hindi and English content
+ * @deprecated INSECURE - DO NOT USE
+ * This function exposes API keys in client-side code. Use moderateWithBackend() instead.
+ * Keeping this here as a reference for what NOT to do.
  */
-async function moderateWithOpenAI(text: string): Promise<ModerationResult> {
+async function moderateWithOpenAI_INSECURE_DO_NOT_USE(text: string): Promise<ModerationResult> {
+  // ❌ SECURITY VULNERABILITY: API keys in client-side code can be stolen!
+  // ❌ Anyone can view your compiled JavaScript and extract the key
+  // ❌ Anyone can open DevTools and see the key in network requests
+  // ❌ Your key will be used by others, costing you money or hitting rate limits
+  
   const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || '';
   
   if (!API_KEY) {
@@ -155,46 +150,10 @@ async function moderateWithOpenAI(text: string): Promise<ModerationResult> {
     return { isApproved: true };
   }
   
-  try {
-    const response = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ input: text })
-    });
-    
-    if (!response.ok) {
-      if (response.status === 429) {
-        console.warn('OpenAI rate limit hit - approving content by default');
-        return { isApproved: true };
-      }
-      throw new Error(`OpenAI API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const result = data.results[0];
-    
-    const flaggedCategories: string[] = [];
-    if (result.categories) {
-      Object.keys(result.categories).forEach(category => {
-        if (result.categories[category]) {
-          flaggedCategories.push(category);
-        }
-      });
-    }
-    
-    return {
-      isApproved: !result.flagged,
-      confidence: result.flagged ? 0.9 : 0.1,
-      flaggedCategories,
-      reason: flaggedCategories.length > 0 ? `Flagged for: ${flaggedCategories.join(', ')}` : undefined
-    };
-  } catch (error) {
-    console.error('OpenAI moderation error:', error);
-    return { isApproved: true };
-  }
+  // DO NOT UNCOMMENT THIS CODE - IT'S INSECURE!
+  // Use moderateWithBackend() instead
+  
+  return { isApproved: true };
 }
 
 /**

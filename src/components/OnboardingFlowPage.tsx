@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth, UserRole } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -32,6 +32,8 @@ import sportsIcon from '../assets/svg/sports.svg';
 import guidanceIcon from '../assets/svg/guidance.svg';
 import communityActivityIcon from '../assets/svg/community.svg';
 import maintenanceIcon from '../assets/svg/maintenance.svg';
+import aboveKneeIcon from '../assets/svg/aboveknee_icon.svg';
+import belowKneeIcon from '../assets/svg/belowknee_icon.svg';
 
 interface OnboardingFlowPageProps {
   onNavigate: (page: string) => void;
@@ -59,6 +61,65 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   const [hoverNext, setHoverNext] = useState(false);
   const [hoverClose, setHoverClose] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Touch/swipe handling for mobile
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const minSwipeDistance = 50; // Minimum distance for a swipe to be recognized
+
+  // Handle window resize for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Lock body/html scroll on mobile when onboarding is shown (avoids vertical move in PWA)
+  useEffect(() => {
+    if (!isMobile) return;
+    const scrollY = window.scrollY;
+    const html = document.documentElement;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevHtmlHeight = html.style.height;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevBodyTouchAction = document.body.style.touchAction;
+    const prevBodyPosition = document.body.style.position;
+    const prevBodyTop = document.body.style.top;
+    const prevBodyWidth = document.body.style.width;
+    html.style.overflow = 'hidden';
+    html.style.height = '100%';
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      html.style.overflow = prevHtmlOverflow;
+      html.style.height = prevHtmlHeight;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.touchAction = prevBodyTouchAction;
+      document.body.style.position = prevBodyPosition;
+      document.body.style.top = prevBodyTop;
+      document.body.style.width = prevBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [isMobile]);
+
+  // Prevent default on touchmove (vertical scroll) so mobile cannot drag page up/down.
+  // Allow touchmove inside elements with data-touch-scroll="allow" (e.g. Step 11 activities list).
+  useEffect(() => {
+    if (!isMobile) return;
+    const preventVerticalScroll = (e: TouchEvent) => {
+      const allowScroll = (e.target as Element)?.closest?.('[data-touch-scroll="allow"]');
+      if (allowScroll) return;
+      e.preventDefault();
+    };
+    document.addEventListener('touchmove', preventVerticalScroll, { passive: false });
+    return () => document.removeEventListener('touchmove', preventVerticalScroll);
+  }, [isMobile]);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -244,6 +305,40 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     }
   };
 
+  // Touch event handlers for swipe navigation on mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) {
+      return;
+    }
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    
+    const deltaX = touchEndX - touchStartX.current;
+    const deltaY = touchEndY - touchStartY.current;
+    
+    // Only register as swipe if horizontal movement is greater than vertical
+    // This prevents accidental swipes when scrolling
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX > 0) {
+        // Swiped right - go to previous
+        handlePrevious();
+      } else {
+        // Swiped left - go to next
+        handleNext();
+      }
+    }
+    
+    // Reset touch start position
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   // Render dot indicators (clickable)
   const renderDotIndicators = (overBackground: boolean = false) => {
     const totalSteps = getTotalSteps();
@@ -253,7 +348,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     return (
       <div style={{
         display: 'flex',
-        gap: '8px',
+        gap: isMobile ? '6px' : '8px',
         alignItems: 'center',
         position: 'relative',
         zIndex: 20,
@@ -264,8 +359,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             key={index}
             onClick={() => handleDotClick(index)}
             style={{
-              width: index + 1 === displayStep ? '32px' : '8px',
-              height: '8px',
+              width: index + 1 === displayStep ? (isMobile ? '24px' : '32px') : (isMobile ? '6px' : '8px'),
+              height: isMobile ? '6px' : '8px',
               borderRadius: '4px',
               backgroundColor: index + 1 === displayStep 
                 ? '#388896' 
@@ -284,8 +379,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   const renderCloseButton = () => (
     <div 
       style={{
-        width: '48px',
-        height: '48px',
+        width: isMobile ? '40px' : '48px',
+        height: isMobile ? '40px' : '48px',
         backgroundColor: hoverClose ? '#388896' : '#F2F2F7',
         borderRadius: '50px',
         boxShadow: '0px 0px 10px 0px #dddddd',
@@ -299,10 +394,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
         transition: 'all 0.3s ease',
       }}
       onClick={handleClose}
-      onMouseEnter={() => setHoverClose(true)}
+      onMouseEnter={() => !isMobile && setHoverClose(true)}
       onMouseLeave={() => setHoverClose(false)}
     >
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ pointerEvents: 'none' }}>
+      <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none" style={{ pointerEvents: 'none' }}>
         <path 
           d="M18 6L6 18M6 6L18 18" 
           stroke={hoverClose ? '#F2F2F7' : '#388896'} 
@@ -318,9 +413,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   const renderNavChevrons = (showPrev: boolean, showNext: boolean) => (
     <div style={{
       position: 'absolute',
-      bottom: '26px',
-      left: '26px',
-      right: '26px',
+      bottom: isMobile ? '16px' : '26px',
+      left: isMobile ? '16px' : '26px',
+      right: isMobile ? '16px' : '26px',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -332,8 +427,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
         <button
           onClick={handlePrevious}
           style={{
-            width: '48px',
-            height: '48px',
+            width: isMobile ? '40px' : '48px',
+            height: isMobile ? '40px' : '48px',
             backgroundColor: hoverPrev ? '#388896' : '#F2F2F7',
             border: 'none',
             borderRadius: '50%',
@@ -345,10 +440,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             transition: 'all 0.3s ease',
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => setHoverPrev(true)}
+          onMouseEnter={() => !isMobile && setHoverPrev(true)}
           onMouseLeave={() => setHoverPrev(false)}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ pointerEvents: 'none' }}>
+          <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none" style={{ pointerEvents: 'none' }}>
             <path 
               d="M15 18L9 12L15 6" 
               stroke={hoverPrev ? 'white' : '#388896'} 
@@ -359,7 +454,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           </svg>
         </button>
       ) : (
-        <div style={{ width: '48px' }} />
+        <div style={{ width: isMobile ? '40px' : '48px' }} />
       )}
 
       {/* Next Chevron */}
@@ -368,8 +463,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           onClick={handleNext}
           disabled={loading}
           style={{
-            width: '48px',
-            height: '48px',
+            width: isMobile ? '40px' : '48px',
+            height: isMobile ? '40px' : '48px',
             backgroundColor: hoverNext && !loading ? '#388896' : '#F2F2F7',
             border: 'none',
             borderRadius: '50%',
@@ -382,10 +477,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             opacity: loading ? 0.5 : 1,
             pointerEvents: 'auto',
           }}
-          onMouseEnter={() => !loading && setHoverNext(true)}
+          onMouseEnter={() => !isMobile && !loading && setHoverNext(true)}
           onMouseLeave={() => setHoverNext(false)}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ pointerEvents: 'none' }}>
+          <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none" style={{ pointerEvents: 'none' }}>
             <path 
               d="M9 18L15 12L9 6" 
               stroke={hoverNext && !loading ? 'white' : '#388896'} 
@@ -396,7 +491,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           </svg>
         </button>
       ) : (
-        <div style={{ width: '48px' }} />
+        <div style={{ width: isMobile ? '40px' : '48px' }} />
       )}
     </div>
   );
@@ -404,35 +499,36 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   // Step 1: Tutorial Welcome Screen (from OnboardingPage screen1)
   const renderStep1 = () => {
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '40px',
+          gap: isMobile ? '24px' : '40px',
           overflow: 'hidden',
         }}>
           {/* Image and Close Button Container */}
           <div style={{
-            height: '401px',
+            height: isMobile ? '250px' : '401px',
             width: '100%',
             position: 'relative',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
           }}>
             {/* Image Container */}
             <div style={{
               position: 'absolute',
               left: 0,
               top: 0,
-              width: '694.518px',
-              height: '396.867px',
-              borderTopLeftRadius: '30px',
-              borderTopRightRadius: '30px',
+              width: '100%',
+              height: '100%',
+              borderTopLeftRadius: isMobile ? '20px' : '30px',
+              borderTopRightRadius: isMobile ? '20px' : '30px',
               overflow: 'hidden',
               zIndex: 1,
               pointerEvents: 'none',
@@ -441,24 +537,20 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 src={screen1Image}
                 alt=""
                 style={{
-                  position: 'absolute',
-                  left: '-1.73%',
-                  top: '-47.58%',
-                  width: '102.45%',
-                  height: '179.28%',
-                  maxWidth: 'none',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center top',
                 }}
               />
               {/* Overlay gradient */}
               <div style={{
                 position: 'absolute',
                 left: 0,
-                top: '173.21px',
-                width: '694.518px',
-                height: '227.787px',
+                bottom: 0,
+                width: '100%',
+                height: '50%',
                 background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 100%)',
-                borderTopLeftRadius: '30px',
-                borderTopRightRadius: '30px',
                 pointerEvents: 'none',
               }} />
             </div>
@@ -466,9 +558,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             {/* Header with Dots and Close Button */}
             <div style={{
               position: 'absolute',
-              top: '26px',
-              left: '26px',
-              right: '26px',
+              top: isMobile ? '16px' : '26px',
+              left: isMobile ? '16px' : '26px',
+              right: isMobile ? '16px' : '26px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -482,14 +574,14 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Text Container */}
           <div style={{
-            width: '600px',
+            width: isMobile ? '100%' : '600px',
             margin: '0 auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: isMobile ? '8px' : '12px',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '12px 24px',
+            padding: isMobile ? '8px 16px 24px' : '12px 24px',
           }}>
             {/* Title Container */}
             <div style={{
@@ -506,9 +598,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 <div style={{
                   position: 'absolute',
                   right: '0px',
-                  top: '6px',
-                  width: '79px',
-                  height: '30px',
+                  top: isMobile ? '4px' : '6px',
+                  width: isMobile ? '60px' : '79px',
+                  height: isMobile ? '24px' : '30px',
                   background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
                   filter: 'blur(5px)',
                 }} />
@@ -518,12 +610,12 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                   position: 'relative',
                   fontFamily: 'Roboto, sans-serif',
                   fontWeight: 500,
-                  fontSize: '32px',
-                  lineHeight: '40px',
+                  fontSize: isMobile ? '22px' : '32px',
+                  lineHeight: isMobile ? '28px' : '40px',
                   color: '#192126',
                   textAlign: 'center',
                   margin: 0,
-                  whiteSpace: 'nowrap',
+                  whiteSpace: isMobile ? 'normal' : 'nowrap',
                 }}>
                   {t.onboarding.screen1Title}
                 </p>
@@ -534,8 +626,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             <p style={{
               fontFamily: 'Roboto, sans-serif',
               fontWeight: 400,
-              fontSize: '14px',
-              lineHeight: '22px',
+              fontSize: isMobile ? '13px' : '14px',
+              lineHeight: isMobile ? '20px' : '22px',
               color: '#979797',
               textAlign: 'center',
               margin: 0,
@@ -554,12 +646,13 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   // Step 2: Age Input Screen (matching Figma design)
   const renderStep2 = () => {
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(221,221,221,1)',
           display: 'flex',
           flexDirection: 'column',
@@ -568,9 +661,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -583,7 +676,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Header Container - Image Section */}
           <div style={{
-            height: '390px',
+            height: isMobile ? '280px' : '390px',
             width: '100%',
             position: 'relative',
             pointerEvents: 'none',
@@ -593,10 +686,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
               position: 'absolute',
               left: 0,
               top: 0,
-              width: '695px',
-              height: '408px',
-              borderTopLeftRadius: '30px',
-              borderTopRightRadius: '30px',
+              width: '100%',
+              height: isMobile ? '300px' : '408px',
+              borderTopLeftRadius: isMobile ? '20px' : '30px',
+              borderTopRightRadius: isMobile ? '20px' : '30px',
               overflow: 'hidden',
               zIndex: 1,
               pointerEvents: 'none',
@@ -605,13 +698,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 src={ageScreenImage}
                 alt=""
                 style={{
-                  position: 'absolute',
-                  left: '-2.16%',
-                  top: '-19.3%',
-                  width: '104.6%',
-                  height: '138.6%',
-                  maxWidth: 'none',
+                  width: '100%',
+                  height: '100%',
                   objectFit: 'cover',
+                  objectPosition: 'center',
                   pointerEvents: 'none',
                 }}
               />
@@ -619,9 +709,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
               <div style={{
                 position: 'absolute',
                 left: 0,
-                top: '168px',
-                width: '695px',
-                height: '262px',
+                bottom: 0,
+                width: '100%',
+                height: '60%',
                 background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, #69b57c 100%)',
                 pointerEvents: 'none',
               }} />
@@ -630,34 +720,35 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Form Container - Gradient Bottom Section */}
           <div style={{
-            height: '210px',
+            height: isMobile ? '220px' : '210px',
             width: '100%',
             background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
-            borderBottomLeftRadius: '30px',
-            borderBottomRightRadius: '30px',
+            borderBottomLeftRadius: isMobile ? '20px' : '30px',
+            borderBottomRightRadius: isMobile ? '20px' : '30px',
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
-            paddingBottom: '24px',
+            paddingBottom: isMobile ? '16px' : '24px',
           }}>
             {/* Form Content */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
+              gap: isMobile ? '8px' : '12px',
               alignItems: 'center',
-              paddingBottom: '24px',
+              paddingBottom: isMobile ? '16px' : '24px',
+              padding: isMobile ? '0 16px' : '0',
             }}>
               {/* Title */}
               <p style={{
                 fontFamily: 'Roboto, sans-serif',
                 fontWeight: 500,
-                fontSize: '32px',
-                lineHeight: '40px',
+                fontSize: isMobile ? '22px' : '32px',
+                lineHeight: isMobile ? '28px' : '40px',
                 color: 'white',
                 textAlign: 'center',
                 margin: 0,
-                whiteSpace: 'nowrap',
+                whiteSpace: isMobile ? 'normal' : 'nowrap',
               }}>
                 {t.onboarding.welcomeToSarathi || 'Welcome to '}<span style={{ fontFamily: 'Nehana, cursive', letterSpacing: '-0.64px' }}>Sarathi</span> !
               </p>
@@ -666,20 +757,21 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
               <p style={{
                 fontFamily: 'Roboto, sans-serif',
                 fontWeight: 400,
-                fontSize: '14px',
-                lineHeight: '22px',
+                fontSize: isMobile ? '13px' : '14px',
+                lineHeight: isMobile ? '20px' : '22px',
                 color: 'white',
                 textAlign: 'center',
                 margin: 0,
-                whiteSpace: 'nowrap',
+                whiteSpace: isMobile ? 'normal' : 'nowrap',
               }}>
                 {t.onboarding.letsGetToKnowYou || "Let's start by getting to know you better."}
               </p>
               
               {/* Age Input Field */}
               <div style={{
-                width: '327px',
-                height: '52px',
+                width: isMobile ? '100%' : '327px',
+                maxWidth: isMobile ? '280px' : 'none',
+                height: isMobile ? '48px' : '52px',
                 position: 'relative',
               }}>
                 <div style={{
@@ -690,11 +782,11 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                   borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '14px 16px',
-                  gap: '12px',
+                  padding: isMobile ? '12px 14px' : '14px 16px',
+                  gap: isMobile ? '10px' : '12px',
                 }}>
                   {/* Age Icon from SVG */}
-                  <img src={ageIcon} alt="" style={{ width: '24px', height: '24px' }} />
+                  <img src={ageIcon} alt="" style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px' }} />
                   
                   {/* Age Input */}
                   <input
@@ -708,8 +800,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                       outline: 'none',
                       fontFamily: 'Roboto, sans-serif',
                       fontWeight: 400,
-                      fontSize: '14px',
-                      lineHeight: '22px',
+                      fontSize: isMobile ? '13px' : '14px',
+                      lineHeight: isMobile ? '20px' : '22px',
                       color: '#192126',
                       backgroundColor: 'transparent',
                     }}
@@ -734,26 +826,27 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     description: string
   ) => {
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '450px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
+          gap: isMobile ? '8px' : '10px',
           overflow: 'hidden',
-          padding: '10px 10px 24px',
-          paddingTop: '84px',
+          padding: isMobile ? '12px 12px 24px' : '10px 10px 24px',
+          paddingTop: isMobile ? '70px' : '84px',
         }}>
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -766,10 +859,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Image Container */}
           <div style={{
-            width: '459px',
-            height: '335px',
+            width: isMobile ? '100%' : '459px',
+            height: isMobile ? '220px' : '335px',
             margin: '0 auto',
-            borderRadius: '20px',
+            borderRadius: isMobile ? '16px' : '20px',
             overflow: 'hidden',
           }}>
             <img
@@ -787,16 +880,16 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: isMobile ? '8px' : '12px',
             alignItems: 'center',
             textAlign: 'center',
-            paddingRight: '24px',
+            padding: isMobile ? '0 16px' : '0 24px 0 0',
           }}>
             <p style={{
               fontFamily: 'Roboto, sans-serif',
               fontWeight: 500,
-              fontSize: '32px',
-              lineHeight: '40px',
+              fontSize: isMobile ? '22px' : '32px',
+              lineHeight: isMobile ? '28px' : '40px',
               color: '#192126',
               margin: 0,
             }}>
@@ -805,8 +898,8 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             <p style={{
               fontFamily: 'Roboto, sans-serif',
               fontWeight: 400,
-              fontSize: '14px',
-              lineHeight: '22px',
+              fontSize: isMobile ? '13px' : '14px',
+              lineHeight: isMobile ? '20px' : '22px',
               color: '#979797',
               margin: 0,
               textAlign: 'center',
@@ -838,12 +931,13 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     ];
 
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -852,9 +946,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -867,28 +961,28 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Gradient Header */}
           <div style={{
-            height: '160px',
+            height: isMobile ? '140px' : '160px',
             width: '100%',
             background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'flex-end',
-            padding: '0 40px 20px',
+            padding: isMobile ? '0 20px 16px' : '0 40px 20px',
           }}>
               <h2 style={{
-                fontSize: '28px',
+                fontSize: isMobile ? '22px' : '28px',
                 fontWeight: 600,
                 color: 'white',
-                marginBottom: '12px',
+                marginBottom: isMobile ? '8px' : '12px',
                 textAlign: 'center',
               }}>
                 {t.onboarding.whoAreYou}
               </h2>
               <p style={{
-                fontSize: '14px',
+                fontSize: isMobile ? '13px' : '14px',
                 color: 'white',
                 marginBottom: 0,
                 textAlign: 'center',
@@ -904,34 +998,34 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px 40px 40px',
+            padding: isMobile ? '16px 16px 70px' : '24px 40px 40px',
           }}>
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '12px',
-              marginBottom: '12px',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+              gap: isMobile ? '10px' : '12px',
+              marginBottom: isMobile ? '10px' : '12px',
               width: '100%',
             }}>
-              {userTypes.slice(0, 3).map((type) => (
+              {userTypes.slice(0, isMobile ? 2 : 3).map((type) => (
                 <button
                   key={type.id}
                   type="button"
                   onClick={() => handleInputChange('userType', type.id)}
                   style={{
-                    padding: '16px',
+                    padding: isMobile ? '12px' : '16px',
                     border: `2px solid ${formData.userType === type.id ? '#388896' : '#E8E8E8'}`,
-                    borderRadius: '16px',
+                    borderRadius: isMobile ? '12px' : '16px',
                     background: formData.userType === type.id ? '#F0F9FF' : 'white',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>{type.icon}</div>
+                  <div style={{ fontSize: isMobile ? '24px' : '32px', marginBottom: isMobile ? '4px' : '8px' }}>{type.icon}</div>
                   <div style={{
-                    fontSize: '14px',
+                    fontSize: isMobile ? '12px' : '14px',
                     fontWeight: 500,
                     color: '#192126',
                     whiteSpace: 'pre-line',
@@ -944,28 +1038,29 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '12px',
-              width: '66.66%',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(2, 1fr)',
+              gap: isMobile ? '10px' : '12px',
+              width: isMobile ? '100%' : '66.66%',
+              marginBottom: isMobile ? '10px' : '0',
             }}>
-              {userTypes.slice(3).map((type) => (
+              {userTypes.slice(isMobile ? 2 : 3, isMobile ? 4 : 5).map((type) => (
                 <button
                   key={type.id}
                   type="button"
                   onClick={() => handleInputChange('userType', type.id)}
                   style={{
-                    padding: '16px',
+                    padding: isMobile ? '12px' : '16px',
                     border: `2px solid ${formData.userType === type.id ? '#388896' : '#E8E8E8'}`,
-                    borderRadius: '16px',
+                    borderRadius: isMobile ? '12px' : '16px',
                     background: formData.userType === type.id ? '#F0F9FF' : 'white',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>{type.icon}</div>
+                  <div style={{ fontSize: isMobile ? '24px' : '32px', marginBottom: isMobile ? '4px' : '8px' }}>{type.icon}</div>
                   <div style={{
-                    fontSize: '14px',
+                    fontSize: isMobile ? '12px' : '14px',
                     fontWeight: 500,
                     color: '#192126',
                     whiteSpace: 'pre-line',
@@ -975,6 +1070,40 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 </button>
               ))}
             </div>
+
+            {/* Last item for mobile - centered */}
+            {isMobile && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                width: '50%',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => handleInputChange('userType', userTypes[4].id)}
+                  style={{
+                    padding: '12px',
+                    border: `2px solid ${formData.userType === userTypes[4].id ? '#388896' : '#E8E8E8'}`,
+                    borderRadius: '12px',
+                    background: formData.userType === userTypes[4].id ? '#F0F9FF' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'center',
+                    width: '100%',
+                  }}
+                >
+                  <div style={{ fontSize: '24px', marginBottom: '4px' }}>{userTypes[4].icon}</div>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    color: '#192126',
+                    whiteSpace: 'pre-line',
+                  }}>
+                    {userTypes[4].label}
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -986,17 +1115,18 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   // Step 8: Prosthesis Type (amputees only)
   const renderStep8 = () => {
     const prosthesisTypes = [
-      { id: 'above_knee', label: t.onboarding.aboveKnee, icon: '🦿' },
-      { id: 'below_knee', label: t.onboarding.belowKnee, icon: '🦴' },
+      { id: 'above_knee', label: t.onboarding.aboveKnee, icon: aboveKneeIcon },
+      { id: 'below_knee', label: t.onboarding.belowKnee, icon: belowKneeIcon },
     ];
 
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -1005,9 +1135,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -1020,64 +1150,43 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Gradient Header */}
           <div style={{
-            height: '200px',
+            height: isMobile ? '160px' : '200px',
             width: '100%',
             background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px 40px',
-            gap: '12px',
+            justifyContent: 'flex-end',
+            padding: isMobile ? '16px 20px' : '20px 40px',
+            gap: isMobile ? '4px' : '8px',
           }}>
-            {/* Medical Icon */}
-            <div style={{
-              width: '45px',
-              height: '45px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.1)',
-            }}>
-              <img 
-                src={medicalIcon} 
-                alt=""
-                style={{
-                  width: '24px',
-                  height: '24px',
-                }}
-              />
-            </div>
-
             {/* Text Container */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
+              gap: isMobile ? '4px' : '8px',
             }}>
               <h2 style={{
-                fontSize: '32px',
+                fontSize: isMobile ? '22px' : '32px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '40px',
+                lineHeight: isMobile ? '28px' : '40px',
               }}>
                 {t.onboarding.medicalInformation}
               </h2>
               <p style={{
-                fontSize: '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '28px',
-                maxWidth: '375px',
+                lineHeight: isMobile ? '20px' : '28px',
+                maxWidth: isMobile ? '280px' : '375px',
               }}>
                 {t.onboarding.medicalInformationDescription}
               </p>
@@ -1091,17 +1200,39 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '0 40px',
+            padding: isMobile ? '16px 16px 70px' : '0 40px',
           }}>
+
+            {/* Medical Icon - moved above question */}
+            <div style={{
+              width: isMobile ? '36px' : '45px',
+              height: isMobile ? '36px' : '45px',
+              borderRadius: '50%',
+              backgroundColor: '#E0EBE3',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0px 4px 8px rgba(0,0,0,0.1)',
+              marginBottom: isMobile ? '12px' : '16px',
+            }}>
+              <img 
+                src={medicalIcon} 
+                alt=""
+                style={{
+                  width: isMobile ? '20px' : '24px',
+                  height: isMobile ? '20px' : '24px',
+                }}
+              />
+            </div>
 
             {/* Question Text */}
             <h3 style={{
-              fontSize: '18px',
+              fontSize: isMobile ? '16px' : '18px',
               fontWeight: 500,
               color: '#505050',
-              margin: '0 0 24px 0',
+              margin: isMobile ? '0 0 16px 0' : '0 0 24px 0',
               textAlign: 'center',
-              lineHeight: '28px',
+              lineHeight: isMobile ? '24px' : '28px',
             }}>
               {t.onboarding.whatTypeOfProsthesis}
             </h3>
@@ -1109,10 +1240,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '16px',
-              marginBottom: '32px',
+              gap: isMobile ? '12px' : '16px',
+              marginBottom: isMobile ? '24px' : '32px',
               width: '100%',
-              maxWidth: '400px',
+              maxWidth: isMobile ? '300px' : '400px',
             }}>
               {prosthesisTypes.map((type) => (
                 <button
@@ -1120,18 +1251,27 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                   type="button"
                   onClick={() => handleInputChange('prosthesisType', type.id)}
                   style={{
-                    padding: '24px',
+                    padding: isMobile ? '16px' : '24px',
                     border: `2px solid ${formData.prosthesisType === type.id ? '#388896' : '#E8E8E8'}`,
-                    borderRadius: '16px',
+                    borderRadius: isMobile ? '12px' : '16px',
                     background: formData.prosthesisType === type.id ? '#F0F9FF' : 'white',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     textAlign: 'center',
                   }}
                 >
-                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>{type.icon}</div>
+                  <div style={{ marginBottom: isMobile ? '8px' : '12px', display: 'flex', justifyContent: 'center' }}>
+                    <img 
+                      src={type.icon} 
+                      alt=""
+                      style={{
+                        width: isMobile ? '44px' : '58px',
+                        height: isMobile ? '44px' : '58px',
+                      }}
+                    />
+                  </div>
                   <div style={{
-                    fontSize: '16px',
+                    fontSize: isMobile ? '14px' : '16px',
                     fontWeight: 500,
                     color: '#192126',
                   }}>
@@ -1157,12 +1297,13 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     ];
 
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -1171,9 +1312,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -1186,64 +1327,43 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Gradient Header */}
           <div style={{
-            height: '200px',
+            height: isMobile ? '160px' : '200px',
             width: '100%',
             background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px 40px',
-            gap: '12px',
+            justifyContent: 'flex-end',
+            padding: isMobile ? '16px 20px' : '20px 40px',
+            gap: isMobile ? '4px' : '8px',
           }}>
-            {/* Medical Icon */}
-            <div style={{
-              width: '45px',
-              height: '45px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.1)',
-            }}>
-              <img 
-                src={medicalIcon} 
-                alt=""
-                style={{
-                  width: '24px',
-                  height: '24px',
-                }}
-              />
-            </div>
-
             {/* Text Container */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
+              gap: isMobile ? '4px' : '8px',
             }}>
               <h2 style={{
-                fontSize: '32px',
+                fontSize: isMobile ? '22px' : '32px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '40px',
+                lineHeight: isMobile ? '28px' : '40px',
               }}>
                 {t.onboarding.medicalInformation}
               </h2>
               <p style={{
-                fontSize: '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '28px',
-                maxWidth: '375px',
+                lineHeight: isMobile ? '20px' : '28px',
+                maxWidth: isMobile ? '280px' : '375px',
               }}>
                 {t.onboarding.medicalInformationDescription}
               </p>
@@ -1257,17 +1377,17 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '0 40px',
+            padding: isMobile ? '16px 16px 70px' : '0 40px',
           }}>
 
             {/* Question Text */}
             <h3 style={{
-              fontSize: '18px',
+              fontSize: isMobile ? '16px' : '18px',
               fontWeight: 500,
               color: '#505050',
-              margin: '0 0 24px 0',
+              margin: isMobile ? '0 0 16px 0' : '0 0 24px 0',
               textAlign: 'center',
-              lineHeight: '28px',
+              lineHeight: isMobile ? '24px' : '28px',
             }}>
               {t.onboarding.howLongHaveYouBeenUsing}
             </h3>
@@ -1275,10 +1395,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
-              marginBottom: '24px',
+              gap: isMobile ? '10px' : '12px',
+              marginBottom: isMobile ? '16px' : '24px',
               width: '100%',
-              maxWidth: '400px',
+              maxWidth: isMobile ? '300px' : '400px',
             }}>
               {lengthOptions.map((option) => (
                 <button
@@ -1286,20 +1406,20 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                   type="button"
                   onClick={() => handleInputChange('lengthUsage', option.id)}
                   style={{
-                    padding: '16px',
+                    padding: isMobile ? '12px' : '16px',
                     border: `2px solid ${formData.lengthUsage === option.id ? '#388896' : '#E8E8E8'}`,
-                    borderRadius: '16px',
+                    borderRadius: isMobile ? '12px' : '16px',
                     background: formData.lengthUsage === option.id ? '#F0F9FF' : 'white',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '16px',
+                    gap: isMobile ? '12px' : '16px',
                   }}
                 >
-                  <div style={{ fontSize: '28px' }}>{option.icon}</div>
+                  <div style={{ fontSize: isMobile ? '22px' : '28px' }}>{option.icon}</div>
                   <div style={{
-                    fontSize: '16px',
+                    fontSize: isMobile ? '14px' : '16px',
                     fontWeight: 500,
                     color: '#192126',
                     textAlign: 'left',
@@ -1329,12 +1449,13 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     ];
 
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -1343,9 +1464,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -1358,64 +1479,43 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Gradient Header */}
           <div style={{
-            height: '200px',
+            height: isMobile ? '160px' : '200px',
             width: '100%',
             background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px 40px',
-            gap: '12px',
+            justifyContent: 'flex-end',
+            padding: isMobile ? '16px 20px' : '20px 40px',
+            gap: isMobile ? '4px' : '8px',
           }}>
-            {/* Medical Icon */}
-            <div style={{
-              width: '45px',
-              height: '45px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.1)',
-            }}>
-              <img 
-                src={medicalIcon} 
-                alt=""
-                style={{
-                  width: '24px',
-                  height: '24px',
-                }}
-              />
-            </div>
-
             {/* Text Container */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
+              gap: isMobile ? '4px' : '8px',
             }}>
               <h2 style={{
-                fontSize: '32px',
+                fontSize: isMobile ? '22px' : '32px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '40px',
+                lineHeight: isMobile ? '28px' : '40px',
               }}>
                 {t.onboarding.medicalInformation}
               </h2>
               <p style={{
-                fontSize: '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '28px',
-                maxWidth: '375px',
+                lineHeight: isMobile ? '20px' : '28px',
+                maxWidth: isMobile ? '280px' : '375px',
               }}>
                 {t.onboarding.medicalInformationDescription}
               </p>
@@ -1428,17 +1528,17 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
-            padding: '24px 60px 60px',
+            padding: isMobile ? '16px 16px 70px' : '24px 60px 60px',
           }}>
 
             {/* Question Text */}
             <h3 style={{
-              fontSize: '18px',
+              fontSize: isMobile ? '16px' : '18px',
               fontWeight: 500,
               color: '#505050',
-              margin: '0 0 16px 0',
+              margin: isMobile ? '0 0 12px 0' : '0 0 16px 0',
               textAlign: 'center',
-              lineHeight: '28px',
+              lineHeight: isMobile ? '24px' : '28px',
             }}>
               {t.onboarding.whatIsYourMainChallenge}
             </h3>
@@ -1446,9 +1546,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             {/* First row - 3 items */}
             <div style={{
               display: 'flex',
-              gap: '24px',
+              gap: isMobile ? '12px' : '24px',
               justifyContent: 'center',
-              marginBottom: '16px',
+              marginBottom: isMobile ? '12px' : '16px',
+              flexWrap: isMobile ? 'wrap' : 'nowrap',
             }}>
               {challenges.slice(0, 3).map((challenge) => (
                 <button
@@ -1459,43 +1560,43 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px',
+                    gap: isMobile ? '4px' : '8px',
+                    padding: isMobile ? '6px' : '8px',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    width: '100px',
+                    width: isMobile ? '80px' : '100px',
                   }}
                 >
                   <div style={{
-                    width: '45px',
-                    height: '45px',
+                    width: isMobile ? '36px' : '45px',
+                    height: isMobile ? '36px' : '45px',
                     borderRadius: '36px',
                     backgroundColor: formData.mainChallenge.includes(challenge.id) ? '#388896' : '#E0EBE3',
                     boxShadow: '0px 0px 10px 0px #DDDDDD',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '12px',
+                    padding: isMobile ? '8px' : '12px',
                     transition: 'all 0.2s',
                   }}>
                     <img 
                       src={challenge.icon} 
                       alt=""
                       style={{
-                        width: '24px',
-                        height: '24px',
+                        width: isMobile ? '20px' : '24px',
+                        height: isMobile ? '20px' : '24px',
                         filter: formData.mainChallenge.includes(challenge.id) ? 'brightness(0) invert(1)' : 'none',
                       }}
                     />
                   </div>
                   <p style={{
-                    fontSize: '14px',
+                    fontSize: isMobile ? '12px' : '14px',
                     fontWeight: 400,
                     color: '#505050',
                     margin: 0,
                     textAlign: 'center',
-                    lineHeight: '22px',
+                    lineHeight: isMobile ? '18px' : '22px',
                   }}>
                     {challenge.label}
                   </p>
@@ -1506,8 +1607,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             {/* Second row - 3 items */}
             <div style={{
               display: 'flex',
-              gap: '24px',
+              gap: isMobile ? '12px' : '24px',
               justifyContent: 'center',
+              flexWrap: isMobile ? 'wrap' : 'nowrap',
             }}>
               {challenges.slice(3, 6).map((challenge) => (
                 <button
@@ -1518,43 +1620,43 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px',
+                    gap: isMobile ? '4px' : '8px',
+                    padding: isMobile ? '6px' : '8px',
                     background: 'transparent',
                     border: 'none',
                     cursor: 'pointer',
-                    width: '100px',
+                    width: isMobile ? '80px' : '100px',
                   }}
                 >
                   <div style={{
-                    width: '45px',
-                    height: '45px',
+                    width: isMobile ? '36px' : '45px',
+                    height: isMobile ? '36px' : '45px',
                     borderRadius: '36px',
                     backgroundColor: formData.mainChallenge.includes(challenge.id) ? '#388896' : '#E0EBE3',
                     boxShadow: '0px 0px 10px 0px #DDDDDD',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '12px',
+                    padding: isMobile ? '8px' : '12px',
                     transition: 'all 0.2s',
                   }}>
                     <img 
                       src={challenge.icon} 
                       alt=""
                       style={{
-                        width: '24px',
-                        height: '24px',
+                        width: isMobile ? '20px' : '24px',
+                        height: isMobile ? '20px' : '24px',
                         filter: formData.mainChallenge.includes(challenge.id) ? 'brightness(0) invert(1)' : 'none',
                       }}
                     />
                   </div>
                   <p style={{
-                    fontSize: '14px',
+                    fontSize: isMobile ? '12px' : '14px',
                     fontWeight: 400,
                     color: '#505050',
                     margin: 0,
                     textAlign: 'center',
-                    lineHeight: '22px',
+                    lineHeight: isMobile ? '18px' : '22px',
                   }}>
                     {challenge.label}
                   </p>
@@ -1587,13 +1689,53 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
       { id: 'maintenance', label: t.onboarding.maintenance, icon: maintenanceIcon },
     ];
 
+    // Render activity button (reusable)
+    const renderActivityButton = (activity: typeof activities[0]) => (
+      <button
+        key={activity.id}
+        type="button"
+        onClick={() => handleToggleArrayItem('activities', activity.id)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: isMobile ? '6px' : '8px',
+          padding: isMobile ? '6px 8px' : '8px',
+          backgroundColor: formData.activities.includes(activity.id) ? '#388896' : 'white',
+          border: 'none',
+          borderRadius: isMobile ? '12px' : '15px',
+          boxShadow: '0px 0px 10px 0px #DDDDDD',
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+        }}
+      >
+        <img 
+          src={activity.icon} 
+          alt=""
+          style={{
+            width: isMobile ? '18px' : '24px',
+            height: isMobile ? '18px' : '24px',
+            filter: formData.activities.includes(activity.id) ? 'brightness(0) invert(1)' : 'none',
+          }}
+        />
+        <span style={{
+          fontSize: isMobile ? '12px' : '14px',
+          fontWeight: 500,
+          color: formData.activities.includes(activity.id) ? 'white' : '#192126',
+          lineHeight: isMobile ? '16px' : '20px',
+        }}>
+          {activity.label}
+        </span>
+      </button>
+    );
+
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative', width: isMobile ? '100%' : 'auto' }}>
         <div style={{
-          width: '695px',
-          height: '600px',
+          width: isMobile ? '100%' : '695px',
+          height: isMobile ? 'auto' : '600px',
+          minHeight: isMobile ? '500px' : 'auto',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px rgba(20,20,20,0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -1602,9 +1744,9 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           {/* Header with Dots and Close Button */}
           <div style={{
             position: 'absolute',
-            top: '26px',
-            left: '26px',
-            right: '26px',
+            top: isMobile ? '16px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            right: isMobile ? '16px' : '26px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -1617,279 +1759,128 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
           {/* Gradient Header */}
           <div style={{
-            height: '200px',
+            height: isMobile ? '160px' : '200px',
             width: '100%',
             background: 'linear-gradient(180deg, #69b57c 0%, #388896 100%)',
-            borderTopLeftRadius: '30px',
-            borderTopRightRadius: '30px',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px 40px',
-            gap: '12px',
+            justifyContent: 'flex-end',
+            padding: isMobile ? '16px 20px' : '20px 40px',
+            gap: isMobile ? '4px' : '8px',
           }}>
-            {/* Medical Icon */}
-            <div style={{
-              width: '45px',
-              height: '45px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0px 4px 8px rgba(0,0,0,0.1)',
-            }}>
-              <img 
-                src={medicalIcon} 
-                alt=""
-                style={{
-                  width: '24px',
-                  height: '24px',
-                }}
-              />
-            </div>
-
             {/* Text Container */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
+              gap: isMobile ? '4px' : '8px',
             }}>
               <h2 style={{
-                fontSize: '32px',
+                fontSize: isMobile ? '22px' : '32px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '40px',
+                lineHeight: isMobile ? '28px' : '40px',
               }}>
                 {t.onboarding.medicalInformation}
               </h2>
               <p style={{
-                fontSize: '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: 500,
                 color: 'white',
                 margin: 0,
                 textAlign: 'center',
-                lineHeight: '28px',
-                maxWidth: '375px',
+                lineHeight: isMobile ? '20px' : '28px',
+                maxWidth: isMobile ? '280px' : '375px',
               }}>
                 {t.onboarding.medicalInformationDescription}
               </p>
             </div>
           </div>
 
-          {/* Content */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            padding: '24px 50px 60px',
-            overflow: 'auto',
-          }}>
+          {/* Content - data-touch-scroll allows vertical scroll inside this area on mobile */}
+          <div
+            data-touch-scroll="allow"
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              padding: isMobile ? '16px 12px 70px' : '24px 50px 60px',
+              overflow: 'auto',
+            }}
+          >
 
             {/* Question Text */}
             <h3 style={{
-              fontSize: '18px',
+              fontSize: isMobile ? '16px' : '18px',
               fontWeight: 500,
               color: '#505050',
-              margin: '0 0 24px 0',
+              margin: isMobile ? '0 0 16px 0' : '0 0 24px 0',
               textAlign: 'center',
-              lineHeight: '28px',
+              lineHeight: isMobile ? '24px' : '28px',
             }}>
               {t.onboarding.whichActivitiesMatter}
             </h3>
 
-            {/* Pills Container */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              alignItems: 'center',
-            }}>
-              {/* Row 1: 3 items */}
+            {/* Pills Container - Mobile uses flex-wrap grid */}
+            {isMobile ? (
               <div style={{
                 display: 'flex',
-                gap: '16px',
+                flexWrap: 'wrap',
+                gap: '8px',
                 justifyContent: 'center',
               }}>
-                {activities.slice(0, 3).map((activity) => (
-                  <button
-                    key={activity.id}
-                    type="button"
-                    onClick={() => handleToggleArrayItem('activities', activity.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px',
-                      backgroundColor: formData.activities.includes(activity.id) ? '#388896' : 'white',
-                      border: 'none',
-                      borderRadius: '15px',
-                      boxShadow: '0px 0px 10px 0px #DDDDDD',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <img 
-                      src={activity.icon} 
-                      alt=""
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        filter: formData.activities.includes(activity.id) ? 'brightness(0) invert(1)' : 'none',
-                      }}
-                    />
-                    <span style={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: formData.activities.includes(activity.id) ? 'white' : '#192126',
-                      lineHeight: '20px',
-                    }}>
-                      {activity.label}
-                    </span>
-                  </button>
-                ))}
+                {activities.map((activity) => renderActivityButton(activity))}
               </div>
+            ) : (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                alignItems: 'center',
+              }}>
+                {/* Row 1: 3 items */}
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  justifyContent: 'center',
+                }}>
+                  {activities.slice(0, 3).map((activity) => renderActivityButton(activity))}
+                </div>
 
-              {/* Row 2: 4 items */}
-              <div style={{
-                display: 'flex',
-                gap: '16px',
-                justifyContent: 'center',
-              }}>
-                {activities.slice(3, 7).map((activity) => (
-                  <button
-                    key={activity.id}
-                    type="button"
-                    onClick={() => handleToggleArrayItem('activities', activity.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px',
-                      backgroundColor: formData.activities.includes(activity.id) ? '#388896' : 'white',
-                      border: 'none',
-                      borderRadius: '15px',
-                      boxShadow: '0px 0px 10px 0px #DDDDDD',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <img 
-                      src={activity.icon} 
-                      alt=""
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        filter: formData.activities.includes(activity.id) ? 'brightness(0) invert(1)' : 'none',
-                      }}
-                    />
-                    <span style={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: formData.activities.includes(activity.id) ? 'white' : '#192126',
-                      lineHeight: '20px',
-                    }}>
-                      {activity.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
+                {/* Row 2: 4 items */}
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  justifyContent: 'center',
+                }}>
+                  {activities.slice(3, 7).map((activity) => renderActivityButton(activity))}
+                </div>
 
-              {/* Row 3: 3 items */}
-              <div style={{
-                display: 'flex',
-                gap: '16px',
-                justifyContent: 'center',
-              }}>
-                {activities.slice(7, 10).map((activity) => (
-                  <button
-                    key={activity.id}
-                    type="button"
-                    onClick={() => handleToggleArrayItem('activities', activity.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px',
-                      backgroundColor: formData.activities.includes(activity.id) ? '#388896' : 'white',
-                      border: 'none',
-                      borderRadius: '15px',
-                      boxShadow: '0px 0px 10px 0px #DDDDDD',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <img 
-                      src={activity.icon} 
-                      alt=""
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        filter: formData.activities.includes(activity.id) ? 'brightness(0) invert(1)' : 'none',
-                      }}
-                    />
-                    <span style={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: formData.activities.includes(activity.id) ? 'white' : '#192126',
-                      lineHeight: '20px',
-                    }}>
-                      {activity.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
+                {/* Row 3: 3 items */}
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  justifyContent: 'center',
+                }}>
+                  {activities.slice(7, 10).map((activity) => renderActivityButton(activity))}
+                </div>
 
-              {/* Row 4: 3 items */}
-              <div style={{
-                display: 'flex',
-                gap: '16px',
-                justifyContent: 'center',
-              }}>
-                {activities.slice(10, 13).map((activity) => (
-                  <button
-                    key={activity.id}
-                    type="button"
-                    onClick={() => handleToggleArrayItem('activities', activity.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px',
-                      backgroundColor: formData.activities.includes(activity.id) ? '#388896' : 'white',
-                      border: 'none',
-                      borderRadius: '15px',
-                      boxShadow: '0px 0px 10px 0px #DDDDDD',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    <img 
-                      src={activity.icon} 
-                      alt=""
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        filter: formData.activities.includes(activity.id) ? 'brightness(0) invert(1)' : 'none',
-                      }}
-                    />
-                    <span style={{
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      color: formData.activities.includes(activity.id) ? 'white' : '#192126',
-                      lineHeight: '20px',
-                    }}>
-                      {activity.label}
-                    </span>
-                  </button>
-                ))}
+                {/* Row 4: 3 items */}
+                <div style={{
+                  display: 'flex',
+                  gap: '16px',
+                  justifyContent: 'center',
+                }}>
+                  {activities.slice(10, 13).map((activity) => renderActivityButton(activity))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -1903,40 +1894,44 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     return (
       <div style={{ 
         position: 'relative',
-        width: '400px',
-        height: '339px',
+        width: isMobile ? '100%' : '400px',
+        height: isMobile ? 'auto' : '339px',
+        minHeight: isMobile ? '300px' : 'auto',
       }}>
         {/* Pop-Up Background */}
         <div style={{
-          position: 'absolute',
+          position: isMobile ? 'relative' : 'absolute',
           backgroundColor: 'white',
-          height: '270px',
+          height: isMobile ? 'auto' : '270px',
           left: 0,
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0px 0px 10px 0px #dddddd',
-          top: '69px',
-          width: '400px',
+          top: isMobile ? '0' : '69px',
+          width: isMobile ? '100%' : '400px',
+          paddingTop: isMobile ? '80px' : '0',
+          paddingBottom: isMobile ? '24px' : '0',
         }}>
           {/* Pop-Up Content */}
           <div style={{
-            position: 'absolute',
+            position: isMobile ? 'relative' : 'absolute',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
             alignItems: 'center',
             justifyContent: 'center',
-            left: '6px',
-            top: '95px',
-            width: '388px',
+            left: isMobile ? '0' : '6px',
+            top: isMobile ? '0' : '95px',
+            width: isMobile ? '100%' : '388px',
+            padding: isMobile ? '0 16px' : '0',
           }}>
             <p style={{
               fontFamily: 'Roboto, sans-serif',
               fontWeight: 500,
-              fontSize: '32px',
-              lineHeight: '40px',
+              fontSize: isMobile ? '24px' : '32px',
+              lineHeight: isMobile ? '32px' : '40px',
               color: '#192126',
               textAlign: 'center',
-              whiteSpace: 'nowrap',
+              whiteSpace: isMobile ? 'normal' : 'nowrap',
               margin: 0,
             }}>
               {t.onboarding.screen6Title}
@@ -1944,11 +1939,11 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             <p style={{
               fontFamily: 'Roboto, sans-serif',
               fontWeight: 500,
-              fontSize: '18px',
-              lineHeight: '28px',
+              fontSize: isMobile ? '14px' : '18px',
+              lineHeight: isMobile ? '22px' : '28px',
               color: '#505050',
               textAlign: 'center',
-              whiteSpace: 'nowrap',
+              whiteSpace: isMobile ? 'normal' : 'nowrap',
               margin: 0,
             }}>
               {t.onboarding.screen6Description}
@@ -1959,7 +1954,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
               disabled={loading}
               style={{
                 backgroundColor: '#388896',
-                height: '48px',
+                height: isMobile ? '44px' : '48px',
                 display: 'flex',
                 gap: '8px',
                 alignItems: 'center',
@@ -1967,20 +1962,20 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 padding: '8px 24px',
                 borderRadius: '26px',
                 boxShadow: '0px 0px 10px 0px #dddddd',
-                width: '160px',
+                width: isMobile ? '140px' : '160px',
                 border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontFamily: 'Roboto, sans-serif',
                 fontWeight: 700,
-                fontSize: '16px',
+                fontSize: isMobile ? '14px' : '16px',
                 lineHeight: '24px',
                 color: 'white',
                 transition: 'background-color 0.3s ease',
-                marginTop: '4px',
+                marginTop: isMobile ? '12px' : '4px',
                 opacity: loading ? 0.5 : 1,
               }}
               onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.backgroundColor = '#2a6b77';
+                if (!loading && !isMobile) e.currentTarget.style.backgroundColor = '#2a6b77';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#388896';
@@ -1998,20 +1993,21 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           left: '50%',
           borderRadius: '78px',
           boxShadow: '0px 0px 10px 0px #dddddd',
-          width: '141px',
-          height: '141px',
-          top: '0.5px',
+          width: isMobile ? '100px' : '141px',
+          height: isMobile ? '100px' : '141px',
+          top: isMobile ? '-50px' : '0.5px',
           transform: 'translateX(-50%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          zIndex: 10,
         }}>
           <img 
             alt="" 
             src={readyIcon} 
             style={{ 
-              width: '110.061px',
-              height: '107.409px',
+              width: isMobile ? '80px' : '110.061px',
+              height: isMobile ? '78px' : '107.409px',
             }} 
           />
         </div>
@@ -2021,10 +2017,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           onClick={handlePrevious}
           style={{
             position: 'absolute',
-            bottom: '26px',
-            left: '26px',
-            width: '48px',
-            height: '48px',
+            bottom: isMobile ? '-60px' : '26px',
+            left: isMobile ? '16px' : '26px',
+            width: isMobile ? '40px' : '48px',
+            height: isMobile ? '40px' : '48px',
             backgroundColor: '#F2F2F7',
             border: 'none',
             borderRadius: '50%',
@@ -2036,9 +2032,11 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             transition: 'background-color 0.3s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#388896';
-            const svg = e.currentTarget.querySelector('path');
-            if (svg) svg.setAttribute('stroke', 'white');
+            if (!isMobile) {
+              e.currentTarget.style.backgroundColor = '#388896';
+              const svg = e.currentTarget.querySelector('path');
+              if (svg) svg.setAttribute('stroke', 'white');
+            }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = '#F2F2F7';
@@ -2046,7 +2044,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             if (svg) svg.setAttribute('stroke', '#388896');
           }}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none">
             <path d="M15 18L9 12L15 6" stroke="#388896" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
@@ -2078,15 +2076,31 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   return (
     <div style={{
       width: '100%',
-      minHeight: '100vh',
+      ...(isMobile
+        ? {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: '100dvh',
+            maxHeight: '100vh',
+            overflow: 'hidden',
+            touchAction: 'pan-x',
+            overscrollBehavior: 'none',
+          }
+        : {
+            minHeight: '100vh',
+            position: 'relative',
+          }),
       backgroundColor: 'white',
-      borderRadius: '8px',
+      borderRadius: isMobile ? 0 : '8px',
       overflow: 'hidden',
-      position: 'relative',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '40px 0',
+      paddingTop: isMobile ? '80px' : '120px',
+      paddingBottom: isMobile ? '100px' : '40px',
     }}>
       {/* Background Image with blur */}
       <div style={{
@@ -2128,10 +2142,17 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
       }} />
 
       {/* Container - centered card */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-      }}>
+      <div 
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          width: isMobile ? 'calc(100% - 32px)' : 'auto',
+          maxWidth: isMobile ? '400px' : 'none',
+          margin: isMobile ? '0 auto' : '0',
+        }}
+        onTouchStart={isMobile ? handleTouchStart : undefined}
+        onTouchEnd={isMobile ? handleTouchEnd : undefined}
+      >
         {renderCurrentStep()}
       </div>
     </div>

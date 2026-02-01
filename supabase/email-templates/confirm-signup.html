@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm your email</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+</head>
+<body style="margin:0; padding:0; background-color:#f5f5f5; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f5f5f5;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 480px; background-color:#ffffff; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); overflow: hidden;">
+          <!-- Header with gradient -->
+          <tr>
+            <td style="background-color: #388896; background: linear-gradient(180deg, #8AC0AD 0%, #388896 100%); padding: 32px 24px; text-align: center;">
+              <img src="https://sarthiapp.co.in/sarathilogo-512.png" alt="Sarathi" width="120" height="120" style="display: inline-block; width: 120px; height: 120px; object-fit: contain; border-radius: 50%; background-color: #ffffff; background: #ffffff;" />
+              <h1 style="margin: 20px 0 0 0; font-size: 24px; font-weight: 600; color: #ffffff; letter-spacing: -0.5px;">Sarathi</h1>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding: 40px 32px;">
+              <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #192126;">Confirm your email</h2>
+              <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.5; color: #666666;">Thanks for signing up. Click the button below to verify your email and get started.</p>
+              <!-- CTA button -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width: 100%;">
+                <tr>
+                  <td align="center" style="padding: 8px 0 24px 0;">
+                    <a href="{{ .ConfirmationURL }}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 16px 40px; background-color: #388896; color: #ffffff; font-size: 16px; font-weight: 600; text-decoration: none; border-radius: 26px; box-shadow: 0 2px 8px rgba(56, 136, 150, 0.3);">Confirm your email</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #979797;">If the button doesn’t work, copy and paste this link into your browser:</p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; line-height: 1.5; color: #388896; word-break: break-all;">{{ .ConfirmationURL }}</p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 32px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 12px; color: #979797; text-align: center;">Sarathi — Redefining the way you heal</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -14,12 +14,14 @@ interface RepostButtonProps {
   postId: string;
   initialRepostCount?: number;
   onRepostCountChange?: (count: number) => void;
+  isMobile?: boolean;
 }
 
 export const RepostButton: React.FC<RepostButtonProps> = ({
   postId,
   initialRepostCount = 0,
-  onRepostCountChange
+  onRepostCountChange,
+  isMobile = false
 }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -116,7 +118,7 @@ export const RepostButton: React.FC<RepostButtonProps> = ({
       setRepostComment('');
     } catch (err) {
       console.error('Error creating repost:', err);
-      setError(t.community.failedToRepost || 'Failed to repost');
+      setError(t.community.failedToRepost);
     } finally {
       setIsSubmitting(false);
     }
@@ -160,25 +162,25 @@ export const RepostButton: React.FC<RepostButtonProps> = ({
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: isMobile ? '4px' : '8px',
             fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
+            fontSize: isMobile ? '13px' : '16px',
             color: isReposted ? '#388896' : '#979797',
             fontWeight: isReposted ? 600 : 400,
-            padding: '8px 12px',
+            padding: isMobile ? '6px 8px' : '8px 12px',
             borderRadius: '8px',
             transition: 'background 0.2s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#f8f9fa';
+            if (!isMobile) e.currentTarget.style.background = '#f8f9fa';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
           }}
         >
-          <Repeat2 size={20} />
+          <Repeat2 size={isMobile ? 16 : 20} />
           <span>
-            {repostCount} {repostCount === 1 ? t.community.repost : t.community.reposts}
+            {repostCount} {isMobile ? '' : (repostCount === 1 ? t.community.repost : t.community.reposts)}
           </span>
         </button>
         

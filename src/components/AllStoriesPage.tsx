@@ -96,23 +96,18 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
               ? story.sarathi_user[0]
               : story.sarathi_user;
 
-            console.log('👤 Processing story for user:', storyUser?.first_name, storyUser?.name);
-
             // Get first media URL
             let firstImageUrl = '';
             if (story.media_urls && story.media_urls.length > 0) {
-              console.log('📸 Story has media:', story.media_urls);
               // Find first image (skip videos)
               for (const mediaUrl of story.media_urls) {
                 const isImage = mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
                 if (isImage) {
-                  console.log('🖼️ Loading image:', mediaUrl);
                   // Load signed URL with cache
                   const signedUrl = await loadSignedUrl('profile-media', mediaUrl);
                   
                   if (signedUrl) {
                     firstImageUrl = signedUrl;
-                    console.log('✅ Image URL loaded (cached)');
                     break;
                   }
                 }

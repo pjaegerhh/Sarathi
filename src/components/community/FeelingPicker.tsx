@@ -45,6 +45,7 @@ interface FeelingPickerProps {
   isOpen: boolean;
   onClose: () => void;
   mode?: 'modal' | 'quick'; // modal = full Figma design, quick = hover quick-select
+  isMobile?: boolean;
 }
 
 export const FeelingPicker: React.FC<FeelingPickerProps> = ({
@@ -52,7 +53,8 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
   currentReaction,
   isOpen,
   onClose,
-  mode = 'modal'
+  mode = 'modal',
+  isMobile = false
 }) => {
   const { t, language } = useLanguage();
   const [hoveredFeeling, setHoveredFeeling] = useState<ReactionType | null>(null);
@@ -90,6 +92,9 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
 
   // Quick select mode (hover quick-select)
   if (mode === 'quick') {
+    // On mobile, show a smaller subset of feelings in quick mode
+    const quickFeelings = isMobile ? FEELING_OPTIONS.slice(0, 8) : FEELING_OPTIONS;
+    
     return (
       <>
         <div
@@ -101,19 +106,22 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
             left: '50%',
             transform: 'translateX(-50%)',
             background: '#ffffff',
-            borderRadius: '30px',
+            borderRadius: isMobile ? '20px' : '30px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-            padding: '8px 12px',
+            padding: isMobile ? '6px 8px' : '8px 12px',
             display: 'flex',
-            gap: '8px',
+            gap: isMobile ? '4px' : '8px',
             alignItems: 'center',
             zIndex: 1000,
             animation: 'slideUp 0.2s ease-out forwards',
             whiteSpace: 'nowrap',
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            maxWidth: isMobile ? '280px' : 'none',
+            justifyContent: isMobile ? 'center' : 'flex-start',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {hoveredFeeling && (
+          {hoveredFeeling && !isMobile && (
             <div
               style={{
                 position: 'absolute',
@@ -132,29 +140,29 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               {getLabel(hoveredFeeling)}
             </div>
           )}
-          {FEELING_OPTIONS.map((feeling) => (
+          {quickFeelings.map((feeling) => (
             <button
               key={feeling.type}
               onClick={() => {
                 onSelect(feeling.type);
                 onClose();
               }}
-              onMouseEnter={() => setHoveredFeeling(feeling.type)}
+              onMouseEnter={() => !isMobile && setHoveredFeeling(feeling.type)}
               onMouseLeave={() => setHoveredFeeling(null)}
               style={{
                 background: 'none',
                 border: currentReaction === feeling.type ? '2px solid #388896' : 'none',
                 borderRadius: '50%',
-                width: '40px',
-                height: '40px',
+                width: isMobile ? '32px' : '40px',
+                height: isMobile ? '32px' : '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
                 transition: 'transform 0.1s ease-out, border-color 0.1s ease-out',
-                transform: hoveredFeeling === feeling.type ? 'scale(1.2)' : 'scale(1)',
+                transform: !isMobile && hoveredFeeling === feeling.type ? 'scale(1.2)' : 'scale(1)',
                 flexShrink: 0,
-                fontSize: '24px',
+                fontSize: isMobile ? '18px' : '24px',
               }}
             >
               {feeling.emoji}
@@ -191,6 +199,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
+        padding: isMobile ? '16px' : '0',
       }}
       onClick={onClose}
     >
@@ -199,9 +208,10 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
         onClick={(e) => e.stopPropagation()}
         style={{
           background: '#ffffff',
-          borderRadius: '15px',
-          width: '448px',
-          maxHeight: '600px',
+          borderRadius: isMobile ? '20px' : '15px',
+          width: isMobile ? '100%' : '448px',
+          maxWidth: isMobile ? '350px' : '448px',
+          maxHeight: isMobile ? '80vh' : '600px',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
@@ -211,7 +221,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
         <div
           style={{
             borderBottom: '0.8px solid #e5e7eb',
-            padding: '16px',
+            padding: isMobile ? '12px' : '16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -220,14 +230,14 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
           <p
             style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '22px',
+              fontSize: isMobile ? '18px' : '22px',
               fontWeight: 400,
-              lineHeight: '32px',
+              lineHeight: isMobile ? '26px' : '32px',
               color: '#192126',
               margin: 0,
             }}
           >
-            {t.community.howAreYouFeeling || 'How are you feeling?'}
+            {t.community.howAreYouFeeling}
           </p>
           <button
             onClick={onClose}
@@ -235,8 +245,8 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               background: '#ffffff',
               border: 'none',
               borderRadius: '50%',
-              width: '48px',
-              height: '48px',
+              width: isMobile ? '36px' : '48px',
+              height: isMobile ? '36px' : '48px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -245,32 +255,36 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.1)';
-              e.currentTarget.style.background = '#388896';
-              e.currentTarget.style.boxShadow = '0px 0px 15px rgba(56, 136, 150, 0.5)';
-              const icon = e.currentTarget.querySelector('svg');
-              if (icon) {
-                icon.setAttribute('stroke', '#ffffff');
-                icon.setAttribute('color', '#ffffff');
+              if (!isMobile) {
+                e.currentTarget.style.transform = 'scale(1.1)';
+                e.currentTarget.style.background = '#388896';
+                e.currentTarget.style.boxShadow = '0px 0px 15px rgba(56, 136, 150, 0.5)';
+                const icon = e.currentTarget.querySelector('svg');
+                if (icon) {
+                  icon.setAttribute('stroke', '#ffffff');
+                  icon.setAttribute('color', '#ffffff');
+                }
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.background = '#ffffff';
-              e.currentTarget.style.boxShadow = '0px 0px 10px 0px #ddd';
-              const icon = e.currentTarget.querySelector('svg');
-              if (icon) {
-                icon.setAttribute('stroke', '#505050');
-                icon.setAttribute('color', '#505050');
+              if (!isMobile) {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.boxShadow = '0px 0px 10px 0px #ddd';
+                const icon = e.currentTarget.querySelector('svg');
+                if (icon) {
+                  icon.setAttribute('stroke', '#505050');
+                  icon.setAttribute('color', '#505050');
+                }
               }
             }}
           >
-            <X size={24} color="#505050" />
+            <X size={isMobile ? 20 : 24} color="#505050" />
           </button>
         </div>
 
         {/* Search */}
-        <div style={{ borderBottom: '0.8px solid #e5e7eb', padding: '10px 16px' }}>
+        <div style={{ borderBottom: '0.8px solid #e5e7eb', padding: isMobile ? '8px 12px' : '10px 16px' }}>
           <div
             style={{
               background: '#ffffff',
@@ -278,20 +292,20 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
-              padding: '14px 16px',
-              gap: '12px',
+              padding: isMobile ? '10px 12px' : '14px 16px',
+              gap: isMobile ? '8px' : '12px',
               boxShadow: '0px 1px 2px 0px rgba(228, 229, 231, 0.24)',
             }}
           >
-            <Search size={24} color="#c7c8d5" />
+            <Search size={isMobile ? 20 : 24} color="#c7c8d5" />
             <input
               type="text"
-              placeholder={t.community.searchFeelings || 'Search feelings'}
+              placeholder={t.community.searchFeelings}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '14px',
+                fontSize: isMobile ? '13px' : '14px',
                 fontWeight: 400,
                 lineHeight: '22px',
                 color: '#192126',
@@ -305,111 +319,165 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
         </div>
 
         {/* Feelings Grid */}
-        <div style={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
-          <div style={{ display: 'flex', gap: '83px' }}>
-            {/* Left Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-              {leftColumn.map((feeling) => (
-                <button
-                  key={feeling.type}
-                  onClick={() => {
-                    onSelect(feeling.type);
-                    onClose();
-                  }}
-                  onMouseEnter={() => setHoveredFeeling(feeling.type)}
-                  onMouseLeave={() => setHoveredFeeling(null)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    background: hoveredFeeling === feeling.type ? '#f9f9f9' : 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    transition: 'background 0.2s',
-                  }}
-                >
-                  <div
+        <div style={{ padding: isMobile ? '12px' : '16px', overflowY: 'auto', flex: 1 }}>
+          <div style={{ display: 'flex', gap: isMobile ? '8px' : '83px', flexDirection: isMobile ? 'column' : 'row' }}>
+            {/* On mobile, show all feelings in a single column */}
+            {isMobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {filteredFeelings.map((feeling) => (
+                  <button
+                    key={feeling.type}
+                    onClick={() => {
+                      onSelect(feeling.type);
+                      onClose();
+                    }}
                     style={{
-                      width: '45px',
-                      height: '44px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
+                      gap: '10px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      borderRadius: '8px',
+                      transition: 'background 0.2s',
                     }}
                   >
-                    {feeling.emoji}
-                  </div>
-                  <p
-                    style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '22px',
-                      color: '#192126',
-                      margin: 0,
-                      textAlign: 'left',
-                    }}
-                  >
-                    {getLabel(feeling.type)}
-                  </p>
-                </button>
-              ))}
-            </div>
+                    <div
+                      style={{
+                        width: '36px',
+                        height: '36px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                      }}
+                    >
+                      {feeling.emoji}
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: 'Roboto, sans-serif',
+                        fontSize: '13px',
+                        fontWeight: 400,
+                        lineHeight: '20px',
+                        color: '#192126',
+                        margin: 0,
+                        textAlign: 'left',
+                      }}
+                    >
+                      {getLabel(feeling.type)}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Left Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                  {leftColumn.map((feeling) => (
+                    <button
+                      key={feeling.type}
+                      onClick={() => {
+                        onSelect(feeling.type);
+                        onClose();
+                      }}
+                      onMouseEnter={() => setHoveredFeeling(feeling.type)}
+                      onMouseLeave={() => setHoveredFeeling(null)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px',
+                        background: hoveredFeeling === feeling.type ? '#f9f9f9' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '45px',
+                          height: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '24px',
+                        }}
+                      >
+                        {feeling.emoji}
+                      </div>
+                      <p
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          lineHeight: '22px',
+                          color: '#192126',
+                          margin: 0,
+                          textAlign: 'left',
+                        }}
+                      >
+                        {getLabel(feeling.type)}
+                      </p>
+                    </button>
+                  ))}
+                </div>
 
-            {/* Right Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-              {rightColumn.map((feeling) => (
-                <button
-                  key={feeling.type}
-                  onClick={() => {
-                    onSelect(feeling.type);
-                    onClose();
-                  }}
-                  onMouseEnter={() => setHoveredFeeling(feeling.type)}
-                  onMouseLeave={() => setHoveredFeeling(null)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    background: hoveredFeeling === feeling.type ? '#f9f9f9' : 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    transition: 'background 0.2s',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '45px',
-                      height: '44px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
-                    }}
-                  >
-                    {feeling.emoji}
-                  </div>
-                  <p
-                    style={{
-                      fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
-                      fontWeight: 400,
-                      lineHeight: '22px',
-                      color: '#192126',
-                      margin: 0,
-                      textAlign: 'left',
-                    }}
-                  >
-                    {getLabel(feeling.type)}
-                  </p>
-                </button>
-              ))}
-            </div>
+                {/* Right Column */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+                  {rightColumn.map((feeling) => (
+                    <button
+                      key={feeling.type}
+                      onClick={() => {
+                        onSelect(feeling.type);
+                        onClose();
+                      }}
+                      onMouseEnter={() => setHoveredFeeling(feeling.type)}
+                      onMouseLeave={() => setHoveredFeeling(null)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px',
+                        background: hoveredFeeling === feeling.type ? '#f9f9f9' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '45px',
+                          height: '44px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '24px',
+                        }}
+                      >
+                        {feeling.emoji}
+                      </div>
+                      <p
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          lineHeight: '22px',
+                          color: '#192126',
+                          margin: 0,
+                          textAlign: 'left',
+                        }}
+                      >
+                        {getLabel(feeling.type)}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -417,7 +485,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
         <div
           style={{
             borderTop: '0.8px solid #e5e7eb',
-            padding: '16.8px 16px 16px',
+            padding: isMobile ? '12px' : '16.8px 16px 16px',
             display: 'flex',
             justifyContent: 'flex-end',
           }}
@@ -428,17 +496,17 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               background: '#ffffff',
               border: 'none',
               borderRadius: '24px',
-              padding: '8px 24px',
+              padding: isMobile ? '8px 16px' : '8px 24px',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '14px',
+              fontSize: isMobile ? '13px' : '14px',
               fontWeight: 500,
               color: '#388896',
               cursor: 'pointer',
               boxShadow: '0px 0px 10px 0px #ddd',
-              height: '36px',
+              height: isMobile ? '32px' : '36px',
             }}
           >
-            {t.community.cancel || 'Cancel'}
+            {t.community.cancel}
           </button>
         </div>
       </div>

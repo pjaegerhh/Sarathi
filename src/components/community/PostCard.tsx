@@ -34,9 +34,10 @@ interface PostCardProps {
   onNavigate?: (page: string, data?: any) => void;
   readOnly?: boolean;
   onPostClick?: (postId: string) => void;
+  isMobile?: boolean;
 }
 
-export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readOnly = false, onPostClick }: PostCardProps) {
+export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readOnly = false, onPostClick, isMobile = false }: PostCardProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
@@ -283,7 +284,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
       }
     } catch (error) {
       console.error('Error editing post:', error);
-      alert(t.community.failedToEditPost || 'Failed to edit post');
+      alert(t.community.failedToEditPost);
     }
   };
 
@@ -326,7 +327,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
       setShowFeelingModal(false);
     } catch (error) {
       console.error('Error adding reaction:', error);
-      alert(t.community.failedToReact || 'Failed to add reaction');
+      alert(t.community.failedToReact);
     }
   };
 
@@ -399,15 +400,15 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
       }}
       style={{
         background: '#ffffff',
-        borderRadius: '20px',
-        padding: '24px',
-        marginBottom: '20px',
+        borderRadius: isMobile ? '16px' : '20px',
+        padding: isMobile ? '16px' : '24px',
+        marginBottom: isMobile ? '12px' : '20px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
         cursor: readOnly ? 'pointer' : 'default',
       }}
     >
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: isMobile ? '12px' : '16px' }}>
         {/* Profile Picture */}
         <div
           onClick={() => {
@@ -416,16 +417,17 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
             }
           }}
           style={{
-            width: '48px',
-            height: '48px',
+            width: isMobile ? '40px' : '48px',
+            height: isMobile ? '40px' : '48px',
             borderRadius: '50%',
             background: '#e0e0e0',
             overflow: 'hidden',
-            marginRight: '12px',
+            marginRight: isMobile ? '10px' : '12px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: onNavigate ? 'pointer' : 'default',
+            flexShrink: 0,
           }}
         >
           {profilePictureUrl ? (
@@ -435,14 +437,14 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <span style={{ fontSize: '20px', color: '#979797', fontWeight: 600 }}>
+            <span style={{ fontSize: isMobile ? '16px' : '20px', color: '#979797', fontWeight: 600 }}>
               {(post.user_first_name || post.user_name || '?')[0].toUpperCase()}
             </span>
           )}
         </div>
 
         {/* User Info */}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div
             onClick={() => {
               if (onNavigate) {
@@ -451,10 +453,13 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
             }}
             style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '16px',
+              fontSize: isMobile ? '14px' : '16px',
               fontWeight: 600,
               color: '#192126',
               cursor: onNavigate ? 'pointer' : 'default',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
             }}
           >
             {post.user_first_name} {post.user_name}
@@ -462,7 +467,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
           <div
             style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '14px',
+              fontSize: isMobile ? '12px' : '14px',
               color: '#979797',
             }}
           >
@@ -517,7 +522,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
                     borderBottom: '1px solid #E0E0E0'
                   }}
                 >
-                  {t.community.edit || 'Edit'}
+                  {t.community.edit}
                 </button>
                 <button
                   onClick={handleDelete}
@@ -547,10 +552,10 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
         <div
           style={{
             fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
-            lineHeight: '24px',
+            fontSize: isMobile ? '14px' : '16px',
+            lineHeight: isMobile ? '20px' : '24px',
             color: '#192126',
-            marginBottom: post.media_urls && post.media_urls.length > 0 ? '16px' : '0',
+            marginBottom: post.media_urls && post.media_urls.length > 0 ? (isMobile ? '12px' : '16px') : '0',
             whiteSpace: 'pre-wrap',
           }}
         >
@@ -770,7 +775,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
                     cursor: 'pointer'
                   }}
                 >
-                  {t.common.save || 'Save'}
+                  {t.common.save}
                 </button>
                 <button
                   onClick={() => {
@@ -821,9 +826,11 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
             gridTemplateColumns:
               post.media_urls.length === 1
                 ? '1fr'
-                : 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '12px',
-            marginBottom: '16px',
+                : isMobile 
+                  ? 'repeat(auto-fit, minmax(140px, 1fr))'
+                  : 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: isMobile ? '8px' : '12px',
+            marginBottom: isMobile ? '12px' : '16px',
           }}
         >
           {post.media_urls.map((mediaUrl, index) => {
@@ -885,10 +892,11 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
       <div
         style={{
           borderTop: '1px solid #f2f2f7',
-          paddingTop: '16px',
+          paddingTop: isMobile ? '12px' : '16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '24px',
+          gap: isMobile ? '8px' : '24px',
+          flexWrap: isMobile ? 'wrap' : 'nowrap',
         }}
       >
         {/* Like Button */}
@@ -900,25 +908,25 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: isMobile ? '4px' : '8px',
             fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
+            fontSize: isMobile ? '13px' : '16px',
             color: isLiked ? '#388896' : '#979797',
             fontWeight: isLiked ? 600 : 400,
-            padding: '8px 12px',
+            padding: isMobile ? '6px 8px' : '8px 12px',
             borderRadius: '8px',
             transition: 'background 0.2s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#f8f9fa';
+            if (!isMobile) e.currentTarget.style.background = '#f8f9fa';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
           }}
         >
-          <span style={{ fontSize: '20px' }}>{isLiked ? '❤️' : '🤍'}</span>
+          <span style={{ fontSize: isMobile ? '16px' : '20px' }}>{isLiked ? '❤️' : '🤍'}</span>
           <span>
-            {likeCount} {likeCount === 1 ? t.community.like : t.community.likes}
+            {likeCount} {isMobile ? '' : (likeCount === 1 ? t.community.like : t.community.likes)}
           </span>
         </button>
 
@@ -931,25 +939,25 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: isMobile ? '4px' : '8px',
             fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
+            fontSize: isMobile ? '13px' : '16px',
             color: showComments ? '#388896' : '#979797',
             fontWeight: showComments ? 600 : 400,
-            padding: '8px 12px',
+            padding: isMobile ? '6px 8px' : '8px 12px',
             borderRadius: '8px',
             transition: 'background 0.2s ease',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = '#f8f9fa';
+            if (!isMobile) e.currentTarget.style.background = '#f8f9fa';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = 'transparent';
           }}
         >
-          <MessageCircle size={20} />
+          <MessageCircle size={isMobile ? 16 : 20} />
           <span>
-            {commentCount} {commentCount === 1 ? t.community.comment : t.community.comments}
+            {commentCount} {isMobile ? '' : (commentCount === 1 ? t.community.comment : t.community.comments)}
           </span>
         </button>
 
@@ -958,6 +966,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
           postId={post.id}
           initialRepostCount={repostCount}
           onRepostCountChange={setRepostCount}
+          isMobile={isMobile}
         />
 
         {/* Feeling/Reaction Button - Only visible to post author */}
@@ -1035,6 +1044,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
               onSelect={handleReaction}
               currentReaction={currentReaction}
               mode="quick"
+              isMobile={isMobile}
             />
 
             {/* Full Modal (on click) */}
@@ -1044,6 +1054,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
               onSelect={handleReaction}
               currentReaction={currentReaction}
               mode="modal"
+              isMobile={isMobile}
             />
           </div>
         )}
@@ -1125,6 +1136,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
           postId={post.id}
           onCommentCountChange={setCommentCount}
           onNavigate={onNavigate}
+          isMobile={isMobile}
         />
       )}
 

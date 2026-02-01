@@ -1,16 +1,20 @@
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, X } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface CommunityHeaderProps {
   onSearch?: (query: string) => void;
   onNotificationClick?: () => void;
   hasNotifications?: boolean;
+  isMobile?: boolean;
+  searchValue?: string;
 }
 
 export function CommunityHeader({ 
   onSearch, 
   onNotificationClick,
-  hasNotifications = false 
+  hasNotifications = false,
+  isMobile = false,
+  searchValue = ''
 }: CommunityHeaderProps) {
   const { t } = useLanguage();
 
@@ -20,14 +24,20 @@ export function CommunityHeader({
     }
   };
 
+  const handleClearSearch = () => {
+    if (onSearch) {
+      onSearch('');
+    }
+  };
+
   return (
     <div
       style={{
         background: '#ffffff',
         border: '0.8px solid #e0ebe3',
-        borderRadius: '30px',
-        padding: '16.8px',
-        marginBottom: '20px',
+        borderRadius: isMobile ? '20px' : '30px',
+        padding: isMobile ? '12px' : '16.8px',
+        marginBottom: isMobile ? '12px' : '20px',
       }}
     >
       {/* Header Row */}
@@ -44,9 +54,9 @@ export function CommunityHeader({
           <h1
             style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '22px',
+              fontSize: isMobile ? '18px' : '22px',
               fontWeight: 400,
-              lineHeight: '32px',
+              lineHeight: isMobile ? '26px' : '32px',
               color: '#192126',
               margin: 0,
             }}
@@ -62,17 +72,17 @@ export function CommunityHeader({
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              padding: '8px',
+              padding: isMobile ? '6px' : '8px',
               borderRadius: '50%',
-              width: '40px',
-              height: '40px',
+              width: isMobile ? '36px' : '40px',
+              height: isMobile ? '36px' : '40px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
             <Bell 
-              size={24} 
+              size={isMobile ? 20 : 24} 
               style={{ 
                 color: '#388896',
                 strokeWidth: 2,
@@ -100,17 +110,17 @@ export function CommunityHeader({
             background: '#ffffff',
             border: '0.5px solid #c7c8d5',
             borderRadius: '10px',
-            padding: '14px 16px',
+            padding: isMobile ? '10px 12px' : '14px 16px',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            height: '52px',
+            gap: isMobile ? '8px' : '12px',
+            height: isMobile ? '44px' : '52px',
             boxShadow: '0px 1px 2px 0px rgba(228, 229, 231, 0.24)',
             overflow: 'hidden',
           }}
         >
           <Search 
-            size={24} 
+            size={isMobile ? 20 : 24} 
             style={{ 
               color: '#c7c8d5',
               flexShrink: 0,
@@ -118,22 +128,42 @@ export function CommunityHeader({
           />
           <input
             type="text"
-            placeholder={t.community.searchPlaceholder || 'Search stories, discussions, topics....'}
+            placeholder={t.community.searchPlaceholder}
+            value={searchValue}
             onChange={handleSearchChange}
             style={{
               flex: 1,
               border: 'none',
               outline: 'none',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '14px',
+              fontSize: isMobile ? '13px' : '14px',
               fontWeight: 400,
               lineHeight: '22px',
               color: '#192126',
               background: 'transparent',
             }}
-            // Placeholder styling
             className="search-input"
           />
+          {searchValue && (
+            <button
+              onClick={handleClearSearch}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <X 
+                size={isMobile ? 16 : 18} 
+                style={{ color: '#979797' }} 
+              />
+            </button>
+          )}
         </div>
       </div>
 

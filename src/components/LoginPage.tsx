@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -25,6 +25,15 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
   const [showUnverifiedScreen, setShowUnverifiedScreen] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +107,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       
       // Check for CORS errors
       if (error.message?.includes('CORS') || error.message?.includes('Failed to fetch')) {
-        errorMessage = 'Connection error: Please check if your custom domain is added to Supabase redirect URLs. See console for details.';
+        errorMessage = t.auth.connectionError;
         console.error('❌ CORS Error Detected');
         console.error('To fix this issue:');
         console.error('1. Go to Supabase Dashboard → Authentication → Settings');
@@ -112,7 +121,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       
       // Check for 521 error (Supabase service temporarily unavailable)
       if (error.message?.includes('521') || error.status === 521) {
-        errorMessage = 'Service temporarily unavailable: Supabase is starting up. Please wait a few minutes and try again.';
+        errorMessage = t.auth.serviceUnavailable;
         console.error('❌ 521 Error: Supabase service is temporarily unavailable');
         console.error('This usually happens when:');
         console.error('1. The Supabase project was just resumed from pause');
@@ -122,7 +131,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       
       // Check for network errors
       if (error.message?.includes('network') || error.message?.includes('NetworkError')) {
-        errorMessage = 'Network error: Please check your internet connection and try again.';
+        errorMessage = t.auth.networkError;
       }
       
       toast.error(errorMessage);
@@ -139,12 +148,12 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       });
 
       if (error) {
-        toast.error('Failed to resend verification email');
+        toast.error(t.auth.failedToResendVerification);
       } else {
-        toast.success('Verification email resent! Please check your inbox and spam folder.');
+        toast.success(t.auth.verificationEmailResent);
       }
     } catch (error) {
-      toast.error('Failed to resend verification email');
+      toast.error(t.auth.failedToResendVerification);
     }
   };
 
@@ -157,7 +166,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px',
+        padding: isMobile ? '16px' : '20px',
         position: 'relative',
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -167,35 +176,37 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         {/* Unverified Email Warning Card */}
         <div style={{
           width: '100%',
-          maxWidth: '895px',
+          maxWidth: isMobile ? '100%' : '895px',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'row',
-          minHeight: '600px'
+          flexDirection: isMobile ? 'column' : 'row',
+          minHeight: isMobile ? 'auto' : '600px'
         }}>
-          {/* LEFT: Logo Section */}
-          <div style={{
-            width: '287px',
-            background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              src={sarathiLogo} 
-              alt="Sarathi" 
-              style={{ width: '100px', height: 'auto' }}
-            />
-          </div>
+          {/* LEFT: Logo Section - Hidden on mobile */}
+          {!isMobile && (
+            <div style={{
+              width: '287px',
+              background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <img 
+                src={sarathiLogo} 
+                alt="Sarathi" 
+                style={{ width: '100px', height: 'auto' }}
+              />
+            </div>
+          )}
 
           {/* RIGHT: Warning Message */}
           <div style={{
             flex: 1,
-            padding: '60px 40px',
+            padding: isMobile ? '32px 24px' : '60px 40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
@@ -225,7 +236,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 color: '#192126',
                 marginBottom: '16px'
               }}>
-                Email Not Verified
+                {t.auth.emailNotVerified}
               </h1>
 
               <p style={{
@@ -234,10 +245,9 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 lineHeight: '1.6',
                 marginBottom: '24px'
               }}>
-                Your email <strong>{unverifiedEmail}</strong> has not been verified yet.
+                {t.auth.yourEmailNotVerified.replace('{email}', unverifiedEmail)}
                 <br /><br />
-                Please check your inbox and spam folder for the verification email we sent you. 
-                Click the link in the email to verify your account.
+                {t.auth.checkInboxForVerification}
               </p>
 
               {/* Buttons */}
@@ -259,7 +269,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Resend Verification Email
+                  {t.auth.resendVerificationEmail}
                 </button>
 
                 <button
@@ -279,7 +289,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Back to Login
+                  {t.auth.backToLogin}
                 </button>
               </div>
 
@@ -289,7 +299,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 marginTop: '24px',
                 lineHeight: '1.5'
               }}>
-                💡 <strong>Tip:</strong> Make sure to check your spam/junk folder if you don't see the email in your inbox.
+                💡 {t.auth.tipCheckSpam}
               </p>
             </div>
           </div>
@@ -305,7 +315,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px',
+      padding: isMobile ? '16px' : '20px',
       position: 'relative',
       backgroundImage: `url(${backgroundImage})`,
       backgroundSize: 'cover',
@@ -316,53 +326,80 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       {/* Login Card Container */}
       <div style={{
         width: '100%',
-        maxWidth: '895px',
+        maxWidth: isMobile ? '100%' : '895px',
         backgroundColor: 'white',
-        borderRadius: '30px',
+        borderRadius: isMobile ? '20px' : '30px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'row',
-        minHeight: '600px'
+        flexDirection: isMobile ? 'column' : 'row',
+        minHeight: isMobile ? 'auto' : '600px'
       }}>
         
-        {/* LEFT: Logo Section */}
-        <div style={{
-          width: '287px',
-          background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}>
-          <img 
-            src={sarathiLogo} 
-            alt="Sarathi" 
-            style={{ width: '100px', height: 'auto' }}
-          />
-        </div>
+        {/* LEFT: Logo Section - Hidden on mobile */}
+        {!isMobile && (
+          <div style={{
+            width: '287px',
+            background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img 
+              src={sarathiLogo} 
+              alt="Sarathi" 
+              style={{ width: '100px', height: 'auto' }}
+            />
+          </div>
+        )}
 
         {/* RIGHT: Form Section */}
         <div style={{
           flex: 1,
-          padding: '60px 40px',
+          padding: isMobile ? '32px 24px' : '60px 40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <div style={{ width: '100%', maxWidth: '380px' }}>
+          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px' }}>
             
+            {/* Mobile Logo */}
+            {isMobile && (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                marginBottom: '24px' 
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <img 
+                    src={sarathiLogo} 
+                    alt="Sarathi" 
+                    style={{ width: '50px', height: 'auto' }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Title */}
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <div style={{ textAlign: 'center', marginBottom: isMobile ? '24px' : '30px' }}>
               <h1 style={{ 
-                fontSize: '32px', 
+                fontSize: isMobile ? '24px' : '32px', 
                 fontWeight: 500, 
                 color: '#192126', 
                 marginBottom: '8px' 
               }}>
                 {t.auth.login}
               </h1>
-              <p style={{ fontSize: '16px', color: '#979797' }}>
+              <p style={{ fontSize: isMobile ? '14px' : '16px', color: '#979797' }}>
                 {t.auth.loginSubtitle}
               </p>
             </div>
@@ -393,7 +430,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                     type="tel"
                     value={telephone}
                     onChange={(e) => setTelephone(e.target.value)}
-                    placeholder="Enter your phone number"
+                    placeholder={t.auth.enterPhoneNumber}
                     disabled
                     style={{
                       flex: 1,
@@ -415,7 +452,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t.auth.enterEmail}
                   required
                   style={{
                     width: '100%',
@@ -449,7 +486,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
+                  placeholder={t.auth.password}
                   required
                   style={{
                     width: '100%',
@@ -479,16 +516,20 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     style={{ width: '16px', height: '16px' }}
                   />
-                  <span style={{ color: '#666' }}>Remember me</span>
+                  <span style={{ color: '#666' }}>{t.auth.rememberMe}</span>
                 </label>
-                <button type="button" style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#8AC0AD',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}>
-                  Forgot password ?
+                <button
+                  type="button"
+                  onClick={() => onNavigate('forgot-password')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#8AC0AD',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                  }}
+                >
+                  {t.auth.forgotPassword}
                 </button>
               </div>
 
@@ -510,7 +551,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   opacity: loading ? 0.5 : 1
                 }}
               >
-                {loading ? 'Loading...' : t.auth.loginButton}
+                {loading ? t.common.loading : t.auth.loginButton}
               </button>
 
               {/* Divider */}
@@ -521,7 +562,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 marginBottom: '24px'
               }}>
                 <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
-                <span style={{ fontSize: '14px', color: '#979797' }}>Or login with</span>
+                <span style={{ fontSize: '14px', color: '#979797' }}>{t.auth.orLoginWith}</span>
                 <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
               </div>
 

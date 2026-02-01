@@ -11,6 +11,7 @@ import { UserStoriesPreview } from './community/UserStoriesPreview';
 interface CommunityPageProps {
   onNavigate: (page: string) => void;
   scrollToPostId?: string;
+  isMobile?: boolean;
 }
 
 interface Post {
@@ -29,7 +30,7 @@ interface Post {
   reaction_type?: string | null;
 }
 
-export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps) {
+export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobileProp }: CommunityPageProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -38,6 +39,16 @@ export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps
   const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const POSTS_PER_PAGE = 10;
+  const [isMobileLocal, setIsMobileLocal] = useState(window.innerWidth <= 768);
+  const isMobile = isMobileProp ?? isMobileLocal;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileLocal(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -193,7 +204,7 @@ export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps
               marginBottom: '24px',
             }}
           >
-            Please login to access the community.
+            {t.community.loginToAccessCommunity}
           </p>
           <button
             onClick={() => onNavigate('auth')}
@@ -221,40 +232,46 @@ export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps
       style={{
         minHeight: '100vh',
         background: '#f8f9fa',
-        padding: '20px',
-        paddingTop: '61px',
+        padding: isMobile ? '12px' : '20px',
+        paddingTop: isMobile ? '70px' : '61px',
         paddingBottom: '100px',
       }}
     >
       <div
         style={{
-          maxWidth: '800px',
+          maxWidth: isMobile ? '100%' : '800px',
           margin: '0 auto',
         }}
       >
         {/* Community Header */}
         <CommunityHeader 
           onSearch={setSearchQuery}
+          searchValue={searchQuery}
           onNotificationClick={() => {
             // TODO: Implement notifications
             console.log('Notifications clicked');
           }}
           hasNotifications={false}
+          isMobile={isMobile}
         />
 
-        {/* Hero Banner - 30px gap from header */}
-        <div style={{ marginTop: '30px' }}>
-          <HeroBanner />
-        </div>
+        {/* Hero Banner - 30px gap from header (hidden when searching) */}
+        {!searchQuery && (
+          <div style={{ marginTop: isMobile ? '20px' : '30px' }}>
+            <HeroBanner isMobile={isMobile} />
+          </div>
+        )}
 
-        {/* User Stories Preview - 30px gap from hero banner */}
-        <div style={{ marginTop: '30px' }}>
-          <UserStoriesPreview onNavigate={onNavigate} />
-        </div>
+        {/* User Stories Preview - 30px gap from hero banner (hidden when searching) */}
+        {!searchQuery && (
+          <div style={{ marginTop: isMobile ? '20px' : '30px' }}>
+            <UserStoriesPreview onNavigate={onNavigate} isMobile={isMobile} />
+          </div>
+        )}
 
-        {/* Create Post - 24px gap from user stories */}
-        <div style={{ marginTop: '24px' }}>
-          <CreatePost onPostCreated={handlePostCreated} />
+        {/* Create Post - 24px gap from user stories (or from header when searching) */}
+        <div style={{ marginTop: searchQuery ? (isMobile ? '12px' : '16px') : (isMobile ? '16px' : '24px') }}>
+          <CreatePost onPostCreated={handlePostCreated} isMobile={isMobile} />
         </div>
 
         {/* Posts Feed */}
@@ -297,7 +314,7 @@ export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps
                 marginBottom: '8px',
               }}
             >
-              {searchQuery ? 'No results found' : t.community.noPosts}
+              {searchQuery ? t.community.noResultsFound : t.community.noPosts}
             </h3>
             <p
               style={{
@@ -307,7 +324,7 @@ export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps
               }}
             >
               {searchQuery 
-                ? 'Try different keywords or clear your search' 
+                ? t.community.tryDifferentKeywords 
                 : t.community.noPostsDescription}
             </p>
           </div>
@@ -319,12 +336,13 @@ export function CommunityPage({ onNavigate, scrollToPostId }: CommunityPageProps
                   post={post}
                   onPostDeleted={handlePostDeleted}
                   onNavigate={onNavigate}
+                  isMobile={isMobile}
                 />
               </div>
             ))}
 
-            {/* Load More Button */}
-            {hasMore && (
+            {/* Load More Button - hide when searching since we filter already-loaded posts */}
+            {hasMore && !searchQuery && (
               <div style={{ textAlign: 'center', marginTop: '24px' }}>
                 <button
                   onClick={handleLoadMore}

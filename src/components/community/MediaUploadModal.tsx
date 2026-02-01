@@ -106,7 +106,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                 margin: 0
               }}
             >
-              Add Photos/Videos
+              {t.community.addPhotosVideos}
             </p>
           </div>
           <button
@@ -217,7 +217,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                   margin: 0
                 }}
               >
-                Click to upload photos/videos
+                {t.community.clickToUploadPhotosVideos}
               </p>
               <p
                 style={{
@@ -228,7 +228,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                   margin: 0
                 }}
               >
-                or drag and drop
+                {t.community.orDragAndDrop}
               </p>
               <p
                 style={{
@@ -239,7 +239,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                   margin: 0
                 }}
               >
-                PNG, JPG, GIF, MP4 up to 10MB
+                {t.community.pngJpgGifMp4UpTo10mb}
               </p>
             </div>
           </div>
@@ -270,7 +270,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                 margin: 0
               }}
             >
-              Browse Photos/Videos
+              {t.community.browsePhotosVideos}
             </p>
           </button>
 
@@ -317,7 +317,7 @@ export const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
                 lineHeight: '20px'
               }}
             >
-              Cancel
+              {t.common.cancel}
             </p>
           </button>
         </div>

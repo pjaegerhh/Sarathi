@@ -19,13 +19,15 @@ interface CommentsProps {
   initialComments?: PostComment[];
   onCommentCountChange?: (count: number) => void;
   onNavigate?: (page: string, data?: any) => void;
+  isMobile?: boolean;
 }
 
 export const Comments: React.FC<CommentsProps> = ({
   postId,
   initialComments = [],
   onCommentCountChange,
-  onNavigate
+  onNavigate,
+  isMobile = false
 }) => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
@@ -418,7 +420,7 @@ export const Comments: React.FC<CommentsProps> = ({
       setShowMenuId(null);
     } catch (err) {
       console.error('Error editing comment:', err);
-      setError(t.community.failedToEditComment || 'Failed to edit comment');
+      setError(t.community.failedToEditComment);
     }
   };
 
@@ -595,7 +597,7 @@ export const Comments: React.FC<CommentsProps> = ({
       setShowFeelingModalId(null);
     } catch (error) {
       console.error('Error adding comment reaction:', error);
-      alert(t.community.failedToReact || 'Failed to add reaction');
+      alert(t.community.failedToReact);
     }
   };
 
@@ -784,7 +786,7 @@ export const Comments: React.FC<CommentsProps> = ({
                       cursor: 'pointer'
                     }}
                   >
-                    {t.common.save || 'Save'}
+                    {t.common.save}
                   </button>
                   <button
                     onClick={() => {
@@ -1003,6 +1005,7 @@ export const Comments: React.FC<CommentsProps> = ({
                     onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
                     currentReaction={commentReactions[comment.id]}
                     mode="quick"
+                    isMobile={isMobile}
                   />
 
                   {/* Full Modal (on click) */}
@@ -1012,6 +1015,7 @@ export const Comments: React.FC<CommentsProps> = ({
                     onSelect={(reaction) => handleCommentReaction(comment.id, reaction)}
                     currentReaction={commentReactions[comment.id]}
                     mode="modal"
+                    isMobile={isMobile}
                   />
                 </div>
               )}
@@ -1068,7 +1072,7 @@ export const Comments: React.FC<CommentsProps> = ({
                           borderBottom: '1px solid #E0E0E0'
                         }}
                       >
-                        {t.community.edit || 'Edit'}
+                        {t.community.edit}
                       </button>
                       <button
                         onClick={(e) => {
@@ -1487,14 +1491,9 @@ export const Comments: React.FC<CommentsProps> = ({
               {t.community.deleteComment}
             </h3>
             <p style={{ margin: '0 0 24px 0', fontFamily: 'Roboto, sans-serif', fontSize: '14px', color: '#666' }}>
-              {deleteConfirmRepliesCount > 0 ? (
-                <>
-                  {t.community.deleteCommentWithRepliesConfirm?.replace('{count}', deleteConfirmRepliesCount.toString()) || 
-                   `${t.community.deleteCommentConfirm} This comment has ${deleteConfirmRepliesCount} ${deleteConfirmRepliesCount === 1 ? 'reply' : 'replies'}. All child comments will also be deleted.`}
-                </>
-              ) : (
-                t.community.deleteCommentConfirm
-              )}
+              {deleteConfirmRepliesCount > 0
+                ? t.community.deleteCommentWithRepliesConfirm.replace('{count}', deleteConfirmRepliesCount.toString())
+                : t.community.deleteCommentConfirm}
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button
@@ -1548,12 +1547,15 @@ export const Comments: React.FC<CommentsProps> = ({
       {/* Feeling Picker for New Comment */}
       {showNewCommentFeelingModal && (
         <FeelingPicker
+          isOpen={showNewCommentFeelingModal}
           onSelect={(reaction) => {
             setNewCommentReaction(reaction);
             setShowNewCommentFeelingModal(false);
           }}
           onClose={() => setShowNewCommentFeelingModal(false)}
           currentReaction={newCommentReaction}
+          mode="modal"
+          isMobile={isMobile}
         />
       )}
 
