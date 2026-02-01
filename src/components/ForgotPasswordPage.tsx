@@ -555,7 +555,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                         type={showNewPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder={t.auth.placeholderPassword}
                         required
                         minLength={MIN_PASSWORD_LENGTH}
                         autoComplete="new-password"
@@ -652,7 +652,7 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
+                        placeholder={t.auth.placeholderPassword}
                         required
                         minLength={MIN_PASSWORD_LENGTH}
                         autoComplete="new-password"

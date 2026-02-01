@@ -274,8 +274,8 @@ export function DesktopNavigationBar({ onNavigate, currentPage }: DesktopNavigat
           <div className="content-stretch flex gap-[24px] items-center relative shrink-0" data-node-id="321:15377">
             <ProfileNavItem label={t.nav.profile} onClick={() => onNavigate('profile')} isActive={currentPage === 'profile'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
             <CommunityNavItem label={t.nav.community} onClick={() => onNavigate('community')} isActive={currentPage === 'community'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
-            <DailyTipsNavItem label={t.nav.dailyTips} onClick={() => onNavigate('daily-tips')} isActive={currentPage === 'daily-tips'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
-            <HelpCenterNavItem label={t.nav.helpCenter} onClick={() => onNavigate('help-center')} isActive={currentPage === 'help-center'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
+            <DailyTipsNavItem label={t.nav.dailyTips} onClick={() => onNavigate('all-stories')} isActive={currentPage === 'all-stories'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
+            <HelpCenterNavItem label={t.nav.helpCenter} onClick={() => onNavigate('all-stories')} isActive={currentPage === 'all-stories'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
           </div>
           <Logo onClick={() => onNavigate('home')} isActive={currentPage === 'home'} onHover={setHoveredItem} hoveredItem={hoveredItem} />
         </div>

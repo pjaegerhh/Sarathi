@@ -269,7 +269,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
       if (postText.trim()) {
         const moderationResult = await moderateContent(postText, t.language as 'en' | 'hi');
         if (!moderationResult.isApproved) {
-          setError(t.community.inappropriateContent || 'Content flagged for review');
+          setError(t.community.inappropriateContent);
           setIsSubmitting(false);
           return;
         }
@@ -675,7 +675,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}>
-                {location || 'Location'}
+                {location || t.community.addLocation}
               </span>
             )}
             {location && (
@@ -811,7 +811,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
             flexShrink: 0,
           }}
         >
-          {isSubmitting ? t.common.saving : 'Post'}
+          {isSubmitting ? t.common.saving : t.community.post}
         </button>
       </div>
 

@@ -313,7 +313,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                 color: '#192126',
                 marginBottom: '16px'
               }}>
-                Check Your Email!
+                {t.registration.checkYourEmail}
               </h1>
 
               <p style={{
@@ -354,7 +354,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                 marginTop: '24px',
                 lineHeight: '1.5'
               }}>
-                After verifying your email, you can log in to complete your profile.
+                {t.registration.afterVerifyingEmailToComplete}
               </p>
             </div>
           </div>
@@ -619,7 +619,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
-                  placeholder="••••••••••••••••••"
+                  placeholder={t.auth.placeholderPassword}
                   required
                   autoComplete="new-password"
                   onPaste={(e) => e.stopPropagation()}
@@ -688,7 +688,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  placeholder="••••••••••••••••••"
+                  placeholder={t.auth.placeholderPassword}
                   required
                   autoComplete="new-password"
                   onPaste={(e) => e.stopPropagation()}

@@ -527,11 +527,11 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
       >
         {isLoading ? (
           <div style={{ padding: '40px', textAlign: 'center', width: '100%', color: '#979797' }}>
-            Loading stories...
+            {t.community.loadingStories}
           </div>
         ) : displayVisibleStories.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', width: '100%', color: '#979797' }}>
-            No stories yet
+            {t.community.noStoriesYet}
           </div>
         ) : (
           displayVisibleStories.map((story) => (

@@ -237,7 +237,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               margin: 0,
             }}
           >
-            {t.community.howAreYouFeeling || 'How are you feeling?'}
+            {t.community.howAreYouFeeling}
           </p>
           <button
             onClick={onClose}
@@ -300,7 +300,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
             <Search size={isMobile ? 20 : 24} color="#c7c8d5" />
             <input
               type="text"
-              placeholder={t.community.searchFeelings || 'Search feelings'}
+              placeholder={t.community.searchFeelings}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -506,7 +506,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
               height: isMobile ? '32px' : '36px',
             }}
           >
-            {t.community.cancel || 'Cancel'}
+            {t.community.cancel}
           </button>
         </div>
       </div>

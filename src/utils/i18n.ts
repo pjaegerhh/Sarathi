@@ -87,6 +87,22 @@ export interface Translations {
     profileVerifiedSuccessfully: string;
     profileVerifiedDescription: string;
     exploreSarathi: string;
+    // Placeholders
+    placeholderEmail: string;
+    placeholderPassword: string;
+    placeholderYourName: string;
+    // Unverified email screen
+    emailNotVerified: string;
+    yourEmailNotVerified: string;
+    checkInboxForVerification: string;
+    resendVerificationEmail: string;
+    tipCheckSpam: string;
+    failedToResendVerification: string;
+    verificationEmailResent: string;
+    // Error messages (user-facing)
+    connectionError: string;
+    serviceUnavailable: string;
+    networkError: string;
   };
 
   // Onboarding
@@ -223,6 +239,8 @@ export interface Translations {
       verificationEmailSentPrefix: string;
       verificationEmailSentSuffix: string;
       goToLogin: string;
+      checkYourEmail: string;
+      afterVerifyingEmailToComplete: string;
     };
   
   // Homepage
@@ -368,6 +386,7 @@ export interface Translations {
     delete: string;
     edit: string;
     view: string;
+    user: string;
   };
 
   // Community
@@ -384,11 +403,17 @@ export interface Translations {
     postPlaceholder: string;
     addPhotos: string;
     addVideos: string;
+    addPhotosVideos: string;
+    clickToUploadPhotosVideos: string;
+    orDragAndDrop: string;
+    pngJpgGifMp4UpTo10mb: string;
+    browsePhotosVideos: string;
     addLocation: string;
     searchLocation: string;
     addCurrentLocation: string;
     getCurrentLocation: string;
     findNearby: string;
+    nearby: string;
     suggested: string;
     allLocations: string;
     searchResults: string;
@@ -504,8 +529,22 @@ export interface Translations {
     supportGiven: string;
     userStories: string;
     viewAll: string;
+    loadingStories: string;
+    noStoriesYet: string;
     noConnectionsYet: string;
     noConnectionsDescription: string;
+    noPendingConnectionRequests: string;
+    receivedRequests: string;
+    sentRequests: string;
+    cancelRequest: string;
+    cancelRequestConfirmTitle: string;
+    cancelRequestConfirmDescription: string;
+    cancelRequestYes: string;
+    cancelRequestNo: string;
+    removeConnectionConfirmMessage: string;
+    removeConnectionConfirmDescription: string;
+    removeConnectionYes: string;
+    removeConnectionNo: string;
     connectionRequestSent: string;
     connectionAccepted: string;
     connectionDeclined: string;
@@ -530,6 +569,10 @@ export interface Translations {
     postTooLong: string;
     commentTooLong: string;
     noContent: string;
+    // Search
+    noResultsFound: string;
+    tryDifferentKeywords: string;
+    loginToAccessCommunity: string;
   };
 
   // Profile
@@ -761,6 +804,19 @@ export const translations: Record<Language, Translations> = {
       profileVerifiedSuccessfully: 'Profile verified successfully!',
       profileVerifiedDescription: 'Your email has been verified. You can now access all features of Sarathi.',
       exploreSarathi: 'Explore Sarathi',
+      placeholderEmail: 'your@email.com',
+      placeholderPassword: '••••••••',
+      placeholderYourName: 'Your name',
+      emailNotVerified: 'Email Not Verified',
+      yourEmailNotVerified: 'Your email {email} has not been verified yet.',
+      checkInboxForVerification: 'Please check your inbox and spam folder for the verification email we sent you. Click the link in the email to verify your account.',
+      resendVerificationEmail: 'Resend Verification Email',
+      tipCheckSpam: 'Tip: Make sure to check your spam/junk folder if you don\'t see the email in your inbox.',
+      failedToResendVerification: 'Failed to resend verification email',
+      verificationEmailResent: 'Verification email resent! Please check your inbox and spam folder.',
+      connectionError: 'Connection error: Please check if your custom domain is added to Supabase redirect URLs. See console for details.',
+      serviceUnavailable: 'Service temporarily unavailable: Supabase is starting up. Please wait a few minutes and try again.',
+      networkError: 'Network error: Please check your internet connection and try again.',
     },
     onboarding: {
       screen1Title: 'Your trusted guide along the path',
@@ -893,6 +949,8 @@ export const translations: Record<Language, Translations> = {
       verificationEmailSentPrefix: "We've sent a verification link to ",
       verificationEmailSentSuffix: ". Please click the link to verify your account and complete your profile setup.",
       goToLogin: 'Go to Login',
+      checkYourEmail: 'Check Your Email!',
+      afterVerifyingEmailToComplete: 'After verifying your email, you can log in to complete your profile.',
     },
     home: {
       heroQuote: "It's time we shared the global knowledge of the developers of the prosthesis community and worked together on shared solutions to better and better help those in need",
@@ -1028,6 +1086,7 @@ export const translations: Record<Language, Translations> = {
       delete: 'Delete',
       edit: 'Edit',
       view: 'View',
+      user: 'User',
     },
     community: {
       // Feed
@@ -1042,6 +1101,11 @@ export const translations: Record<Language, Translations> = {
       postPlaceholder: 'Share your thoughts, experiences, or ask a question...',
       addPhotos: 'Add Photos',
       addVideos: 'Add Videos',
+      addPhotosVideos: 'Add Photos/Videos',
+      clickToUploadPhotosVideos: 'Click to upload photos/videos',
+      orDragAndDrop: 'or drag and drop',
+      pngJpgGifMp4UpTo10mb: 'PNG, JPG, GIF, MP4 up to 10MB',
+      browsePhotosVideos: 'Browse Photos/Videos',
       addLocation: 'Add Location',
       searchLocation: 'Search Location',
       addCurrentLocation: 'Add current location',
@@ -1162,8 +1226,22 @@ export const translations: Record<Language, Translations> = {
       supportGiven: 'Support Given',
       userStories: 'User Stories',
       viewAll: 'View all',
+      loadingStories: 'Loading stories...',
+      noStoriesYet: 'No stories yet',
       noConnectionsYet: 'No connections yet',
       noConnectionsDescription: 'Start connecting with other members of the community',
+      noPendingConnectionRequests: 'No pending connection requests',
+      receivedRequests: 'Received',
+      sentRequests: 'Sent',
+      cancelRequest: 'Cancel request',
+      cancelRequestConfirmTitle: 'Cancel Request ?',
+      cancelRequestConfirmDescription: 'Choose Yes to cancel the request, or No to keep it.',
+      cancelRequestYes: 'Yes, cancel request',
+      cancelRequestNo: 'No, do not cancel request',
+      removeConnectionConfirmMessage: 'Do you really want to remove your connection {name}?',
+      removeConnectionConfirmDescription: 'Choose Yes to remove this connection, or No to keep it.',
+      removeConnectionYes: 'Yes, remove connection',
+      removeConnectionNo: 'No, do not remove connection',
       connectionRequestSent: 'Connection request sent',
       connectionAccepted: 'Connection accepted',
       connectionDeclined: 'Connection declined',
@@ -1186,6 +1264,10 @@ export const translations: Record<Language, Translations> = {
       postTooLong: 'Post is too long (max 5000 characters)',
       commentTooLong: 'Comment is too long (max 2000 characters)',
       noContent: 'Please add some content to your post',
+      // Search
+      noResultsFound: 'No results found',
+      tryDifferentKeywords: 'Try different keywords or clear your search',
+      loginToAccessCommunity: 'Please login to access the community.',
     },
     profile: {
       title: 'Profile',
@@ -1395,6 +1477,19 @@ export const translations: Record<Language, Translations> = {
       profileVerifiedSuccessfully: 'प्रोफ़ाइल सफलतापूर्वक सत्यापित हुआ!',
       profileVerifiedDescription: 'आपका ईमेल सत्यापित हो गया है। अब आप Sarathi की सभी सुविधाओं का उपयोग कर सकते हैं।',
       exploreSarathi: 'Sarathi का अन्वेषण करें',
+      placeholderEmail: 'your@email.com',
+      placeholderPassword: '••••••••',
+      placeholderYourName: 'आपका नाम',
+      emailNotVerified: 'ईमेल सत्यापित नहीं',
+      yourEmailNotVerified: 'आपका ईमेल {email} अभी तक सत्यापित नहीं हुआ है।',
+      checkInboxForVerification: 'कृपया हमारे भेजे गए सत्यापन ईमेल के लिए अपना इनबॉक्स और स्पैम फ़ोल्डर देखें। खाता सत्यापित करने के लिए ईमेल में दिए लिंक पर क्लिक करें।',
+      resendVerificationEmail: 'सत्यापन ईमेल पुनः भेजें',
+      tipCheckSpam: 'सुझाव: अगर आपको इनबॉक्स में ईमेल नहीं दिख रहा तो स्पैम/जंक फ़ोल्डर ज़रूर देखें।',
+      failedToResendVerification: 'सत्यापन ईमेल पुनः भेजने में विफल',
+      verificationEmailResent: 'सत्यापन ईमेल पुनः भेज दिया गया! कृपया अपना इनबॉक्स और स्पैम फ़ोल्डर देखें।',
+      connectionError: 'कनेक्शन त्रुटि: कृपया जांचें कि आपका डोमेन Supabase रीडायरेक्ट URL में जोड़ा गया है। विवरण के लिए कंसोल देखें।',
+      serviceUnavailable: 'सेवा अस्थायी रूप से अनुपलब्ध। कृपया कुछ मिनट प्रतीक्षा करें और पुनः प्रयास करें।',
+      networkError: 'नेटवर्क त्रुटि: कृपया अपना इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।',
     },
     onboarding: {
       screen1Title: 'आपके साथ का विश्वसनीय मार्गदर्शक',
@@ -1527,6 +1622,8 @@ export const translations: Record<Language, Translations> = {
       verificationEmailSentPrefix: 'हमने आपको एक सत्यापन लिंक भेजा है ',
       verificationEmailSentSuffix: '। कृपया अपने खाते को सत्यापित करने और अपनी प्रोफ़ाइल सेटअप पूरा करने के लिए लिंक पर क्लिक करें।',
       goToLogin: 'लॉगिन पर जाएं',
+      checkYourEmail: 'अपना ईमेल जांचें!',
+      afterVerifyingEmailToComplete: 'ईमेल सत्यापित करने के बाद, आप अपनी प्रोफ़ाइल पूरी करने के लिए लॉग इन कर सकते हैं।',
     },
     home: {
       heroQuote: 'अब समय आ गया है कि हम प्रोस्थेसिस समुदाय के डेवलपर्स के वैश्विक ज्ञान को साझा करें और जरूरतमंदों की बेहतर मदद के लिए साझा समाधानों पर एक साथ काम करें',
@@ -1662,6 +1759,7 @@ export const translations: Record<Language, Translations> = {
       delete: 'हटाएं',
       edit: 'संपादित करें',
       view: 'देखें',
+      user: 'उपयोगकर्ता',
     },
     community: {
       // Feed
@@ -1676,11 +1774,17 @@ export const translations: Record<Language, Translations> = {
       postPlaceholder: 'अपने विचार, अनुभव साझा करें या सवाल पूछें...',
       addPhotos: 'फोटो जोड़ें',
       addVideos: 'वीडियो जोड़ें',
+      addPhotosVideos: 'फोटो/वीडियो जोड़ें',
+      clickToUploadPhotosVideos: 'फोटो/वीडियो अपलोड करने के लिए क्लिक करें',
+      orDragAndDrop: 'या खींचकर छोड़ें',
+      pngJpgGifMp4UpTo10mb: 'PNG, JPG, GIF, MP4 अधिकतम 10MB',
+      browsePhotosVideos: 'फोटो/वीडियो ब्राउज़ करें',
       addLocation: 'स्थान जोड़ें',
       searchLocation: 'स्थान खोजें',
       addCurrentLocation: 'वर्तमान स्थान जोड़ें',
       getCurrentLocation: 'अपना वर्तमान स्थान प्राप्त करें',
       findNearby: 'अपने आसपास क्या है खोजें',
+      nearby: 'आस-पास',
       suggested: 'सुझाए गए',
       allLocations: 'सभी स्थान',
       searchResults: 'खोज परिणाम',
@@ -1796,8 +1900,22 @@ export const translations: Record<Language, Translations> = {
       supportGiven: 'दिया गया समर्थन',
       userStories: 'उपयोगकर्ता कहानियाँ',
       viewAll: 'सभी देखें',
+      loadingStories: 'कहानियाँ लोड हो रही हैं...',
+      noStoriesYet: 'अभी तक कोई कहानी नहीं',
       noConnectionsYet: 'अभी तक कोई कनेक्शन नहीं',
       noConnectionsDescription: 'समुदाय के अन्य सदस्यों से जुड़ना शुरू करें',
+      noPendingConnectionRequests: 'कोई लंबित कनेक्शन अनुरोध नहीं',
+      receivedRequests: 'प्राप्त',
+      sentRequests: 'भेजे गए',
+      cancelRequest: 'अनुरोध रद्द करें',
+      cancelRequestConfirmTitle: 'अनुरोध रद्द करें?',
+      cancelRequestConfirmDescription: 'अनुरोध रद्द करने के लिए हाँ चुनें, या रखने के लिए नहीं।',
+      cancelRequestYes: 'हाँ, अनुरोध रद्द करें',
+      cancelRequestNo: 'नहीं, अनुरोध रद्द न करें',
+      removeConnectionConfirmMessage: 'क्या आप वाकई {name} से अपना कनेक्शन हटाना चाहते हैं?',
+      removeConnectionConfirmDescription: 'कनेक्शन हटाने के लिए हाँ चुनें, या रखने के लिए नहीं।',
+      removeConnectionYes: 'हाँ, कनेक्शन हटाएं',
+      removeConnectionNo: 'नहीं, कनेक्शन न हटाएं',
       connectionRequestSent: 'कनेक्शन अनुरोध भेजा गया',
       connectionAccepted: 'कनेक्शन स्वीकार किया गया',
       connectionDeclined: 'कनेक्शन अस्वीकार किया गया',
@@ -1820,6 +1938,10 @@ export const translations: Record<Language, Translations> = {
       postTooLong: 'पोस्ट बहुत लंबी है (अधिकतम 5000 वर्ण)',
       commentTooLong: 'टिप्पणी बहुत लंबी है (अधिकतम 2000 वर्ण)',
       noContent: 'कृपया अपनी पोस्ट में कुछ सामग्री जोड़ें',
+      // Search
+      noResultsFound: 'कोई परिणाम नहीं मिला',
+      tryDifferentKeywords: 'अलग कीवर्ड आज़माएं या अपनी खोज साफ़ करें',
+      loginToAccessCommunity: 'कम्युनिटी तक पहुंचने के लिए कृपया लॉग इन करें।',
     },
     profile: {
       title: 'प्रोफ़ाइल',

@@ -284,7 +284,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
       }
     } catch (error) {
       console.error('Error editing post:', error);
-      alert(t.community.failedToEditPost || 'Failed to edit post');
+      alert(t.community.failedToEditPost);
     }
   };
 
@@ -327,7 +327,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
       setShowFeelingModal(false);
     } catch (error) {
       console.error('Error adding reaction:', error);
-      alert(t.community.failedToReact || 'Failed to add reaction');
+      alert(t.community.failedToReact);
     }
   };
 
@@ -522,7 +522,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
                     borderBottom: '1px solid #E0E0E0'
                   }}
                 >
-                  {t.community.edit || 'Edit'}
+                  {t.community.edit}
                 </button>
                 <button
                   onClick={handleDelete}
@@ -775,7 +775,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
                     cursor: 'pointer'
                   }}
                 >
-                  {t.common.save || 'Save'}
+                  {t.common.save}
                 </button>
                 <button
                   onClick={() => {

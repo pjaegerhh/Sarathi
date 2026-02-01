@@ -82,7 +82,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
-                    placeholder="your@email.com"
+                    placeholder={t.auth.placeholderEmail}
                   />
                 </div>
                 <div className="space-y-2">
@@ -93,7 +93,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
-                    placeholder="••••••••"
+                    placeholder={t.auth.placeholderPassword}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -112,7 +112,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
                     value={signupName}
                     onChange={(e) => setSignupName(e.target.value)}
                     required
-                    placeholder="Your name"
+                    placeholder={t.auth.placeholderYourName}
                   />
                 </div>
                 <div className="space-y-2">
@@ -123,7 +123,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     required
-                    placeholder="your@email.com"
+                    placeholder={t.auth.placeholderEmail}
                   />
                 </div>
                 <div className="space-y-2">
@@ -134,7 +134,7 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
-                    placeholder="••••••••"
+                    placeholder={t.auth.placeholderPassword}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

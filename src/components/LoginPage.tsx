@@ -107,7 +107,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       
       // Check for CORS errors
       if (error.message?.includes('CORS') || error.message?.includes('Failed to fetch')) {
-        errorMessage = 'Connection error: Please check if your custom domain is added to Supabase redirect URLs. See console for details.';
+        errorMessage = t.auth.connectionError;
         console.error('❌ CORS Error Detected');
         console.error('To fix this issue:');
         console.error('1. Go to Supabase Dashboard → Authentication → Settings');
@@ -121,7 +121,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       
       // Check for 521 error (Supabase service temporarily unavailable)
       if (error.message?.includes('521') || error.status === 521) {
-        errorMessage = 'Service temporarily unavailable: Supabase is starting up. Please wait a few minutes and try again.';
+        errorMessage = t.auth.serviceUnavailable;
         console.error('❌ 521 Error: Supabase service is temporarily unavailable');
         console.error('This usually happens when:');
         console.error('1. The Supabase project was just resumed from pause');
@@ -131,7 +131,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       
       // Check for network errors
       if (error.message?.includes('network') || error.message?.includes('NetworkError')) {
-        errorMessage = 'Network error: Please check your internet connection and try again.';
+        errorMessage = t.auth.networkError;
       }
       
       toast.error(errorMessage);
@@ -148,12 +148,12 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       });
 
       if (error) {
-        toast.error('Failed to resend verification email');
+        toast.error(t.auth.failedToResendVerification);
       } else {
-        toast.success('Verification email resent! Please check your inbox and spam folder.');
+        toast.success(t.auth.verificationEmailResent);
       }
     } catch (error) {
-      toast.error('Failed to resend verification email');
+      toast.error(t.auth.failedToResendVerification);
     }
   };
 
@@ -236,7 +236,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 color: '#192126',
                 marginBottom: '16px'
               }}>
-                Email Not Verified
+                {t.auth.emailNotVerified}
               </h1>
 
               <p style={{
@@ -245,10 +245,9 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 lineHeight: '1.6',
                 marginBottom: '24px'
               }}>
-                Your email <strong>{unverifiedEmail}</strong> has not been verified yet.
+                {t.auth.yourEmailNotVerified.replace('{email}', unverifiedEmail)}
                 <br /><br />
-                Please check your inbox and spam folder for the verification email we sent you. 
-                Click the link in the email to verify your account.
+                {t.auth.checkInboxForVerification}
               </p>
 
               {/* Buttons */}
@@ -270,7 +269,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Resend Verification Email
+                  {t.auth.resendVerificationEmail}
                 </button>
 
                 <button
@@ -290,7 +289,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  Back to Login
+                  {t.auth.backToLogin}
                 </button>
               </div>
 
@@ -300,7 +299,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 marginTop: '24px',
                 lineHeight: '1.5'
               }}>
-                💡 <strong>Tip:</strong> Make sure to check your spam/junk folder if you don't see the email in your inbox.
+                💡 {t.auth.tipCheckSpam}
               </p>
             </div>
           </div>
