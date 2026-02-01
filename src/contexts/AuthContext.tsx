@@ -356,15 +356,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw new Error(error.message || 'Logout failed');
+      // Check if there's an active session before trying to sign out
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (currentSession) {
+        // Only call signOut if there's an active session to avoid 403 errors
+        const { error } = await supabase.auth.signOut({ scope: 'local' });
+        if (error) {
+          console.error('Logout error from Supabase:', error);
+        }
       }
+      
+      // Always clear local state
       setUser(null);
       setSession(null);
-    } catch (error) {
+      
+      // Clear any stored auth data
+      clearAuthStorage();
+    } catch (error: any) {
       console.error('Logout error:', error);
-      throw error;
+      
+      // Still clear local state even on error
+      setUser(null);
+      setSession(null);
+      clearAuthStorage();
     }
   };
 

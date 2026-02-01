@@ -321,7 +321,6 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
 
   const loadRealUserStories = async () => {
     try {
-      console.log('Loading user stories...');
       const { data, error } = await supabase
         .from('user_stories')
         .select(`
@@ -336,9 +335,6 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
           )
         `)
         .order('created_at', { ascending: false });
-
-      console.log('Raw user stories data:', data);
-      console.log('Error:', error);
 
       if (error) {
         console.error('Error loading user stories:', error);
