@@ -118,7 +118,7 @@ export const RepostButton: React.FC<RepostButtonProps> = ({
       setRepostComment('');
     } catch (err) {
       console.error('Error creating repost:', err);
-      setError(t.community.failedToRepost || 'Failed to repost');
+      setError(t.community.failedToRepost);
     } finally {
       setIsSubmitting(false);
     }

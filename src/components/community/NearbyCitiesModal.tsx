@@ -210,7 +210,7 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
               margin: 0,
             }}
           >
-            {t.community.nearbyCities || 'Nearby Cities'}
+            {t.community.nearbyCities}
           </p>
           <button
             onClick={onClose}
@@ -281,7 +281,7 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
                   color: '#979797',
                 }}
               >
-                {t.community.searchingNearbyCities || 'Searching for nearby cities...'}
+                {t.community.searchingNearbyCities}
               </p>
               <style>{`
                 @keyframes spin {
@@ -319,8 +319,8 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
                 }}
               >
                 {isGettingLocation 
-                  ? (t.community.gettingLocation || 'Getting location...') 
-                  : (t.community.useExactLocation || 'Use exact location')}
+                  ? t.community.gettingLocation 
+                  : t.community.useExactLocation}
               </button>
             </div>
           ) : citiesWithDistance.length > 0 ? (
@@ -334,7 +334,7 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
                   marginBottom: '16px',
                 }}
               >
-                {t.community.citiesWithin50km || 'Cities within 50km'}
+                {t.community.citiesWithin50km}
               </p>
               {citiesWithDistance.map((city, idx) => (
                 <button
@@ -391,7 +391,7 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
                         margin: 0,
                       }}
                     >
-                      {city.distance.toFixed(1)} km {t.community.away || 'away'}
+                      {city.distance.toFixed(1)} km {t.community.away}
                       {city.population && ` • ${(city.population / 1000).toFixed(0)}k`}
                     </p>
                   </div>
@@ -408,7 +408,7 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
                   marginBottom: '20px',
                 }}
               >
-                {t.community.noCitiesNearby || 'No cities found within 50km'}
+                {t.community.noCitiesNearby}
               </p>
               <button
                 onClick={handleUseCurrentLocation}
@@ -427,8 +427,8 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
                 }}
               >
                 {isGettingLocation 
-                  ? (t.community.gettingLocation || 'Getting location...') 
-                  : (t.community.useExactLocation || 'Use exact location')}
+                  ? t.community.gettingLocation 
+                  : t.community.useExactLocation}
               </button>
             </div>
           )}
@@ -459,7 +459,7 @@ export function NearbyCitiesModal({ isOpen, onClose, onSelectLocation, userLat, 
               boxShadow: '0px 0px 10px rgba(221, 221, 221, 1)',
             }}
           >
-            {t.community.cancel || 'Cancel'}
+            {t.community.cancel}
           </button>
         </div>
       </div>

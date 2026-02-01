@@ -1,4 +1,4 @@
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, X } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface CommunityHeaderProps {
@@ -6,19 +6,27 @@ interface CommunityHeaderProps {
   onNotificationClick?: () => void;
   hasNotifications?: boolean;
   isMobile?: boolean;
+  searchValue?: string;
 }
 
 export function CommunityHeader({ 
   onSearch, 
   onNotificationClick,
   hasNotifications = false,
-  isMobile = false
+  isMobile = false,
+  searchValue = ''
 }: CommunityHeaderProps) {
   const { t } = useLanguage();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (onSearch) {
       onSearch(e.target.value);
+    }
+  };
+
+  const handleClearSearch = () => {
+    if (onSearch) {
+      onSearch('');
     }
   };
 
@@ -120,7 +128,8 @@ export function CommunityHeader({
           />
           <input
             type="text"
-            placeholder={t.community.searchPlaceholder || 'Search stories, discussions, topics....'}
+            placeholder={t.community.searchPlaceholder}
+            value={searchValue}
             onChange={handleSearchChange}
             style={{
               flex: 1,
@@ -133,9 +142,28 @@ export function CommunityHeader({
               color: '#192126',
               background: 'transparent',
             }}
-            // Placeholder styling
             className="search-input"
           />
+          {searchValue && (
+            <button
+              onClick={handleClearSearch}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <X 
+                size={isMobile ? 16 : 18} 
+                style={{ color: '#979797' }} 
+              />
+            </button>
+          )}
         </div>
       </div>
 

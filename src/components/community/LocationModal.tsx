@@ -69,7 +69,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
         (error) => {
           console.error('Error getting location:', error);
           setIsGettingLocation(false);
-          alert(t.community.locationError || 'Unable to get current location');
+          alert(t.community.locationError);
         }
       );
     } else {
@@ -93,7 +93,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
         (error) => {
           console.error('Error getting location:', error);
           setIsGettingLocation(false);
-          alert(t.community.locationError || 'Unable to get current location');
+          alert(t.community.locationError);
         }
       );
     } else {
@@ -136,7 +136,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
 
   // Get suggested locations (top cities/states)
   const suggestedLocations = [
-    { name: 'Nearby', icon: <Globe size={20} />, subtitle: t.community.findNearby || "Find what's around you" },
+    { name: t.community.nearby, icon: <Globe size={20} />, subtitle: t.community.findNearby },
     ...indiaLocations.slice(0, 3).map(loc => ({
       name: loc.name,
       icon: getLocationIcon(loc.type),
@@ -188,7 +188,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
               margin: 0,
             }}
           >
-            {t.community.addLocation || 'Add Location'}
+            {t.community.addLocation}
           </p>
           <button
             onClick={onClose}
@@ -252,7 +252,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
             <MapPin size={24} color="#c7c8d5" />
             <input
               type="text"
-              placeholder={t.community.searchLocation || 'Search Location'}
+              placeholder={t.community.searchLocation}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -315,7 +315,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
                   margin: 0,
                 }}
               >
-                {t.community.selectOnMap || 'Select on map'}
+                {t.community.selectOnMap}
               </p>
               <p
                 style={{
@@ -326,7 +326,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
                   margin: 0,
                 }}
               >
-                {t.community.pickLocationFromMap || 'Pick location from interactive map'}
+                {t.community.pickLocationFromMap}
               </p>
             </div>
           </button>
@@ -370,7 +370,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
                   margin: 0,
                 }}
               >
-                {isGettingLocation ? (t.community.gettingLocation || 'Getting location...') : (t.community.addCurrentLocation || 'Add current location')}
+                {isGettingLocation ? t.community.gettingLocation : t.community.addCurrentLocation}
               </p>
               <p
                 style={{
@@ -381,7 +381,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
                   margin: 0,
                 }}
               >
-                {t.community.getCurrentLocation || 'Get your current location'}
+                {t.community.getCurrentLocation}
               </p>
             </div>
           </button>
@@ -494,7 +494,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
                       margin: 0,
                     }}
                   >
-                    {t.community.allLocations || 'All Locations'}
+                    {t.community.allLocations}
                   </p>
                 </div>
                 {indiaLocations.slice(3).map((loc, idx) => (
@@ -638,7 +638,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
                   padding: '20px',
                 }}
               >
-                {t.community.noLocationsFound || 'No locations found'}
+                {t.community.noLocationsFound}
               </p>
             )}
           </div>
@@ -669,7 +669,7 @@ export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocati
               boxShadow: '0px 0px 10px rgba(221, 221, 221, 1)',
             }}
           >
-            {t.community.cancel || 'Cancel'}
+            {t.community.cancel}
           </button>
         </div>
       </div>

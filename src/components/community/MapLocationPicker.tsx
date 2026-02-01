@@ -208,7 +208,7 @@ export function MapLocationPicker({ isOpen, onClose, onSelectLocation, initialLa
               margin: 0,
             }}
           >
-            {t.community.selectLocationOnMap || 'Select Location on Map'}
+            {t.community.selectLocationOnMap}
           </p>
           <button
             onClick={onClose}
@@ -340,7 +340,7 @@ export function MapLocationPicker({ isOpen, onClose, onSelectLocation, initialLa
                 margin: 0,
               }}
             >
-              {t.community.clickMapToSelect || 'Click on the map to select a location'}
+              {t.community.clickMapToSelect}
             </p>
           </div>
         </div>
@@ -389,7 +389,7 @@ export function MapLocationPicker({ isOpen, onClose, onSelectLocation, initialLa
               opacity: selectedLocationName && !isLoading ? 1 : 0.6,
             }}
           >
-            {isLoading ? (t.community.gettingLocation || 'Getting location...') : (t.community.selectLocation || 'Select Location')}
+            {isLoading ? t.community.gettingLocation : t.community.selectLocation}
           </button>
         </div>
       </div>

@@ -12,7 +12,7 @@ export function MobileNavigation({ onNavigate, currentPage }: MobileNavigationPr
   const menuItems = [
     { id: 'home', label: t.nav.home, icon: Home },
     { id: 'community', label: t.nav.community, icon: Users },
-    { id: 'stories', label: t.nav.stories, icon: BookText },
+    { id: 'all-stories', label: t.nav.stories, icon: BookText },
     { id: 'profile', label: t.nav.profile, icon: User },
   ];
 
