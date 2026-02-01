@@ -26,13 +26,11 @@ export async function loadSignedUrl(
     }
 
     // Not in cache, fetch from Supabase
-    console.log(`🌐 Fetching signed URL: ${bucket}/${path}`);
     const { data, error } = await supabase.storage
       .from(bucket)
       .createSignedUrl(path, 3600);
 
     if (error) {
-      console.error(`❌ Error creating signed URL for ${bucket}/${path}:`, error);
       return null;
     }
 

@@ -11,7 +11,7 @@ import { ConnectionSearch } from './community/ConnectionSearch';
 import { CreatePost } from './community/CreatePost';
 import { PostCard } from './community/PostCard';
 import { Lightbox } from './community/Lightbox';
-import { loadMediaUrl } from '../utils/mediaLoader';
+import { loadMediaUrl, loadSignedUrl } from '../utils/mediaLoader';
 import locationIcon from '../assets/svg/location.svg';
 import locationPrimaryIcon from '../assets/svg/location_primary.svg';
 import achievementIcon from '../assets/svg/achievement.svg';
@@ -177,20 +177,15 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching user media:', error);
         setLoadingMedia(false);
         return;
       }
 
       if (posts && posts.length > 0) {
-        console.log('📸 Fetched posts with media:', posts);
-        
         // Flatten all media URLs from all posts
         const allMedia: string[] = [];
         for (const post of posts) {
           if (post.media_urls && Array.isArray(post.media_urls)) {
-            console.log('📁 Processing media_urls:', post.media_urls);
-            
             for (const mediaPath of post.media_urls) {
               try {
                 // Use the cached media loader
@@ -200,20 +195,18 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   allMedia.push(signedUrl);
                 }
               } catch (err) {
-                console.error('❌ Error processing media URL:', err);
+                // Skip failed media URLs
               }
             }
           }
         }
         
-        console.log('📊 Total media loaded:', allMedia.length);
         setUserMedia(allMedia);
       } else {
-        console.log('📭 No posts with media found');
         setUserMedia([]);
       }
     } catch (error) {
-      console.error('Error fetching user media:', error);
+      // Silently fail
     } finally {
       setLoadingMedia(false);
     }
@@ -320,8 +313,6 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       }
 
       if (data) {
-        console.log('📖 User story fetched:', data);
-        console.log('📸 Media URLs:', data.media_urls);
         setUserStory(data);
         
         // Load signed URL for first media
@@ -333,7 +324,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         setStoryMediaUrl(null);
       }
     } catch (error) {
-      console.error('Error fetching user story:', error);
+      // Silently fail
     }
   };
 
@@ -343,14 +334,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     const isVideo = path.match(/\.(mp4|webm|ogg)$/i);
     setIsStoryMediaVideo(!!isVideo);
     
-    // Use cache
-    const signedUrl = await loadMediaUrl(path);
+    // Use cache - story media is stored in profile-media bucket
+    const signedUrl = await loadSignedUrl('profile-media', path);
 
     if (signedUrl) {
-      console.log('🔗 Generated signed URL (cached) for:', path);
       setStoryMediaUrl(signedUrl);
-    } else {
-      console.error('❌ Failed to load story media');
     }
   };
 
@@ -721,13 +709,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   ];
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: '1280px', position: 'relative' }}>
+    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'center', paddingTop: isMobile ? '50px' : '0', paddingBottom: isMobile ? '100px' : '0', overflowX: 'hidden' }}>
+      <div style={{ width: '100%', maxWidth: '1280px', position: 'relative', overflowX: 'hidden' }}>
         {/* Cover Picture - Keep as is */}
         <div 
           style={{ 
             width: '100%', 
-            height: '420px', 
+            height: isMobile ? '280px' : '420px', 
             background: user.cover_picture_url 
               ? `url(${user.cover_picture_url})` 
               : 'linear-gradient(135deg, #8AC0AD 0%, #388896 100%)',
@@ -751,19 +739,19 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 type="button"
                 style={{
                   position: 'absolute',
-                  right: '80px',
-                  top: '354px',
+                  right: isMobile ? '20px' : '80px',
+                  top: isMobile ? '240px' : '354px',
                   background: '#ffffff',
                   border: 'none',
                   borderRadius: '24px',
-                  padding: '8px 24px',
+                  padding: isMobile ? '6px 16px' : '8px 24px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px',
+                  gap: isMobile ? '8px' : '12px',
                   cursor: 'pointer',
                   boxShadow: '0px 0px 10px 0px #dddddd',
                   fontFamily: 'Roboto, sans-serif',
-                  fontSize: '16px',
+                  fontSize: isMobile ? '14px' : '16px',
                   fontWeight: 700,
                   color: '#505050',
                 }}
@@ -783,19 +771,19 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         <div style={{ 
           position: 'absolute', 
           left: isMobile ? '20px' : '120px', 
-          top: '352px',
-          width: '186px',
-          height: '186px',
+          top: isMobile ? '212px' : '352px',
+          width: isMobile ? '120px' : '186px',
+          height: isMobile ? '120px' : '186px',
           overflow: 'visible',
         }}>
           <div
             style={{
-              width: '186px',
-              height: '186px',
+              width: isMobile ? '120px' : '186px',
+              height: isMobile ? '120px' : '186px',
               borderRadius: '50%',
               background: '#ffffff',
               overflow: 'hidden',
-              border: '6px solid #ffffff',
+              border: isMobile ? '4px solid #ffffff' : '6px solid #ffffff',
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
@@ -848,37 +836,39 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
         {/* Name and Location - 10px below cover picture (430px) */}
         <div style={{ 
-          position: 'absolute',
-          left: isMobile ? '20px' : '320px', // 120px (profile left) + 186px (profile width) + 14px (gap)
-          top: '430px',
+          position: isMobile ? 'relative' : 'absolute',
+          left: isMobile ? 'auto' : '320px', // 120px (profile left) + 186px (profile width) + 14px (gap)
+          top: isMobile ? 'auto' : '430px',
+          marginTop: isMobile ? '80px' : '0',
+          padding: isMobile ? '0 20px' : '0',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px'
+          gap: isMobile ? '8px' : '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
             <h1 style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '32px',
+              fontSize: isMobile ? '24px' : '32px',
               fontWeight: 500,
-              lineHeight: '40px',
+              lineHeight: isMobile ? '32px' : '40px',
               color: '#192126',
               margin: 0,
             }}>
               {user.firstName && user.name ? `${user.firstName} ${user.name}` : getUserDisplayName()}
             </h1>
             {/* Verified badge */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" fill="#388896" />
               <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={locationIcon} alt="location" width="20" height="20" />
+            <img src={locationIcon} alt="location" width={isMobile ? '16' : '20'} height={isMobile ? '16' : '20'} />
             <span style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '18px',
+              fontSize: isMobile ? '14px' : '18px',
               fontWeight: 500,
-              lineHeight: '28px',
+              lineHeight: isMobile ? '22px' : '28px',
               color: '#192126',
             }}>
               {user.place_of_residence || 'India'}
@@ -888,9 +878,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
 
         {/* Edit Profile Button */}
         <div style={{ 
-          position: 'absolute', 
-          right: isMobile ? '20px' : '80px', 
-          top: '458px' 
+          position: isMobile ? 'relative' : 'absolute', 
+          right: isMobile ? 'auto' : '80px', 
+          top: isMobile ? 'auto' : '458px',
+          marginTop: isMobile ? '16px' : '0',
+          padding: isMobile ? '0 20px' : '0',
         }}>
           <button
             onClick={isEditing ? handleSave : handleEditToggle}
@@ -915,18 +907,20 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               background: '#388896',
               border: 'none',
               borderRadius: '24px',
-              padding: '8px 24px',
+              padding: isMobile ? '10px 20px' : '8px 24px',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
+              gap: isMobile ? '8px' : '12px',
               cursor: saving ? 'not-allowed' : 'pointer',
               boxShadow: '0px 0px 10px 0px #dddddd',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '16px',
+              fontSize: isMobile ? '14px' : '16px',
               fontWeight: 700,
               color: '#ffffff',
               transition: 'all 0.2s ease',
               opacity: saving ? 0.6 : 1,
+              width: isMobile ? '100%' : 'auto',
+              justifyContent: isMobile ? 'center' : 'flex-start',
             }}
           >
             <span>{isEditing ? t.profile.saveProfile : t.profile.editProfile}</span>
@@ -950,25 +944,27 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           width: isMobile ? 'calc(100% - 40px)' : 'calc(100% - 160px)', 
           height: '1px', 
           background: '#d9d9d9', 
-          margin: isMobile ? '128px 20px 0 20px' : '128px 80px 0 80px'
+          margin: isMobile ? '20px 20px 0 20px' : '128px 80px 0 80px'
         }} />
 
         {/* Main Content - Two Column Layout */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', 
-          gap: '24px', 
+          gap: isMobile ? '16px' : '24px', 
           marginTop: '20px',
-          padding: isMobile ? '0 20px 40px 20px' : '0 80px 40px 80px'
+          padding: isMobile ? '0 16px 40px 16px' : '0 80px 40px 80px',
+          overflow: 'hidden',
         }}>
           {/* Left Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '20px', minWidth: 0, overflow: 'hidden' }}>
             {/* Prosthesis Info Section */}
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '28px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '12px' : '28px',
+              overflow: 'hidden',
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {user.userType === 'amputee' ? (
@@ -1074,23 +1070,24 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '28px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '12px' : '28px',
+              overflow: 'hidden',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '22px',
+                fontSize: isMobile ? '18px' : '22px',
                 fontWeight: 400,
-                lineHeight: '32px',
+                lineHeight: isMobile ? '26px' : '32px',
                 color: '#192126',
-                margin: '0 0 20px 0',
+                margin: isMobile ? '0 0 12px 0' : '0 0 20px 0',
               }}>
                 {t.profile.about}
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '8px' : '12px' }}>
                 {/* 1st row: Profession */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <img src={achievementIcon} alt="achievement" width="31" height="31" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: isMobile ? '8px' : '12px' }}>
+                  <img src={achievementIcon} alt="achievement" width={isMobile ? '24' : '31'} height={isMobile ? '24' : '31'} />
                   {isEditing ? (
                     <input
                       value={editData.profession}
@@ -1123,8 +1120,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   )}
                 </div>
                 {/* 2nd row: Workplace */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                  <img src={workIcon} alt="work" width="31" height="31" />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: isMobile ? '8px' : '12px' }}>
+                  <img src={workIcon} alt="work" width={isMobile ? '24' : '31'} height={isMobile ? '24' : '31'} />
                   {isEditing ? (
                     <input
                       value={editData.workplace}
@@ -1157,8 +1154,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   )}
                 </div>
                 {/* 3rd row: Place of Residence */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <img src={locationPrimaryIcon} alt="location" width="25" height="25" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
+                  <img src={locationPrimaryIcon} alt="location" width={isMobile ? '20' : '25'} height={isMobile ? '20' : '25'} />
                   {isEditing ? (
                     <input
                       value={editData.place_of_residence}
@@ -1197,15 +1194,16 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '20px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '12px' : '20px',
+              overflow: 'hidden',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '26px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? '16px' : '26px', flexWrap: 'wrap', gap: '8px' }}>
                 <h2 style={{
                   fontFamily: 'Roboto, sans-serif',
-                  fontSize: '22px',
+                  fontSize: isMobile ? '18px' : '22px',
                   fontWeight: 400,
-                  lineHeight: '32px',
+                  lineHeight: isMobile ? '26px' : '32px',
                   color: '#192126',
                   margin: 0,
                 }}>
@@ -1218,27 +1216,32 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       setLightboxOpen(true);
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#388896';
-                      e.currentTarget.style.color = '#ffffff';
-                      e.currentTarget.style.transform = 'scale(1.1)';
+                      if (!isMobile) {
+                        e.currentTarget.style.background = '#388896';
+                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#ffffff';
-                      e.currentTarget.style.color = '#388896';
-                      e.currentTarget.style.transform = 'scale(1)';
+                      if (!isMobile) {
+                        e.currentTarget.style.background = '#ffffff';
+                        e.currentTarget.style.color = '#388896';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }
                     }}
                     style={{
                       background: '#ffffff',
                       border: 'none',
                       borderRadius: '20px',
-                      padding: '8px 24px',
+                      padding: isMobile ? '6px 12px' : '8px 24px',
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '16px',
+                      fontSize: isMobile ? '13px' : '16px',
                       fontWeight: 700,
                       color: '#388896',
                       cursor: 'pointer',
                       boxShadow: '0px 0px 10px 0px #dddddd',
                       transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {t.profile.seeAllPosts}
@@ -1259,8 +1262,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               ) : userMedia.length > 0 ? (
                 <div style={{ 
                   display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '20px' 
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
+                  gap: isMobile ? '12px' : '20px' 
                 }}>
                   {userMedia.slice(0, 9).map((mediaUrl, index) => {
                     const isVideo = mediaUrl.includes('.mp4') || mediaUrl.includes('.webm') || mediaUrl.includes('.mov');
@@ -1274,7 +1277,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                         style={{
                           width: '100%',
                           aspectRatio: '1/1',
-                          borderRadius: '30px',
+                          borderRadius: isMobile ? '15px' : '30px',
                           background: '#f2f2f7',
                           border: '1px solid #f2f2f7',
                           overflow: 'hidden',
@@ -1324,17 +1327,18 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '20px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '12px' : '20px',
+              overflow: 'hidden',
             }}>
-              <div style={{ marginBottom: '20px' }}>
+              <div style={{ marginBottom: isMobile ? '12px' : '20px' }}>
                 <h2 style={{
                   fontFamily: 'Roboto, sans-serif',
-                  fontSize: '22px',
+                  fontSize: isMobile ? '18px' : '22px',
                   fontWeight: 400,
-                  lineHeight: '32px',
+                  lineHeight: isMobile ? '26px' : '32px',
                   color: '#192126',
-                  margin: '0 0 16px 0',
+                  margin: isMobile ? '0 0 12px 0' : '0 0 16px 0',
                 }}>
                   {t.profile.connections}
                 </h2>
@@ -1342,7 +1346,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               </div>
               
               {/* Add Connection Search */}
-              <div style={{ marginTop: '20px' }}>
+              <div style={{ marginTop: isMobile ? '12px' : '20px' }}>
                 <ConnectionSearch />
               </div>
             </div>
@@ -1351,21 +1355,22 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '28px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '12px' : '28px',
+              overflow: 'hidden',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '22px',
+                fontSize: isMobile ? '18px' : '22px',
                 fontWeight: 400,
-                lineHeight: '32px',
+                lineHeight: isMobile ? '26px' : '32px',
                 color: '#192126',
-                margin: '0 0 24px 0',
+                margin: isMobile ? '0 0 12px 0' : '0 0 24px 0',
               }}>
                 {t.profile.interestsAndActivities}
               </h2>
               <div
-                style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default' }}
+                style={{ display: 'flex', gap: isMobile ? '8px' : '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default' }}
                 onClick={() => isEditing && setActivitiesModalOpen(true)}
               >
                 {(isEditing ? editData.activities : (user as any)?.activities || []).map((activityId: string) => (
@@ -1374,25 +1379,25 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     style={{
                       background: '#ffffff',
                       border: 'none',
-                      borderRadius: '15px',
-                      padding: '8px',
+                      borderRadius: isMobile ? '10px' : '15px',
+                      padding: isMobile ? '6px' : '8px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: isMobile ? '6px' : '8px',
                       boxShadow: '0px 0px 10px 0px #dddddd',
                     }}
                   >
                     <img 
                       src={getActivityIcon(activityId)} 
                       alt={activityId} 
-                      width="24" 
-                      height="24" 
+                      width={isMobile ? '20' : '24'} 
+                      height={isMobile ? '20' : '24'} 
                     />
                     <span style={{
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '12px' : '14px',
                       fontWeight: 500,
-                      lineHeight: '20px',
+                      lineHeight: isMobile ? '16px' : '20px',
                       color: '#192126',
                     }}>
                       {getActivityLabel(activityId)}
@@ -1402,7 +1407,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 {isEditing && (editData.activities || []).length === 0 && (
                   <span style={{
                     fontFamily: 'Roboto, sans-serif',
-                    fontSize: '14px',
+                    fontSize: isMobile ? '12px' : '14px',
                     fontWeight: 400,
                     lineHeight: '20px',
                     color: '#505050',
@@ -1417,21 +1422,22 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '28px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '12px' : '28px',
+              overflow: 'hidden',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '22px',
+                fontSize: isMobile ? '18px' : '22px',
                 fontWeight: 400,
-                lineHeight: '32px',
+                lineHeight: isMobile ? '26px' : '32px',
                 color: '#192126',
-                margin: '0 0 8px 0',
+                margin: isMobile ? '0 0 12px 0' : '0 0 8px 0',
               }}>
                 {t.profile.challengesFaced}
               </h2>
               <div
-                style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default' }}
+                style={{ display: 'flex', gap: isMobile ? '12px' : '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default', justifyContent: isMobile ? 'space-around' : 'flex-start' }}
                 onClick={() => isEditing && setChallengesModalOpen(true)}
               >
                 {(isEditing ? editData.mainChallenge : (user as any)?.mainChallenge || []).map((challengeId: string) => (
@@ -1441,13 +1447,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '8px',
-                      width: '131px',
+                      gap: isMobile ? '4px' : '8px',
+                      width: isMobile ? '70px' : '131px',
                     }}
                   >
                     <div style={{
-                      width: '45px',
-                      height: '45px',
+                      width: isMobile ? '36px' : '45px',
+                      height: isMobile ? '36px' : '45px',
                       borderRadius: '36px',
                       background: '#ffffff',
                       display: 'flex',
@@ -1458,15 +1464,15 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       <img 
                         src={getChallengeIcon(challengeId)} 
                         alt={challengeId} 
-                        width="24" 
-                        height="24" 
+                        width={isMobile ? '20' : '24'} 
+                        height={isMobile ? '20' : '24'} 
                       />
                     </div>
                     <span style={{
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '11px' : '14px',
                       fontWeight: 400,
-                      lineHeight: '22px',
+                      lineHeight: isMobile ? '14px' : '22px',
                       color: '#505050',
                       textAlign: 'center',
                     }}>
@@ -1477,7 +1483,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 {isEditing && (editData.mainChallenge || []).length === 0 && (
                   <span style={{
                     fontFamily: 'Roboto, sans-serif',
-                    fontSize: '14px',
+                    fontSize: isMobile ? '12px' : '14px',
                     fontWeight: 400,
                     lineHeight: '20px',
                     color: '#505050',
@@ -1490,13 +1496,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           </div>
 
           {/* Right Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '20px', minWidth: 0, overflow: 'hidden' }}>
             {/* My Story Section */}
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '26px 18px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '16px' : '26px 18px',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
@@ -1529,8 +1535,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 >
                   <div style={{
                     width: '100%',
-                    height: '357px',
-                    borderRadius: '30px',
+                    height: isMobile ? '250px' : '357px',
+                    borderRadius: isMobile ? '20px' : '30px',
                     background: '#f2f2f7',
                     position: 'relative',
                     display: 'flex',
@@ -1768,35 +1774,40 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div style={{
               background: '#ffffff',
               border: '1px solid #f2f2f7',
-              borderRadius: '30px',
-              padding: '11px 20px',
+              borderRadius: isMobile ? '20px' : '30px',
+              padding: isMobile ? '10px 12px' : '11px 20px',
+              overflow: 'hidden',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '22px',
+                fontSize: isMobile ? '18px' : '22px',
                 fontWeight: 400,
-                lineHeight: '32px',
+                lineHeight: isMobile ? '26px' : '32px',
                 color: '#192126',
-                margin: '0 0 8px 0',
+                margin: isMobile ? '0 0 6px 0' : '0 0 8px 0',
               }}>
                 {t.profile.makeAPost}
               </h2>
-              <CreatePost onPostCreated={() => {
-                // Reload posts after creating a new one
-                loadUserPosts(0);
-              }} />
+              <CreatePost 
+                isMobile={isMobile}
+                onPostCreated={() => {
+                  // Reload posts after creating a new one
+                  loadUserPosts(0);
+                }} 
+              />
             </div>
 
             {/* User Posts */}
             {posts.length > 0 && (
               <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px', marginTop: isMobile ? '16px' : '24px' }}>
                   {posts.map((post) => (
                     <PostCard
                       key={post.id}
                       post={post}
                       onPostDeleted={handlePostDeleted}
                       onNavigate={onNavigate}
+                      isMobile={isMobile}
                     />
                   ))}
                 </div>
@@ -1850,7 +1861,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           marginTop: '40px',
           padding: isMobile ? '0 20px 40px 20px' : '0 80px 40px 80px',
           justifyContent: 'flex-start',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          flexDirection: isMobile ? 'column' : 'row',
         }}>
           <button
             onClick={async () => {
@@ -1862,12 +1874,16 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               }
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#388896';
-              e.currentTarget.style.color = '#ffffff';
+              if (!isMobile) {
+                e.currentTarget.style.background = '#388896';
+                e.currentTarget.style.color = '#ffffff';
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#ffffff';
-              e.currentTarget.style.color = '#388896';
+              if (!isMobile) {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#388896';
+              }
             }}
             style={{
               background: '#ffffff',
@@ -1875,13 +1891,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               borderRadius: '26px',
               padding: '8px 24px',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '16px',
+              fontSize: isMobile ? '14px' : '16px',
               fontWeight: 700,
               color: '#388896',
               cursor: 'pointer',
               boxShadow: '0px 0px 10px 0px #dddddd',
               height: '48px',
-              width: '160px',
+              width: isMobile ? '100%' : '160px',
               transition: 'all 0.2s ease',
             }}
           >
@@ -1890,12 +1906,16 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           <button
             onClick={() => {/* TODO: Implement delete account */}}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#388896';
-              e.currentTarget.style.color = '#ffffff';
+              if (!isMobile) {
+                e.currentTarget.style.background = '#388896';
+                e.currentTarget.style.color = '#ffffff';
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#ffffff';
-              e.currentTarget.style.color = '#388896';
+              if (!isMobile) {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#388896';
+              }
             }}
             style={{
               background: '#ffffff',
@@ -1903,13 +1923,13 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               borderRadius: '26px',
               padding: '8px 24px',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: '16px',
+              fontSize: isMobile ? '14px' : '16px',
               fontWeight: 700,
               color: '#388896',
               cursor: 'pointer',
               boxShadow: '0px 0px 10px 0px #dddddd',
               height: '48px',
-              width: '160px',
+              width: isMobile ? '100%' : '160px',
               transition: 'all 0.2s ease',
             }}
           >

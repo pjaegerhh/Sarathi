@@ -303,9 +303,10 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
 
 interface UserStoriesPreviewProps {
   onNavigate?: (page: string, data?: any) => void;
+  isMobile?: boolean;
 }
 
-export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNavigate }) => {
+export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNavigate, isMobile = false }) => {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(0);
   const [realStories, setRealStories] = useState<UserStory[]>([]);
@@ -320,7 +321,6 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
 
   const loadRealUserStories = async () => {
     try {
-      console.log('Loading user stories...');
       const { data, error } = await supabase
         .from('user_stories')
         .select(`
@@ -336,9 +336,6 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
         `)
         .order('created_at', { ascending: false });
 
-      console.log('Raw user stories data:', data);
-      console.log('Error:', error);
-
       if (error) {
         console.error('Error loading user stories:', error);
         setIsLoading(false);
@@ -346,12 +343,9 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
       }
 
       if (data) {
-        console.log(`Found ${data.length} total stories`);
-        
         // Filter for stories with at least one image (checking ALL media files)
         const storiesWithImages = data.filter((story: any) => {
           if (!story.media_urls || story.media_urls.length === 0) {
-            console.log('Story has no media:', story.id);
             return false;
           }
           
@@ -360,16 +354,12 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
             /\.(jpg|jpeg|png|gif|webp)$/i.test(mediaUrl)
           );
           
-          console.log('Story media check:', story.id, 'has image:', hasImage, 'media count:', story.media_urls.length);
           return hasImage;
         });
-
-        console.log(`${storiesWithImages.length} stories with images`);
 
         const transformedStories: UserStory[] = await Promise.all(
           storiesWithImages.map(async (story: any) => {
               const user = Array.isArray(story.user) ? story.user[0] : story.user;
-              console.log('User data for story:', story.id, user);
               const firstName = user?.first_name || '';
               const lastName = user?.name || '';
               const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -392,15 +382,13 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
                 
                 if (firstImagePath) {
                   try {
-                    console.log('Loading signed URL for first image:', firstImagePath);
                     const signedUrl = await loadSignedUrl('profile-media', firstImagePath);
                     
                     if (signedUrl) {
                       imageUrl = signedUrl;
-                      console.log('Got signed URL (cached):', imageUrl.substring(0, 50) + '...');
                     }
                   } catch (err) {
-                    console.error('Error loading story image:', err);
+                    // Skip failed media URLs
                   }
                 }
               }
@@ -416,11 +404,10 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
             })
         );
 
-        console.log('Transformed stories:', transformedStories);
         setRealStories(transformedStories);
       }
     } catch (error) {
-      console.error('Error in loadRealUserStories:', error);
+      // Silently fail
     } finally {
       setIsLoading(false);
     }
@@ -482,11 +469,11 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
       style={{
         background: '#ffffff',
         border: '0.8px solid #e0ebe3',
-        borderRadius: '30px',
-        padding: '16.8px',
+        borderRadius: isMobile ? '20px' : '30px',
+        padding: isMobile ? '12px' : '16.8px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '16px',
+        gap: isMobile ? '12px' : '16px',
         width: '100%',
       }}
     >
@@ -502,8 +489,8 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
           style={{
             fontFamily: 'Roboto, sans-serif',
             fontWeight: 400,
-            fontSize: '22px',
-            lineHeight: '32px',
+            fontSize: isMobile ? '18px' : '22px',
+            lineHeight: isMobile ? '26px' : '32px',
             color: '#192126',
             margin: 0,
           }}
@@ -519,7 +506,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
             padding: 0,
             fontFamily: 'Roboto, sans-serif',
             fontWeight: 700,
-            fontSize: '16px',
+            fontSize: isMobile ? '14px' : '16px',
             lineHeight: '24px',
             color: '#8ac0ad',
             textDecoration: 'underline',

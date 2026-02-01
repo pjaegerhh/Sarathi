@@ -72,7 +72,8 @@ jobs:
           VITE_APP_ENVIRONMENT: production
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          # NOTE: VITE_OPENAI_API_KEY removed - now stored securely as Supabase Edge Function secret
+          # Set it with: supabase secrets set OPENAI_API_KEY=sk-your-key
 
       - name: Copy static web app config to dist
         run: cp staticwebapp.config.json dist/
@@ -131,7 +132,7 @@ jobs:
           VITE_AZURE_STORAGE_CONTAINER: documents
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          # NOTE: VITE_OPENAI_API_KEY removed - now stored securely as Supabase Edge Function secret
 
   # Job 2: Deployment Summary
   deployment_summary:

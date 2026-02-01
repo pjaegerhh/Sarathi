@@ -18,6 +18,13 @@ interface Connection {
 export function ConnectionsList() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [pendingRequests, setPendingRequests] = useState<Connection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -189,32 +196,35 @@ export function ConnectionsList() {
       style={{
         background: '#ffffff',
         borderRadius: '20px',
-        padding: '24px',
+        padding: isMobile ? '12px' : '24px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        overflow: 'hidden',
       }}
     >
       {/* Tabs */}
       <div
         style={{
           display: 'flex',
-          gap: '16px',
-          marginBottom: '24px',
+          gap: isMobile ? '4px' : '16px',
+          marginBottom: isMobile ? '16px' : '24px',
           borderBottom: '1px solid #e0e0e0',
+          overflow: 'hidden',
         }}
       >
         <button
           onClick={() => setActiveTab('connections')}
           style={{
-            padding: '12px 24px',
+            padding: isMobile ? '8px 8px' : '12px 24px',
             background: 'transparent',
             border: 'none',
             borderBottom:
               activeTab === 'connections' ? '2px solid #388896' : '2px solid transparent',
             fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
+            fontSize: isMobile ? '13px' : '16px',
             fontWeight: 600,
             color: activeTab === 'connections' ? '#388896' : '#979797',
             cursor: 'pointer',
+            whiteSpace: 'nowrap',
           }}
         >
           {t.community.myConnections} ({connections.length})
@@ -222,16 +232,17 @@ export function ConnectionsList() {
         <button
           onClick={() => setActiveTab('requests')}
           style={{
-            padding: '12px 24px',
+            padding: isMobile ? '8px 8px' : '12px 24px',
             background: 'transparent',
             border: 'none',
             borderBottom:
               activeTab === 'requests' ? '2px solid #388896' : '2px solid transparent',
             fontFamily: 'Roboto, sans-serif',
-            fontSize: '16px',
+            fontSize: isMobile ? '13px' : '16px',
             fontWeight: 600,
             color: activeTab === 'requests' ? '#388896' : '#979797',
             cursor: 'pointer',
+            whiteSpace: 'nowrap',
           }}
         >
           {t.community.connectionRequests} ({pendingRequests.length})
@@ -277,38 +288,44 @@ export function ConnectionsList() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    padding: '12px',
+                    padding: isMobile ? '8px' : '12px',
                     borderRadius: '12px',
                     background: '#f8f9fa',
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
+                    gap: isMobile ? '8px' : '0',
                   }}
                 >
                   {/* Profile Picture */}
                   <div
                     style={{
-                      width: '48px',
-                      height: '48px',
+                      width: isMobile ? '40px' : '48px',
+                      height: isMobile ? '40px' : '48px',
                       borderRadius: '50%',
                       background: '#e0e0e0',
-                      marginRight: '12px',
+                      marginRight: isMobile ? '8px' : '12px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '20px',
+                      fontSize: isMobile ? '16px' : '20px',
                       fontWeight: 600,
                       color: '#979797',
+                      flexShrink: 0,
                     }}
                   >
                     {(connection.first_name || connection.name || '?')[0].toUpperCase()}
                   </div>
 
                   {/* User Info */}
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '16px',
+                        fontSize: isMobile ? '14px' : '16px',
                         fontWeight: 600,
                         color: '#192126',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {connection.name || connection.first_name}
@@ -316,7 +333,7 @@ export function ConnectionsList() {
                     <div
                       style={{
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '12px' : '14px',
                         color: '#979797',
                       }}
                     >
@@ -329,16 +346,18 @@ export function ConnectionsList() {
                     onClick={() => handleRemove(connection.id)}
                     disabled={actionLoading[connection.id]}
                     style={{
-                      padding: '8px 20px',
+                      padding: isMobile ? '6px 12px' : '8px 20px',
                       background: 'transparent',
                       border: '1px solid #e0e0e0',
                       borderRadius: '20px',
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '14px',
+                      fontSize: isMobile ? '12px' : '14px',
                       fontWeight: 600,
                       color: '#dc2626',
                       cursor: actionLoading[connection.id] ? 'not-allowed' : 'pointer',
                       opacity: actionLoading[connection.id] ? 0.6 : 1,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
                     }}
                   >
                     {t.community.removeConnection}
@@ -373,38 +392,44 @@ export function ConnectionsList() {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    padding: '12px',
+                    padding: isMobile ? '8px' : '12px',
                     borderRadius: '12px',
                     background: '#f8f9fa',
+                    flexWrap: isMobile ? 'wrap' : 'nowrap',
+                    gap: isMobile ? '8px' : '0',
                   }}
                 >
                   {/* Profile Picture */}
                   <div
                     style={{
-                      width: '48px',
-                      height: '48px',
+                      width: isMobile ? '40px' : '48px',
+                      height: isMobile ? '40px' : '48px',
                       borderRadius: '50%',
                       background: '#e0e0e0',
-                      marginRight: '12px',
+                      marginRight: isMobile ? '8px' : '12px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '20px',
+                      fontSize: isMobile ? '16px' : '20px',
                       fontWeight: 600,
                       color: '#979797',
+                      flexShrink: 0,
                     }}
                   >
                     {(request.first_name || request.name || '?')[0].toUpperCase()}
                   </div>
 
                   {/* User Info */}
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '16px',
+                        fontSize: isMobile ? '14px' : '16px',
                         fontWeight: 600,
                         color: '#192126',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {request.name || request.first_name}
@@ -412,7 +437,7 @@ export function ConnectionsList() {
                     <div
                       style={{
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '12px' : '14px',
                         color: '#979797',
                       }}
                     >
@@ -421,21 +446,22 @@ export function ConnectionsList() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: isMobile ? 'wrap' : 'nowrap', width: isMobile ? '100%' : 'auto', marginTop: isMobile ? '4px' : '0' }}>
                     <button
                       onClick={() => handleAccept(request.id)}
                       disabled={actionLoading[request.id]}
                       style={{
-                        padding: '8px 20px',
+                        padding: isMobile ? '6px 12px' : '8px 20px',
                         background: '#388896',
                         border: 'none',
                         borderRadius: '20px',
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '12px' : '14px',
                         fontWeight: 600,
                         color: '#ffffff',
                         cursor: actionLoading[request.id] ? 'not-allowed' : 'pointer',
                         opacity: actionLoading[request.id] ? 0.6 : 1,
+                        flex: isMobile ? 1 : 'none',
                       }}
                     >
                       {t.community.acceptConnection}
@@ -444,16 +470,17 @@ export function ConnectionsList() {
                       onClick={() => handleDecline(request.id)}
                       disabled={actionLoading[request.id]}
                       style={{
-                        padding: '8px 20px',
+                        padding: isMobile ? '6px 12px' : '8px 20px',
                         background: 'transparent',
                         border: '1px solid #e0e0e0',
                         borderRadius: '20px',
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '14px',
+                        fontSize: isMobile ? '12px' : '14px',
                         fontWeight: 600,
                         color: '#979797',
                         cursor: actionLoading[request.id] ? 'not-allowed' : 'pointer',
                         opacity: actionLoading[request.id] ? 0.6 : 1,
+                        flex: isMobile ? 1 : 'none',
                       }}
                     >
                       {t.community.declineConnection}

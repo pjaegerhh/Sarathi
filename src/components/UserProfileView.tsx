@@ -247,21 +247,16 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error loading user media:', error);
         return;
       }
 
       if (data) {
-        console.log('📸 UserProfileView - Fetched posts with media:', data);
-        
         const allMedia: string[] = [];
         for (const post of data) {
           if (post.media_urls && Array.isArray(post.media_urls)) {
             allMedia.push(...post.media_urls);
           }
         }
-        
-        console.log('📁 UserProfileView - All media paths:', allMedia);
         
         // Load signed URLs for ALL media using cache
         const signedUrls: string[] = [];
@@ -272,15 +267,14 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
               signedUrls.push(signedUrl);
             }
           } catch (err) {
-            console.error('❌ Error processing media URL:', err);
+            // Skip failed media URLs
           }
         }
         
-        console.log('📊 UserProfileView - Total media loaded:', signedUrls.length);
         setUserMedia(signedUrls);
       }
     } catch (error) {
-      console.error('Error in loadUserMedia:', error);
+      // Silently fail
     }
   };
 
@@ -412,7 +406,6 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         // Load signed URL for first media from profile-media bucket
         if (data.media_urls && data.media_urls.length > 0) {
           const firstMedia = data.media_urls[0];
-          console.log('🎬 Loading first media:', firstMedia);
           
           // Check if it's a video
           const isVideo = firstMedia.match(/\.(mp4|webm|ogg)$/i);
@@ -420,7 +413,6 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
           
           // User stories are stored in profile-media bucket
           const signedUrl = await loadSignedUrl('profile-media', firstMedia);
-          console.log('🔗 Story media signed URL:', signedUrl);
           
           if (signedUrl) {
             setStoryMediaUrl(signedUrl);
@@ -431,7 +423,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         setStoryMediaUrl(null);
       }
     } catch (error) {
-      console.error('Error fetching user story:', error);
+      // Silently fail
     }
   };
 

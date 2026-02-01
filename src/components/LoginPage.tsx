@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -25,6 +25,15 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   const [loading, setLoading] = useState(false);
   const [showUnverifiedScreen, setShowUnverifiedScreen] = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +166,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px',
+        padding: isMobile ? '16px' : '20px',
         position: 'relative',
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -167,35 +176,37 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         {/* Unverified Email Warning Card */}
         <div style={{
           width: '100%',
-          maxWidth: '895px',
+          maxWidth: isMobile ? '100%' : '895px',
           backgroundColor: 'white',
-          borderRadius: '30px',
+          borderRadius: isMobile ? '20px' : '30px',
           boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
           overflow: 'hidden',
           display: 'flex',
-          flexDirection: 'row',
-          minHeight: '600px'
+          flexDirection: isMobile ? 'column' : 'row',
+          minHeight: isMobile ? 'auto' : '600px'
         }}>
-          {/* LEFT: Logo Section */}
-          <div style={{
-            width: '287px',
-            background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              src={sarathiLogo} 
-              alt="Sarathi" 
-              style={{ width: '100px', height: 'auto' }}
-            />
-          </div>
+          {/* LEFT: Logo Section - Hidden on mobile */}
+          {!isMobile && (
+            <div style={{
+              width: '287px',
+              background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <img 
+                src={sarathiLogo} 
+                alt="Sarathi" 
+                style={{ width: '100px', height: 'auto' }}
+              />
+            </div>
+          )}
 
           {/* RIGHT: Warning Message */}
           <div style={{
             flex: 1,
-            padding: '60px 40px',
+            padding: isMobile ? '32px 24px' : '60px 40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
@@ -305,7 +316,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px',
+      padding: isMobile ? '16px' : '20px',
       position: 'relative',
       backgroundImage: `url(${backgroundImage})`,
       backgroundSize: 'cover',
@@ -316,53 +327,80 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       {/* Login Card Container */}
       <div style={{
         width: '100%',
-        maxWidth: '895px',
+        maxWidth: isMobile ? '100%' : '895px',
         backgroundColor: 'white',
-        borderRadius: '30px',
+        borderRadius: isMobile ? '20px' : '30px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'row',
-        minHeight: '600px'
+        flexDirection: isMobile ? 'column' : 'row',
+        minHeight: isMobile ? 'auto' : '600px'
       }}>
         
-        {/* LEFT: Logo Section */}
-        <div style={{
-          width: '287px',
-          background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}>
-          <img 
-            src={sarathiLogo} 
-            alt="Sarathi" 
-            style={{ width: '100px', height: 'auto' }}
-          />
-        </div>
+        {/* LEFT: Logo Section - Hidden on mobile */}
+        {!isMobile && (
+          <div style={{
+            width: '287px',
+            background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img 
+              src={sarathiLogo} 
+              alt="Sarathi" 
+              style={{ width: '100px', height: 'auto' }}
+            />
+          </div>
+        )}
 
         {/* RIGHT: Form Section */}
         <div style={{
           flex: 1,
-          padding: '60px 40px',
+          padding: isMobile ? '32px 24px' : '60px 40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <div style={{ width: '100%', maxWidth: '380px' }}>
+          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px' }}>
             
+            {/* Mobile Logo */}
+            {isMobile && (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                marginBottom: '24px' 
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <img 
+                    src={sarathiLogo} 
+                    alt="Sarathi" 
+                    style={{ width: '50px', height: 'auto' }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Title */}
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <div style={{ textAlign: 'center', marginBottom: isMobile ? '24px' : '30px' }}>
               <h1 style={{ 
-                fontSize: '32px', 
+                fontSize: isMobile ? '24px' : '32px', 
                 fontWeight: 500, 
                 color: '#192126', 
                 marginBottom: '8px' 
               }}>
                 {t.auth.login}
               </h1>
-              <p style={{ fontSize: '16px', color: '#979797' }}>
+              <p style={{ fontSize: isMobile ? '14px' : '16px', color: '#979797' }}>
                 {t.auth.loginSubtitle}
               </p>
             </div>

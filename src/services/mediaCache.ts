@@ -38,11 +38,9 @@ class MediaCacheService {
             this.memoryCache.set(key, value);
           }
         });
-        
-        console.log(`📦 Loaded ${this.memoryCache.size} cached media items from storage`);
       }
     } catch (error) {
-      console.error('Error loading media cache from localStorage:', error);
+      // Silently fail - cache is optional
     }
   }
 
@@ -57,7 +55,7 @@ class MediaCacheService {
       });
       localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
     } catch (error) {
-      console.error('Error saving media cache to localStorage:', error);
+      // Silently fail - cache is optional
     }
   }
 
@@ -85,7 +83,6 @@ class MediaCacheService {
     });
     
     if (cleaned > 0) {
-      console.log(`🧹 Cleaned ${cleaned} expired media items from cache`);
       this.saveToLocalStorage();
     }
   }
@@ -105,15 +102,11 @@ class MediaCacheService {
     const cached = this.memoryCache.get(key);
     
     if (cached && cached.expiresAt > Date.now()) {
-      console.log(`✅ Cache HIT: ${key}`);
       return cached.url;
     }
     
     if (cached) {
-      console.log(`⏰ Cache EXPIRED: ${key}`);
       this.memoryCache.delete(key);
-    } else {
-      console.log(`❌ Cache MISS: ${key}`);
     }
     
     return null;
@@ -127,7 +120,6 @@ class MediaCacheService {
     const expiresAt = Date.now() + this.CACHE_DURATION;
     
     this.memoryCache.set(key, { url, expiresAt });
-    console.log(`💾 Cache SET: ${key} (expires in ${Math.round(this.CACHE_DURATION / 60000)} min)`);
     
     // Save to localStorage (debounced in a real app, but ok for now)
     this.saveToLocalStorage();
@@ -139,7 +131,6 @@ class MediaCacheService {
   clear(): void {
     this.memoryCache.clear();
     localStorage.removeItem(this.CACHE_KEY);
-    console.log('🗑️ Media cache cleared');
   }
 
   /**

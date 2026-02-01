@@ -12,6 +12,7 @@ interface RegistrationPageProps {
 
 export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
   const { t } = useLanguage();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   // Password visibility state
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +21,14 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
   // Password match state
   const [passwordsMatch, setPasswordsMatch] = useState<boolean | null>(null);
   const [showSuccessScreen, setShowSuccessScreen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -214,7 +223,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '20px',
+      padding: isMobile ? '16px' : '20px',
       position: 'relative',
       backgroundImage: `url(${backgroundImage})`,
       backgroundSize: 'cover',
@@ -225,50 +234,52 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       {/* Registration Card Container */}
       <div style={{
         width: '100%',
-        maxWidth: '895px',
+        maxWidth: isMobile ? '100%' : '895px',
         backgroundColor: 'white',
-        borderRadius: '30px',
+        borderRadius: isMobile ? '20px' : '30px',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
         overflow: 'hidden',
         display: 'flex',
-        flexDirection: 'row',
-        minHeight: '600px'
+        flexDirection: isMobile ? 'column' : 'row',
+        minHeight: isMobile ? 'auto' : '600px'
       }}>
         
-        {/* LEFT: Logo Section */}
-        <div style={{
-          width: '287px',
-          background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}>
-          <img 
-            src={sarathiLogo} 
-            alt="Sarathi" 
-            style={{ width: '100px', height: 'auto' }}
-          />
-        </div>
+        {/* LEFT: Logo Section - Hidden on mobile */}
+        {!isMobile && (
+          <div style={{
+            width: '287px',
+            background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <img 
+              src={sarathiLogo} 
+              alt="Sarathi" 
+              style={{ width: '100px', height: 'auto' }}
+            />
+          </div>
+        )}
 
         {/* RIGHT: Form or Success Section */}
         {showSuccessScreen ? (
           // Success Screen
           <div style={{
             flex: 1,
-            padding: '60px 40px',
+            padding: isMobile ? '32px 24px' : '60px 40px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
             <div style={{ 
               width: '100%', 
-              maxWidth: '450px',
+              maxWidth: isMobile ? '100%' : '450px',
               backgroundColor: 'white',
               borderRadius: '20px',
-              padding: '48px',
+              padding: isMobile ? '24px 16px' : '48px',
               textAlign: 'center',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+              boxShadow: isMobile ? 'none' : '0 4px 20px rgba(0,0,0,0.08)'
             }}>
               {/* Success Icon with Animation */}
               <div style={{
@@ -351,17 +362,42 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
           // Registration Form
           <div style={{
           flex: 1,
-          padding: '60px 40px',
+          padding: isMobile ? '32px 24px' : '60px 40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <div style={{ width: '100%', maxWidth: '380px' }}>
+          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px' }}>
             
+            {/* Mobile Logo */}
+            {isMobile && (
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                marginBottom: '24px' 
+              }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <img 
+                    src={sarathiLogo} 
+                    alt="Sarathi" 
+                    style={{ width: '50px', height: 'auto' }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Title */}
-            <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <div style={{ marginBottom: isMobile ? '24px' : '32px', textAlign: 'center' }}>
               <h1 style={{ 
-                fontSize: '32px', 
+                fontSize: isMobile ? '24px' : '32px', 
                 fontWeight: 500, 
                 color: '#192126', 
                 marginBottom: '8px' 
