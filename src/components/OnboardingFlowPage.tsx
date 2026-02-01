@@ -77,20 +77,48 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Lock body vertical scroll on mobile when onboarding is shown (avoids scroll in PWA, keeps swipe working)
+  // Lock body/html scroll on mobile when onboarding is shown (avoids vertical move in PWA)
   useEffect(() => {
     if (!isMobile) return;
-    const prevOverflow = document.body.style.overflow;
-    const prevTouchAction = document.body.style.touchAction;
-    const prevOverscrollBehavior = document.body.style.overscrollBehavior;
+    const scrollY = window.scrollY;
+    const html = document.documentElement;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevHtmlHeight = html.style.height;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevBodyTouchAction = document.body.style.touchAction;
+    const prevBodyPosition = document.body.style.position;
+    const prevBodyTop = document.body.style.top;
+    const prevBodyWidth = document.body.style.width;
+    html.style.overflow = 'hidden';
+    html.style.height = '100%';
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'pan-x';
-    document.body.style.overscrollBehavior = 'none';
+    document.body.style.touchAction = 'none';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
     return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.touchAction = prevTouchAction;
-      document.body.style.overscrollBehavior = prevOverscrollBehavior;
+      html.style.overflow = prevHtmlOverflow;
+      html.style.height = prevHtmlHeight;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.touchAction = prevBodyTouchAction;
+      document.body.style.position = prevBodyPosition;
+      document.body.style.top = prevBodyTop;
+      document.body.style.width = prevBodyWidth;
+      window.scrollTo(0, scrollY);
     };
+  }, [isMobile]);
+
+  // Prevent default on touchmove (vertical scroll) so mobile cannot drag page up/down.
+  // Allow touchmove inside elements with data-touch-scroll="allow" (e.g. Step 11 activities list).
+  useEffect(() => {
+    if (!isMobile) return;
+    const preventVerticalScroll = (e: TouchEvent) => {
+      const allowScroll = (e.target as Element)?.closest?.('[data-touch-scroll="allow"]');
+      if (allowScroll) return;
+      e.preventDefault();
+    };
+    document.addEventListener('touchmove', preventVerticalScroll, { passive: false });
+    return () => document.removeEventListener('touchmove', preventVerticalScroll);
   }, [isMobile]);
 
   // Form data
@@ -1774,15 +1802,18 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             </div>
           </div>
 
-          {/* Content */}
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            padding: isMobile ? '16px 12px 70px' : '24px 50px 60px',
-            overflow: 'auto',
-          }}>
+          {/* Content - data-touch-scroll allows vertical scroll inside this area on mobile */}
+          <div
+            data-touch-scroll="allow"
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              padding: isMobile ? '16px 12px 70px' : '24px 50px 60px',
+              overflow: 'auto',
+            }}
+          >
 
             {/* Question Text */}
             <h3 style={{
