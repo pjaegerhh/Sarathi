@@ -14,9 +14,10 @@ import { MobileTopNavigation } from '../MobileTopNavigation';
 
 interface HomePageMobileProps {
   onNavigate: (page: string) => void;
+  isLoggedIn?: boolean;
 }
 
-export function HomePageMobile({ onNavigate }: HomePageMobileProps) {
+export function HomePageMobile({ onNavigate, isLoggedIn = false }: HomePageMobileProps) {
   return (
     <div className="w-full min-h-screen bg-background">
       {/* Mobile Top Navigation - Sticky */}
@@ -54,11 +55,11 @@ export function HomePageMobile({ onNavigate }: HomePageMobileProps) {
 
       <div style={{ height: '50px' }} />
 
-      <CommunitySectionMobile />
+      <CommunitySectionMobile onNavigate={onNavigate} isLoggedIn={isLoggedIn} />
 
       <div style={{ height: '50px' }} />
 
-      <ClosingCTASectionMobile />
+      <ClosingCTASectionMobile onNavigate={onNavigate} isLoggedIn={isLoggedIn} />
 
       <div style={{ height: '50px' }} />
 
