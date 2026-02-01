@@ -5,6 +5,7 @@ import { DesktopNavigation } from './components/DesktopNavigation';
 import { MobileNavigation } from './components/MobileNavigation';
 import { HomePageDesktop, HomePageMobile } from './components/homepage';
 import { LoginPage } from './components/LoginPage';
+import { ForgotPasswordPage } from './components/ForgotPasswordPage';
 import { RegistrationPage } from './components/RegistrationPage';
 import { ProfileSelectionPage } from './components/ProfileSelectionPage';
 import { ProfileCompletePage } from './components/ProfileCompletePage';
@@ -21,7 +22,7 @@ import { OnboardingFlowPage } from './components/OnboardingFlowPage';
 import { Toaster } from './components/ui/sonner';
 import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'user-profile' | 'all-stories' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
+type Page = 'home' | 'auth' | 'forgot-password' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'user-profile' | 'all-stories' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
@@ -205,6 +206,8 @@ function AppContent() {
         );
       case 'auth':
         return <LoginPage onNavigate={handleNavigate} />;
+      case 'forgot-password':
+        return <ForgotPasswordPage onNavigate={handleNavigate} />;
       case 'register':
         return <RegistrationPage onNavigate={handleNavigate} />;
       case 'profile-selection':
@@ -270,7 +273,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation - Hidden only on auth, register, profile-selection, profile-complete, profile-verified, profile-onboarding, onboarding-flow and admin pages */}
-      {currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && (
+      {currentPage !== 'auth' && currentPage !== 'forgot-password' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && (
         <>
           {isMobile ? (
             <MobileNavigation onNavigate={handleNavigate} currentPage={currentPage} />
@@ -283,7 +286,7 @@ function AppContent() {
       )}
 
       {/* Page Content */}
-      <main className={currentPage !== 'auth' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && currentPage !== 'profile' && currentPage !== 'user-profile' && !isMobile ? 'pt-[72px]' : ''}>
+      <main className={currentPage !== 'auth' && currentPage !== 'forgot-password' && currentPage !== 'register' && currentPage !== 'profile-selection' && currentPage !== 'profile-complete' && currentPage !== 'profile-verified' && currentPage !== 'profile-onboarding' && currentPage !== 'onboarding-flow' && currentPage !== 'admin' && currentPage !== 'home' && currentPage !== 'tutorial' && currentPage !== 'profile' && currentPage !== 'user-profile' && !isMobile ? 'pt-[72px]' : ''}>
         {renderPage()}
       </main>
 

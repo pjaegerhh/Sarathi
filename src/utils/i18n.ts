@@ -35,6 +35,30 @@ export interface Translations {
     loginWithApple: string;
     orLoginWith: string;
     forgotPassword: string;
+    resetPasswordTitle: string;
+    resetPasswordSubtitle: string;
+    resetByEmail: string;
+    resetByPhone: string;
+    resetByPhoneComingSoon: string;
+    sendResetLink: string;
+    sendCode: string;
+    resetLinkSent: string;
+    codeSent: string;
+    enterVerificationCode: string;
+    codeSentToEmail: string;
+    verifyCode: string;
+    resendCode: string;
+    resendCodeIn: string;
+    invalidCode: string;
+    rateLimitOtp: string;
+    setNewPasswordTitle: string;
+    setNewPasswordSubtitle: string;
+    setPasswordButton: string;
+    passwordUpdated: string;
+    passwordSameAsOld: string;
+    showPassword: string;
+    hidePassword: string;
+    backToLogin: string;
     rememberMe: string;
     dontHaveAccount: string;
     alreadyHaveAccount: string;
@@ -685,6 +709,30 @@ export const translations: Record<Language, Translations> = {
       loginWithApple: 'Login with Apple',
       orLoginWith: 'Or login with',
       forgotPassword: 'Forgot Password?',
+      resetPasswordTitle: 'Forgot password?',
+      resetPasswordSubtitle: 'Enter your email to receive a password reset link.',
+      resetByEmail: 'Email',
+      resetByPhone: 'Phone number',
+      resetByPhoneComingSoon: 'Coming soon',
+      sendResetLink: 'Send reset link',
+      sendCode: 'Send code',
+      resetLinkSent: 'Check your email for the password reset link.',
+      codeSent: 'We sent a 6-digit code to your email.',
+      enterVerificationCode: 'Enter verification code',
+      codeSentToEmail: 'We sent a 6-digit code to {email}',
+      verifyCode: 'Verify',
+      resendCode: 'Resend code',
+      resendCodeIn: 'Resend code in {seconds}s',
+      invalidCode: 'Invalid or expired code. Please try again.',
+      rateLimitOtp: 'Too many requests. Please wait a minute before requesting another code. For testing, increase limits in Supabase Dashboard → Authentication → Rate limits.',
+      setNewPasswordTitle: 'Create new password',
+      setNewPasswordSubtitle: 'Your new password must be different from previously used passwords.',
+      setPasswordButton: 'Set password',
+      passwordUpdated: 'Password updated successfully.',
+      passwordSameAsOld: 'Please choose a different password. You cannot reuse your current password.',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
+      backToLogin: 'Back to login',
       rememberMe: 'Remember me',
       dontHaveAccount: "Don't have an account?",
       alreadyHaveAccount: 'Already have an account?',
@@ -1295,6 +1343,30 @@ export const translations: Record<Language, Translations> = {
       loginWithApple: 'Apple से लॉगिन करें',
       orLoginWith: 'या लॉगिन करें के साथ',
       forgotPassword: 'पासवर्ड भूल गए?',
+      resetPasswordTitle: 'पासवर्ड भूल गए?',
+      resetPasswordSubtitle: 'पासवर्ड रीसेट लिंक प्राप्त करने के लिए अपना ईमेल दर्ज करें।',
+      resetByEmail: 'ईमेल',
+      resetByPhone: 'फोन नंबर',
+      resetByPhoneComingSoon: 'जल्द आ रहा है',
+      sendResetLink: 'रीसेट लिंक भेजें',
+      sendCode: 'कोड भेजें',
+      resetLinkSent: 'पासवर्ड रीसेट लिंक के लिए अपना ईमेल जांचें।',
+      codeSent: 'हमने आपके ईमेल पर 6-अंकीय कोड भेजा है।',
+      enterVerificationCode: 'सत्यापन कोड दर्ज करें',
+      codeSentToEmail: 'हमने {email} पर 6-अंकीय कोड भेजा है',
+      verifyCode: 'सत्यापित करें',
+      resendCode: 'कोड पुनः भेजें',
+      resendCodeIn: '{seconds} सेकंड में कोड पुनः भेजें',
+      invalidCode: 'अमान्य या समाप्त कोड। कृपया पुनः प्रयास करें।',
+      rateLimitOtp: 'बहुत अधिक अनुरोध। कृपया दूसरा कोड भेजने से पहले एक मिनट प्रतीक्षा करें।',
+      setNewPasswordTitle: 'नया पासवर्ड बनाएं',
+      setNewPasswordSubtitle: 'आपका नया पासवर्ड पहले इस्तेमाल किए गए पासवर्ड से अलग होना चाहिए।',
+      setPasswordButton: 'पासवर्ड सेट करें',
+      passwordUpdated: 'पासवर्ड सफलतापूर्वक अपडेट हो गया।',
+      passwordSameAsOld: 'कृपया एक अलग पासवर्ड चुनें। आप अपना वर्तमान पासवर्ड पुनः उपयोग नहीं कर सकते।',
+      showPassword: 'पासवर्ड दिखाएं',
+      hidePassword: 'पासवर्ड छुपाएं',
+      backToLogin: 'लॉगिन पर वापस जाएं',
       rememberMe: 'मुझे याद रखें',
       dontHaveAccount: 'खाता नहीं है?',
       alreadyHaveAccount: 'पहले से खाता है?',
