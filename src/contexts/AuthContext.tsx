@@ -32,6 +32,9 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string, firstName?: string) => Promise<void>;
+  sendPasswordResetCode: (email: string) => Promise<void>;
+  verifyPasswordResetCode: (email: string, token: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   loginWithProvider: (provider: 'google' | 'facebook' | 'apple') => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<SarathiUser>) => Promise<void>;
@@ -336,6 +339,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const sendPasswordResetCode = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    if (error) {
+      const status = (error as { status?: number }).status;
+      if (status === 429) throw new Error('RATE_LIMIT_OTP');
+      throw new Error(error.message);
+    }
+  };
+
+  const verifyPasswordResetCode = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    if (error) throw new Error(error.message);
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      const msg = error.message?.toLowerCase() ?? '';
+      const isSamePassword =
+        (error as any).status === 422 ||
+        msg.includes('same') ||
+        msg.includes('different from the old') ||
+        msg.includes('reuse') ||
+        msg.includes('current password');
+      if (isSamePassword) throw new Error('PASSWORD_SAME_AS_OLD');
+      throw new Error(error.message);
+    }
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) {
+      const mappedUser = await mapSupabaseUserToUser(sessionData.session.user);
+      setUser(mappedUser);
+      setSession(sessionData.session);
+    }
+  };
+
   const loginWithProvider = async (provider: 'google' | 'facebook' | 'apple') => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -413,7 +458,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, login, signup, loginWithProvider, logout, updateProfile }}
+      value={{ user, session, loading, login, signup, sendPasswordResetCode, verifyPasswordResetCode, updatePassword, loginWithProvider, logout, updateProfile }}
     >
       {children}
     </AuthContext.Provider>

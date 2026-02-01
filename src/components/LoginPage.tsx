@@ -431,7 +431,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                     type="tel"
                     value={telephone}
                     onChange={(e) => setTelephone(e.target.value)}
-                    placeholder="Enter your phone number"
+                    placeholder={t.auth.enterPhoneNumber}
                     disabled
                     style={{
                       flex: 1,
@@ -453,7 +453,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t.auth.enterEmail}
                   required
                   style={{
                     width: '100%',
@@ -487,7 +487,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
+                  placeholder={t.auth.password}
                   required
                   style={{
                     width: '100%',
@@ -517,16 +517,20 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     style={{ width: '16px', height: '16px' }}
                   />
-                  <span style={{ color: '#666' }}>Remember me</span>
+                  <span style={{ color: '#666' }}>{t.auth.rememberMe}</span>
                 </label>
-                <button type="button" style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#8AC0AD',
-                  cursor: 'pointer',
-                  fontSize: '14px'
-                }}>
-                  Forgot password ?
+                <button
+                  type="button"
+                  onClick={() => onNavigate('forgot-password')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#8AC0AD',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                  }}
+                >
+                  {t.auth.forgotPassword}
                 </button>
               </div>
 
@@ -548,7 +552,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   opacity: loading ? 0.5 : 1
                 }}
               >
-                {loading ? 'Loading...' : t.auth.loginButton}
+                {loading ? t.common.loading : t.auth.loginButton}
               </button>
 
               {/* Divider */}
@@ -559,7 +563,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 marginBottom: '24px'
               }}>
                 <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
-                <span style={{ fontSize: '14px', color: '#979797' }}>Or login with</span>
+                <span style={{ fontSize: '14px', color: '#979797' }}>{t.auth.orLoginWith}</span>
                 <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
               </div>
 
