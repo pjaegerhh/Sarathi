@@ -101,8 +101,8 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         }
       }
 
-      // User has completed onboarding, go to home
-      onNavigate('home');
+      // User has completed onboarding, go to community
+      onNavigate('community');
     } catch (error: any) {
       // Handle specific error types with helpful messages
       let errorMessage = error.message || t.auth.invalidCredentials;
@@ -351,7 +351,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             <img 
               src={sarathiLogo} 
               alt="Sarathi" 
-              style={{ width: '100px', height: 'auto' }}
+              style={{ width: '80px', height: 'auto' }}
             />
           </div>
         )}
@@ -400,8 +400,8 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 marginBottom: '24px' 
               }}>
                 <div style={{
-                  width: '80px',
-                  height: '80px',
+                  width: '90px',
+                  height: '90px',
                   borderRadius: '50%',
                   background: 'linear-gradient(180deg, #8AC0AD 0%, #388896 100%)',
                   display: 'flex',
