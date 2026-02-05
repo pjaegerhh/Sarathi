@@ -91,14 +91,14 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
     }
   };
 
-  // Search for users when @ is typed
+  // Search for users when typing after @
   useEffect(() => {
     if (mentionSearch.length >= 1) {
       searchUsers(mentionSearch);
     } else {
       setMentionResults([]);
-      setShowMentionDropdown(false);
     }
+    setSelectedMentionIndex(0);
   }, [mentionSearch]);
 
   const searchUsers = async (query: string) => {
@@ -115,7 +115,6 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
       if (error) throw error;
 
       setMentionResults(data || []);
-      setShowMentionDropdown((data || []).length > 0);
     } catch (error) {
       console.error('Error searching users for mentions:', error);
     }
@@ -133,10 +132,10 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
 
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
-      
-      // Check if there's a space after @ (which would end the mention)
+      // Show dropdown when @ is typed; search when user types more
       if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
         setMentionSearch(textAfterAt);
+        setShowMentionDropdown(true);
       } else {
         setMentionSearch('');
         setShowMentionDropdown(false);
@@ -345,6 +344,32 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
         setUploadProgress('');
       }
 
+      // Resolve @mentions to display names that match real users (for bold-only-when-valid)
+      const mentionRegex = /@(\w+\s+\w+)(?=\s|$|[.,!?;:])/g;
+      const mentionSet = new Set<string>();
+      let m;
+      while ((m = mentionRegex.exec(postText.trim() || '')) !== null) {
+        mentionSet.add(m[1].trim());
+      }
+      const resolvedMentions: string[] = [];
+      for (const displayName of mentionSet) {
+        const parts = displayName.trim().split(/\s+/);
+        const first = parts[0];
+        const last = parts.slice(1).join(' ');
+        if (!first || !last) continue;
+        const { data: users } = await supabase
+          .from('sarathi_user')
+          .select('first_name, name')
+          .ilike('first_name', first)
+          .ilike('name', last)
+          .limit(10);
+        const exists = (users || []).some(
+          (row) =>
+            `${(row.first_name || '').trim()} ${(row.name || '').trim()}`.toLowerCase() === displayName.toLowerCase()
+        );
+        if (exists) resolvedMentions.push(displayName);
+      }
+
       const { error: postError } = await supabase
         .from('posts')
         .insert({
@@ -354,6 +379,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
           media_urls: mediaUrls.length > 0 ? mediaUrls : null,
           location: location || null,
           reaction_type: selectedReaction || null,
+          mentioned_display_names: resolvedMentions.length > 0 ? resolvedMentions : null,
         });
 
       if (postError) {
@@ -446,8 +472,8 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
             }}
           />
 
-          {/* Mention Dropdown */}
-          {showMentionDropdown && mentionResults.length > 0 && (
+          {/* Mention Dropdown - shown when @ is typed */}
+          {showMentionDropdown && (
             <div
               style={{
                 position: 'absolute',
@@ -463,29 +489,42 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
                 marginBottom: '8px',
               }}
             >
-              {mentionResults.map((mentionUser, index) => (
+              {mentionResults.length > 0 ? (
+                mentionResults.map((mentionUser, index) => (
+                  <div
+                    key={mentionUser.uuid}
+                    onClick={() => insertMention(mentionUser)}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      background: index === selectedMentionIndex ? '#f0f9fa' : 'transparent',
+                      borderBottom: index < mentionResults.length - 1 ? '1px solid #f2f2f7' : 'none',
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      color: '#192126',
+                    }}
+                    onMouseEnter={() => setSelectedMentionIndex(index)}
+                  >
+                    <strong>@{mentionUser.first_name || mentionUser.name}</strong>
+                    {mentionUser.name && mentionUser.first_name && (
+                      <span style={{ color: '#979797', marginLeft: '8px' }}>
+                        {mentionUser.name}
+                      </span>
+                    )}
+                  </div>
+                ))
+              ) : (
                 <div
-                  key={mentionUser.uuid}
-                  onClick={() => insertMention(mentionUser)}
                   style={{
                     padding: '12px 16px',
-                    cursor: 'pointer',
-                    background: index === selectedMentionIndex ? '#f0f9fa' : 'transparent',
-                    borderBottom: index < mentionResults.length - 1 ? '1px solid #f2f2f7' : 'none',
                     fontFamily: 'Roboto, sans-serif',
                     fontSize: '14px',
-                    color: '#192126',
+                    color: '#979797',
                   }}
-                  onMouseEnter={() => setSelectedMentionIndex(index)}
                 >
-                  <strong>@{mentionUser.first_name || mentionUser.name}</strong>
-                  {mentionUser.name && mentionUser.first_name && (
-                    <span style={{ color: '#979797', marginLeft: '8px' }}>
-                      {mentionUser.name}
-                    </span>
-                  )}
+                  {mentionSearch.length === 0 ? t.community.typeToMentionUsers : t.community.noUsersFound}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { loadSignedUrl } from '../../utils/mediaLoader';
 
 interface User {
   uuid: string;
@@ -30,6 +31,7 @@ export function ConnectionSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [connectionStatuses, setConnectionStatuses] = useState<{ [key: string]: ConnectionStatus }>({});
+  const [profilePictureUrls, setProfilePictureUrls] = useState<Record<string, string>>({});
   const [isSearching, setIsSearching] = useState(false);
   const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({});
 
@@ -57,6 +59,29 @@ export function ConnectionSearch() {
       if (error) throw error;
 
       setSearchResults(data || []);
+
+      // Load profile picture signed URLs for search results
+      if (data && data.length > 0) {
+        const urls: Record<string, string> = {};
+        await Promise.all(
+          data
+            .filter((u) => u.profile_picture_url && !String(u.profile_picture_url).startsWith('http'))
+            .map(async (u) => {
+              const path = String(u.profile_picture_url).startsWith('profile-media/')
+                ? String(u.profile_picture_url).replace('profile-media/', '')
+                : u.profile_picture_url!;
+              try {
+                const signed = await loadSignedUrl('profile-media', path);
+                if (signed) urls[u.uuid] = signed;
+              } catch {
+                // ignore
+              }
+            })
+        );
+        setProfilePictureUrls(urls);
+      } else {
+        setProfilePictureUrls({});
+      }
       
       // Check connection status for each user
       if (data) {
@@ -84,7 +109,7 @@ export function ConnectionSearch() {
         .from('connections')
         .select('id, status, requester_id, addressee_id')
         .or(`and(requester_id.eq.${user.id},addressee_id.eq.${targetUserId}),and(requester_id.eq.${targetUserId},addressee_id.eq.${user.id})`)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         return { status: 'none' };
@@ -244,7 +269,7 @@ export function ConnectionSearch() {
             fontFamily: 'Roboto, sans-serif',
           }}
         >
-          No users found
+          {t.community.noUsersFound}
         </div>
       )}
 
@@ -282,9 +307,22 @@ export function ConnectionSearch() {
                     fontWeight: 600,
                     color: '#979797',
                     flexShrink: 0,
+                    overflow: 'hidden',
                   }}
                 >
-                  {(searchUser.first_name || searchUser.name || '?')[0].toUpperCase()}
+                  {profilePictureUrls[searchUser.uuid] ? (
+                    <img
+                      src={profilePictureUrls[searchUser.uuid]}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    [searchUser.first_name, searchUser.name]
+                      .filter(Boolean)
+                      .map((s) => s![0])
+                      .join('')
+                      .toUpperCase() || '?'
+                  )}
                 </div>
 
                 {/* User Info */}
@@ -300,7 +338,7 @@ export function ConnectionSearch() {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {searchUser.name || searchUser.first_name}
+                    {[searchUser.first_name, searchUser.name].filter(Boolean).join(' ') || t.common.user}
                   </div>
                   <div
                     style={{

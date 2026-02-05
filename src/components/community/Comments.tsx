@@ -8,7 +8,14 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PostComment } from '../../types/community';
+import { loadSignedUrl } from '../../utils/mediaLoader';
 import { moderateContent, logModerationResult } from '../../services/moderationService';
+
+interface MentionUser {
+  uuid: string;
+  name: string;
+  first_name: string;
+}
 import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from './FeelingPicker';
 import { LocationModal } from './LocationModal';
 import { Lightbox } from './Lightbox';
@@ -61,6 +68,13 @@ export const Comments: React.FC<CommentsProps> = ({
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxMediaUrls, setLightboxMediaUrls] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [profilePictureUrls, setProfilePictureUrls] = useState<Record<string, string>>({});
+  // Mention lookup while typing
+  const [mentionSearch, setMentionSearch] = useState('');
+  const [mentionResults, setMentionResults] = useState<MentionUser[]>([]);
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
+  const [commentCursorPosition, setCommentCursorPosition] = useState(0);
 
   // Load comments
   useEffect(() => {
@@ -136,6 +150,24 @@ export const Comments: React.FC<CommentsProps> = ({
 
         setComments(rootComments);
         onCommentCountChange?.(commentsWithLikes.length);
+
+        // Resolve profile picture signed URLs for all comment authors
+        const urls: Record<string, string> = {};
+        await Promise.all(
+          commentsWithLikes
+            .filter((c) => c.user?.profile_picture_url && !String(c.user.profile_picture_url).startsWith('http'))
+            .map(async (c) => {
+              const raw = String(c.user!.profile_picture_url);
+              const path = raw.startsWith('profile-media/') ? raw.replace('profile-media/', '') : raw;
+              try {
+                const signed = await loadSignedUrl('profile-media', path);
+                if (signed) urls[c.user_id] = signed;
+              } catch {
+                // ignore
+              }
+            })
+        );
+        setProfilePictureUrls((prev) => ({ ...prev, ...urls }));
       } else if (data) {
         const commentsWithData = data.map(c => ({ 
           ...c, 
@@ -170,6 +202,24 @@ export const Comments: React.FC<CommentsProps> = ({
         
         setComments(rootComments);
         onCommentCountChange?.(commentsWithData.length);
+
+        // Resolve profile picture signed URLs for all comment authors
+        const urls: Record<string, string> = {};
+        await Promise.all(
+          commentsWithData
+            .filter((c) => c.user?.profile_picture_url && !String(c.user.profile_picture_url).startsWith('http'))
+            .map(async (c) => {
+              const raw = String(c.user!.profile_picture_url);
+              const path = raw.startsWith('profile-media/') ? raw.replace('profile-media/', '') : raw;
+              try {
+                const signed = await loadSignedUrl('profile-media', path);
+                if (signed) urls[c.user_id] = signed;
+              } catch {
+                // ignore
+              }
+            })
+        );
+        setProfilePictureUrls((prev) => ({ ...prev, ...urls }));
       }
     } catch (err) {
       console.error('Error loading comments:', err);
@@ -177,6 +227,64 @@ export const Comments: React.FC<CommentsProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Search users for @mention dropdown
+  const searchUsersForMention = async (query: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('sarathi_user')
+        .select('uuid, name, first_name')
+        .or(`name.ilike.%${query}%,first_name.ilike.%${query}%`)
+        .neq('uuid', user.id)
+        .limit(5);
+      if (error) throw error;
+      setMentionResults(data || []);
+    } catch {
+      setMentionResults([]);
+    }
+  };
+
+  useEffect(() => {
+    if (mentionSearch.length >= 1) {
+      searchUsersForMention(mentionSearch);
+    } else {
+      setMentionResults([]);
+    }
+    setSelectedMentionIndex(0);
+  }, [mentionSearch]);
+
+  const handleCommentTextChange = (newValue: string, cursorPos: number) => {
+    setNewComment(newValue);
+    setCommentCursorPosition(cursorPos);
+    const textBeforeCursor = newValue.slice(0, cursorPos);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
+      if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
+        setMentionSearch(textAfterAt);
+        setShowMentionDropdown(true);
+        return;
+      }
+    }
+    setMentionSearch('');
+    setShowMentionDropdown(false);
+  };
+
+  const insertMentionInComment = (mentionedUser: MentionUser) => {
+    const textBeforeCursor = newComment.slice(0, commentCursorPosition);
+    const textAfterCursor = newComment.slice(commentCursorPosition);
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+    if (lastAtIndex === -1) return;
+    const firstName = mentionedUser.first_name || '';
+    const lastName = mentionedUser.name || '';
+    const mention = `@${firstName} ${lastName}`;
+    const updated = textBeforeCursor.slice(0, lastAtIndex) + mention + ' ' + textAfterCursor;
+    setNewComment(updated);
+    setShowMentionDropdown(false);
+    setMentionSearch('');
+    setCommentCursorPosition(lastAtIndex + mention.length + 1);
   };
 
   const handleSubmitComment = async () => {
@@ -228,6 +336,32 @@ export const Comments: React.FC<CommentsProps> = ({
         }
       }
 
+      // Resolve @mentions to display names that match real users
+      const mentionRegex = /@(\w+\s+\w+)(?=\s|$|[.,!?;:])/g;
+      const mentionSet = new Set<string>();
+      let mentionMatch;
+      while ((mentionMatch = mentionRegex.exec(commentToSave)) !== null) {
+        mentionSet.add(mentionMatch[1].trim());
+      }
+      const resolvedMentions: string[] = [];
+      for (const displayName of mentionSet) {
+        const parts = displayName.trim().split(/\s+/);
+        const first = parts[0];
+        const last = parts.slice(1).join(' ');
+        if (!first || !last) continue;
+        const { data: users } = await supabase
+          .from('sarathi_user')
+          .select('first_name, name')
+          .ilike('first_name', first)
+          .ilike('name', last)
+          .limit(10);
+        const exists = (users || []).some(
+          (row) =>
+            `${(row.first_name || '').trim()} ${(row.name || '').trim()}`.toLowerCase() === displayName.toLowerCase()
+        );
+        if (exists) resolvedMentions.push(displayName);
+      }
+
       const { data, error } = await supabase
         .from('post_comments')
         .insert({
@@ -238,7 +372,8 @@ export const Comments: React.FC<CommentsProps> = ({
           moderation_status: 'approved', // TODO: Change to 'pending' when moderation is enabled
           original_language: language,
           location: newCommentLocation || null,
-          media_urls: mediaUrls.length > 0 ? mediaUrls : null
+          media_urls: mediaUrls.length > 0 ? mediaUrls : null,
+          mentioned_display_names: resolvedMentions.length > 0 ? resolvedMentions : null,
         })
         .select(`
           *,
@@ -252,6 +387,20 @@ export const Comments: React.FC<CommentsProps> = ({
         .single();
 
       if (error) throw error;
+
+      // Resolve current user's profile picture URL for the new comment so it displays correctly
+      if (data?.user?.profile_picture_url && !String(data.user.profile_picture_url).startsWith('http')) {
+        const raw = String(data.user.profile_picture_url);
+        const path = raw.startsWith('profile-media/') ? raw.replace('profile-media/', '') : raw;
+        try {
+          const signed = await loadSignedUrl('profile-media', path);
+          if (signed) {
+            setProfilePictureUrls((prev) => ({ ...prev, [data.user_id]: signed }));
+          }
+        } catch {
+          // ignore
+        }
+      }
 
       // Add reaction if selected
       if (newCommentReaction && data) {
@@ -613,18 +762,16 @@ export const Comments: React.FC<CommentsProps> = ({
     return `${Math.floor(seconds / 604800)}${t.community.weeksAgo}`;
   };
 
-  // Parse and render @mentions in comment text
-  const renderCommentText = (text: string) => {
-    // Regular expression to match @mentions (FirstName LastName format)
-    // Matches @Word Word followed by a space, punctuation, or end of string
+  // Parse and render @mentions in comment text; only bold when mention matches a real user
+  const renderCommentText = (text: string, validMentions?: string[] | null) => {
     const mentionRegex = /@(\w+\s+\w+)(?=\s|$|[.,!?;:])/g;
     const parts: (string | JSX.Element)[] = [];
     let lastIndex = 0;
     let match;
     let keyIndex = 0;
+    const validSet = new Set((validMentions || []).map((s) => s.trim().toLowerCase()));
 
     while ((match = mentionRegex.exec(text)) !== null) {
-      // Add text before the mention
       if (match.index > lastIndex) {
         parts.push(
           <span key={`text-${keyIndex++}`} style={{ fontWeight: 'normal' }}>
@@ -632,18 +779,15 @@ export const Comments: React.FC<CommentsProps> = ({
           </span>
         );
       }
-      
-      // Add the mention without @ and in bold
+      const displayName = match[1].trim();
+      const isResolved = validSet.has(displayName.toLowerCase());
       parts.push(
-        <span key={`mention-${keyIndex++}`} style={{ fontWeight: 'bold' }}>
-          {match[1]}
+        <span key={`mention-${keyIndex++}`} style={{ fontWeight: isResolved ? 'bold' : 'normal' }}>
+          {displayName}
         </span>
       );
-      
       lastIndex = match.index + match[0].length;
     }
-    
-    // Add remaining text after the last mention
     if (lastIndex < text.length) {
       parts.push(
         <span key={`text-${keyIndex++}`} style={{ fontWeight: 'normal' }}>
@@ -651,7 +795,6 @@ export const Comments: React.FC<CommentsProps> = ({
         </span>
       );
     }
-    
     return parts.length > 0 ? <>{parts}</> : text;
   };
 
@@ -711,15 +854,18 @@ export const Comments: React.FC<CommentsProps> = ({
               cursor: onNavigate ? 'pointer' : 'default',
             }}
           >
-            {comment.user?.profile_picture_url ? (
-              <img
-                src={comment.user.profile_picture_url}
-                alt={comment.user.first_name || ''}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              comment.user?.first_name?.[0] || '?'
-            )}
+            {(() => {
+              const avatarUrl = profilePictureUrls[comment.user_id] ?? (comment.user?.profile_picture_url?.startsWith('http') ? comment.user.profile_picture_url : null);
+              return avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={comment.user?.first_name || ''}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                comment.user?.first_name?.[0] || '?'
+              );
+            })()}
           </div>
 
           {/* Content */}
@@ -810,7 +956,7 @@ export const Comments: React.FC<CommentsProps> = ({
                 <>
                   {comment.showTranslation
                     ? (language === 'en' ? comment.translated_text_hi : comment.translated_text_en)
-                    : renderCommentText(comment.comment_text)}
+                    : renderCommentText(comment.comment_text, comment.mentioned_display_names)}
                 </>
               )}
             </div>
@@ -1105,7 +1251,7 @@ export const Comments: React.FC<CommentsProps> = ({
 
         {/* Reply input for this comment */}
         {isReplyingToThis && user && canReply && (
-          <div style={{ marginLeft: depth > 0 ? '52px' : '0', marginTop: '8px', display: 'flex', gap: '12px' }}>
+          <div style={{ marginLeft: depth > 0 ? '52px' : '0', marginTop: '8px', display: 'flex', gap: '12px', position: 'relative' }}>
             <div style={{ flex: 1, position: 'relative' }}>
               {!isMentionModified && initialMention && newComment.startsWith(initialMention.trim()) && (
                 <div
@@ -1123,31 +1269,89 @@ export const Comments: React.FC<CommentsProps> = ({
                   <span style={{ fontWeight: 'normal' }}> {newComment.substring(initialMention.length)}</span>
                 </div>
               )}
+              {showMentionDropdown && isReplyingToThis && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: 0,
+                    right: 0,
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    marginBottom: '8px',
+                  }}
+                >
+                  {mentionResults.length > 0 ? (
+                    mentionResults.map((mentionUser, index) => (
+                      <div
+                        key={mentionUser.uuid}
+                        onClick={() => insertMentionInComment(mentionUser)}
+                        style={{
+                          padding: '12px 16px',
+                          cursor: 'pointer',
+                          background: index === selectedMentionIndex ? '#f0f9fa' : 'transparent',
+                          borderBottom: index < mentionResults.length - 1 ? '1px solid #f2f2f7' : 'none',
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '14px',
+                          color: '#192126',
+                        }}
+                        onMouseEnter={() => setSelectedMentionIndex(index)}
+                      >
+                        <strong>@{mentionUser.first_name || mentionUser.name}</strong>
+                        {mentionUser.name && mentionUser.first_name && (
+                          <span style={{ color: '#979797', marginLeft: '8px' }}>{mentionUser.name}</span>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '12px 16px', fontFamily: 'Roboto, sans-serif', fontSize: '14px', color: '#979797' }}>
+                      {mentionSearch.length === 0 ? t.community.typeToMentionUsers : t.community.noUsersFound}
+                    </div>
+                  )}
+                </div>
+              )}
               <input
                 type="text"
                 value={newComment}
                 onChange={e => {
                   const newValue = e.target.value;
-                  
-                  // Check if user is deleting or modifying the mention
+                  const cursorPos = e.target.selectionStart ?? newValue.length;
                   if (initialMention && !isMentionModified) {
                     const mentionWithoutSpace = initialMention.trim();
-                    // If the new value doesn't start with the full mention, user is editing it
                     if (!newValue.startsWith(mentionWithoutSpace)) {
                       setIsMentionModified(true);
-                      // Convert to @mention format
                       const firstName = comment.user?.first_name || '';
                       const lastName = comment.user?.name || '';
                       const mentionWithAt = `@${firstName} ${lastName}`;
-                      
-                      // Replace the partial mention with @mention
                       const textAfterMention = newComment.substring(initialMention.length);
                       setNewComment(mentionWithAt + ' ' + textAfterMention);
                       return;
                     }
                   }
-                  
-                  setNewComment(newValue);
+                  handleCommentTextChange(newValue, cursorPos);
+                }}
+                onKeyDown={e => {
+                  if (showMentionDropdown) {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSelectedMentionIndex((prev) => (prev < mentionResults.length - 1 ? prev + 1 : prev));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setSelectedMentionIndex((prev) => (prev > 0 ? prev - 1 : 0));
+                    } else if (e.key === 'Enter' && mentionResults.length > 0) {
+                      e.preventDefault();
+                      insertMentionInComment(mentionResults[selectedMentionIndex]);
+                    } else if (e.key === 'Escape') {
+                      setShowMentionDropdown(false);
+                    }
+                  } else if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmitComment();
+                  }
                 }}
                 placeholder={`${t.community.replyTo} ${comment.user?.first_name}...`}
                 autoFocus
@@ -1161,12 +1365,6 @@ export const Comments: React.FC<CommentsProps> = ({
                   outline: 'none',
                   color: !isMentionModified && initialMention && newComment.startsWith(initialMention.trim()) ? 'transparent' : '#192126',
                   caretColor: '#192126'
-                }}
-                onKeyPress={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmitComment();
-                  }
                 }}
               />
             </div>
@@ -1264,11 +1462,27 @@ export const Comments: React.FC<CommentsProps> = ({
               {t.community.writeComment}
             </div>
           ) : replyingTo === 'root' && (
-            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #E0E0E0' }}>
+            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#fff', padding: '16px', borderRadius: '12px', border: '1px solid #E0E0E0', position: 'relative' }}>
               {/* Text Input */}
               <textarea
                 value={newComment}
-                onChange={e => setNewComment(e.target.value)}
+                onChange={e => handleCommentTextChange(e.target.value, e.target.selectionStart ?? e.target.value.length)}
+                onKeyDown={(e) => {
+                  if (showMentionDropdown) {
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setSelectedMentionIndex((prev) => (prev < mentionResults.length - 1 ? prev + 1 : prev));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setSelectedMentionIndex((prev) => (prev > 0 ? prev - 1 : 0));
+                    } else if (e.key === 'Enter' && mentionResults.length > 0) {
+                      e.preventDefault();
+                      insertMentionInComment(mentionResults[selectedMentionIndex]);
+                    } else if (e.key === 'Escape') {
+                      setShowMentionDropdown(false);
+                    }
+                  }
+                }}
                 placeholder={t.community.writeComment}
                 disabled={isSubmitting}
                 autoFocus
@@ -1284,7 +1498,52 @@ export const Comments: React.FC<CommentsProps> = ({
                   fontFamily: 'Roboto, sans-serif'
                 }}
               />
-              
+              {/* Mention dropdown for top-level comment */}
+              {showMentionDropdown && replyingTo === 'root' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '100%',
+                    left: 0,
+                    right: 0,
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    zIndex: 1000,
+                    marginBottom: '8px',
+                  }}
+                >
+                  {mentionResults.length > 0 ? (
+                    mentionResults.map((mentionUser, index) => (
+                      <div
+                        key={mentionUser.uuid}
+                        onClick={() => insertMentionInComment(mentionUser)}
+                        style={{
+                          padding: '12px 16px',
+                          cursor: 'pointer',
+                          background: index === selectedMentionIndex ? '#f0f9fa' : 'transparent',
+                          borderBottom: index < mentionResults.length - 1 ? '1px solid #f2f2f7' : 'none',
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: '14px',
+                          color: '#192126',
+                        }}
+                        onMouseEnter={() => setSelectedMentionIndex(index)}
+                      >
+                        <strong>@{mentionUser.first_name || mentionUser.name}</strong>
+                        {mentionUser.name && mentionUser.first_name && (
+                          <span style={{ color: '#979797', marginLeft: '8px' }}>{mentionUser.name}</span>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '12px 16px', fontFamily: 'Roboto, sans-serif', fontSize: '14px', color: '#979797' }}>
+                      {mentionSearch.length === 0 ? t.community.typeToMentionUsers : t.community.noUsersFound}
+                    </div>
+                  )}
+                </div>
+              )}
               {/* Media Previews */}
               {newCommentMediaPreviews.length > 0 && (
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>

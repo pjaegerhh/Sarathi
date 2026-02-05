@@ -119,8 +119,6 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
 
     // Update existingMediaUrls to only include valid files
     if (validUrls.length !== existingMediaUrls.length) {
-      console.log('Cleaning up orphaned file references...');
-      console.log('Valid files:', validUrls.length, 'out of', existingMediaUrls.length);
       setExistingMediaUrls(validUrls);
       
       // Auto-save to database to clean up orphaned references
@@ -136,7 +134,6 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
           if (error) {
             console.error('Failed to clean up database:', error);
           } else {
-            console.log('Database successfully cleaned up');
             // Refresh the story data in parent to prevent stale data on next open
             onSave();
           }
@@ -273,23 +270,17 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
   const handleDropReorder = (e: React.DragEvent, dropIndex: number, type: 'existing' | 'new') => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('Drop reorder - draggedIndex:', draggedIndex, 'dropIndex:', dropIndex, 'type:', type);
-    
+
     if (draggedIndex === null) {
-      console.log('No dragged index, aborting');
       return;
     }
 
     const actualDropIndex = type === 'existing' ? dropIndex : dropIndex + existingMediaUrls.length;
 
     if (draggedIndex === actualDropIndex) {
-      console.log('Same position, aborting');
       setDraggedIndex(null);
       return;
     }
-
-    console.log('Reordering from', draggedIndex, 'to', actualDropIndex);
 
     // Combine all media for reordering
     const allMedia = [
@@ -297,19 +288,13 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
       ...mediaFiles.map((file, i) => ({ type: 'new' as const, data: file, originalIndex: i }))
     ];
 
-    console.log('Before reorder:', allMedia.map(m => m.type + ':' + (typeof m.data === 'string' ? m.data.split('/').pop() : m.data.name)));
-
     // Reorder
     const [removed] = allMedia.splice(draggedIndex, 1);
     allMedia.splice(actualDropIndex, 0, removed);
 
-    console.log('After reorder:', allMedia.map(m => m.type + ':' + (typeof m.data === 'string' ? m.data.split('/').pop() : m.data.name)));
-
     // Separate back into existing and new
     const newExisting = allMedia.filter(m => m.type === 'existing').map(m => m.data as string);
     const newFiles = allMedia.filter(m => m.type === 'new').map(m => m.data as File);
-
-    console.log('Setting new existing:', newExisting.length, 'new files:', newFiles.length);
 
     setExistingMediaUrls(newExisting);
     setMediaFiles(newFiles);
@@ -343,8 +328,6 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}-${i}.${fileExt}`;
           const filePath = `${userId}/${storyId}/${fileName}`;
-
-          console.log('Uploading file to:', filePath);
 
           const { error: uploadError } = await supabase.storage
             .from('profile-media')
@@ -395,7 +378,6 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
         toast.success(t.profile.storyUpdated);
       } else {
         // Create new story
-        console.log('Creating story with user_id:', userId);
         const { error } = await supabase
           .from('user_stories')
           .insert({

@@ -28,12 +28,11 @@ export function HomePageMobile({ onNavigate, isLoggedIn = false }: HomePageMobil
         <HeroSectionMobile />
       </section>
 
-      <div style={{ height: '50px' }} />
-
-      {/* Content Sections */}
+      {/* Content Sections - QuoteSection commented out (spacer removed to avoid double gap)
       <QuoteSectionMobile />
 
       <div style={{ height: '50px' }} />
+      */}
 
       <ServicesSectionMobile />
 
@@ -51,7 +50,7 @@ export function HomePageMobile({ onNavigate, isLoggedIn = false }: HomePageMobil
 
       <div style={{ height: '50px' }} />
 
-      <ShareStorySectionMobile />
+      <ShareStorySectionMobile onNavigate={onNavigate} isLoggedIn={isLoggedIn} />
 
       <div style={{ height: '50px' }} />
 

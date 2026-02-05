@@ -2908,7 +2908,7 @@ export default function Homepage() {
     <div className="bg-white overflow-clip relative rounded-[8px] size-full" data-name="Homepage">
       <TopNavigationBar />
       <HeroSection />
-      <QuoteSection />
+      {/* <QuoteSection /> */}
       <HealingSection />
       <ProstheticSection />
       <HelpCenter />

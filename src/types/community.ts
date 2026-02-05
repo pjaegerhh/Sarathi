@@ -20,7 +20,8 @@ export interface PostComment {
   translated_text_hi?: string | null;
   created_at: string;
   updated_at: string;
-  
+  mentioned_display_names?: string[] | null;
+
   // Joined data
   user?: {
     uuid: string;
