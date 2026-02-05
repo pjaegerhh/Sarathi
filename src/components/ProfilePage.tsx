@@ -1815,6 +1815,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               borderRadius: isMobile ? '20px' : '30px',
               padding: isMobile ? '10px 12px' : '11px 20px',
               overflow: 'hidden',
+              width: '100%',
+              minWidth: 0,
+              boxSizing: 'border-box',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
