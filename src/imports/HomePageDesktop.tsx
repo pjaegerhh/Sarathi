@@ -2803,7 +2803,7 @@ export default function HomePageDesktop() {
       <div className="absolute bg-secondary h-[39px] left-[-209px] top-[calc(50%+862.5px)] w-[26px]" data-name="Divider" />
       <OnboardingOption />
       <Footer />
-      <IntroductoryQuote />
+      {/* <IntroductoryQuote /> */}
       <ServiceCategories />
       <ProsthesisCategory1 />
       <ClosingContent />

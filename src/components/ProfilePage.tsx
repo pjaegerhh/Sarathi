@@ -80,6 +80,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  // Resolved signed URLs for profile/cover (stored paths are in profile-media bucket)
+  const [coverPictureUrl, setCoverPictureUrl] = useState<string | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+
   // Story state
   const [userStory, setUserStory] = useState<{
     id: string;
@@ -150,6 +154,35 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       });
     }
   }, [user]);
+
+  // Load signed URLs for cover and profile pictures (stored in profile-media bucket)
+  useEffect(() => {
+    if (!user) {
+      setCoverPictureUrl(null);
+      setProfilePictureUrl(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      if (user.cover_picture_url && !user.cover_picture_url.startsWith('http')) {
+        const url = await loadSignedUrl('profile-media', user.cover_picture_url);
+        if (!cancelled && url) setCoverPictureUrl(url);
+      } else if (user.cover_picture_url?.startsWith('http')) {
+        setCoverPictureUrl(user.cover_picture_url);
+      } else {
+        setCoverPictureUrl(null);
+      }
+      if (user.profile_picture_url && !user.profile_picture_url.startsWith('http')) {
+        const url = await loadSignedUrl('profile-media', user.profile_picture_url);
+        if (!cancelled && url) setProfilePictureUrl(url);
+      } else if (user.profile_picture_url?.startsWith('http')) {
+        setProfilePictureUrl(user.profile_picture_url);
+      } else {
+        setProfilePictureUrl(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.cover_picture_url, user?.profile_picture_url]);
 
   // Fetch user story
   useEffect(() => {
@@ -231,6 +264,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           like_count,
           comment_count,
           repost_count,
+          mentioned_display_names,
           sarathi_user!posts_user_id_fkey (
             uuid,
             name,
@@ -264,6 +298,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             like_count: post.like_count || 0,
             comment_count: post.comment_count || 0,
             repost_count: post.repost_count || 0,
+            mentioned_display_names: post.mentioned_display_names || null,
             user_name: postUser?.name || '',
             user_first_name: postUser?.first_name || '',
             user_profile_picture: postUser?.profile_picture_url || null,
@@ -716,8 +751,8 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           style={{ 
             width: '100%', 
             height: isMobile ? '280px' : '420px', 
-            background: user.cover_picture_url 
-              ? `url(${user.cover_picture_url})` 
+            backgroundImage: coverPictureUrl 
+              ? `url(${coverPictureUrl})` 
               : 'linear-gradient(135deg, #8AC0AD 0%, #388896 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -791,7 +826,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             }}
           >
             <img
-              src={user.profile_picture_url || defaultProfilePic}
+              src={profilePictureUrl || defaultProfilePic}
               alt={t.profile.profilePicture}
               style={{
                 width: '100%',
@@ -1092,6 +1127,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     <input
                       value={editData.profession}
                       onChange={(e) => setEditData({ ...editData, profession: e.target.value })}
+                      placeholder={t.profile.professionPlaceholder}
                       style={{
                         flex: 1,
                         fontFamily: 'Roboto, sans-serif',
@@ -1126,6 +1162,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     <input
                       value={editData.workplace}
                       onChange={(e) => setEditData({ ...editData, workplace: e.target.value })}
+                      placeholder={t.profile.workplacePlaceholder}
                       style={{
                         flex: 1,
                         fontFamily: 'Roboto, sans-serif',
@@ -1160,6 +1197,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                     <input
                       value={editData.place_of_residence}
                       onChange={(e) => setEditData({ ...editData, place_of_residence: e.target.value })}
+                      placeholder={t.profile.placeOfResidencePlaceholder}
                       style={{
                         flex: 1,
                         fontFamily: 'Roboto, sans-serif',

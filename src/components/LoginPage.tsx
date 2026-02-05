@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
@@ -6,9 +7,10 @@ import { supabase } from '../lib/supabase';
 import backgroundImage from '../assets/images/Background_login.png';
 import sarathiLogo from '../assets/svg/sarathi_login.svg';
 import lockIcon from '../assets/svg/lock_pwd.svg';
-import googleIcon from '../assets/svg/google.svg';
-import facebookIcon from '../assets/svg/facebook.svg';
-import appleIcon from '../assets/svg/apple.svg';
+// Social login icons - commented out with "or login with" section
+// import googleIcon from '../assets/svg/google.svg';
+// import facebookIcon from '../assets/svg/facebook.svg';
+// import appleIcon from '../assets/svg/apple.svg';
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
@@ -362,8 +364,34 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px' }}>
+          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px', position: isMobile ? 'relative' : undefined }}>
             
+            {/* Mobile: Back chevron */}
+            {isMobile && (
+              <button
+                type="button"
+                onClick={() => onNavigate('home')}
+                aria-label="Back"
+                style={{
+                  position: 'absolute',
+                  top: '24px',
+                  left: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#192126',
+                }}
+              >
+                <ChevronLeft size={28} strokeWidth={2} />
+              </button>
+            )}
+
             {/* Mobile Logo */}
             {isMobile && (
               <div style={{ 
@@ -383,7 +411,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   <img 
                     src={sarathiLogo} 
                     alt="Sarathi" 
-                    style={{ width: '50px', height: 'auto' }}
+                    style={{ width: '40px', height: 'auto' }}
                   />
                 </div>
               </div>
@@ -554,7 +582,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 {loading ? t.common.loading : t.auth.loginButton}
               </button>
 
-              {/* Divider */}
+              {/* "Or login with" and social buttons - commented out
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -566,7 +594,6 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                 <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
               </div>
 
-              {/* Social Buttons - Greyed out/disabled */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'center',
@@ -615,6 +642,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
                   <img src={appleIcon} alt="Apple" style={{ width: '20px', height: '20px', opacity: 0.6 }} />
                 </button>
               </div>
+              */}
 
               {/* Register Link */}
               <div style={{ textAlign: 'center', fontSize: '14px' }}>

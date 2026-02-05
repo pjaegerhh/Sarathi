@@ -520,6 +520,8 @@ export interface Translations {
     myConnections: string;
     findConnections: string;
     searchUsers: string;
+    noUsersFound: string;
+    typeToMentionUsers: string;
     searchPlaceholder: string;
     communityStories: string;
     everyJourneyInspires: string;
@@ -621,6 +623,9 @@ export interface Translations {
     profession: string;
     workplace: string;
     placeOfResidence: string;
+    professionPlaceholder: string;
+    workplacePlaceholder: string;
+    placeOfResidencePlaceholder: string;
     worksAt: string;
     from: string;
     prostheticType: string;
@@ -1217,6 +1222,8 @@ export const translations: Record<Language, Translations> = {
       myConnections: 'My Connections',
       findConnections: 'Find Connections',
       searchUsers: 'Search users...',
+      noUsersFound: 'No users found',
+      typeToMentionUsers: 'Type a name to mention a user',
       searchPlaceholder: 'Search stories, discussions, topics....',
       communityStories: 'COMMUNITY STORIES',
       everyJourneyInspires: 'Every Journey Inspires, Every Voice Matters',
@@ -1319,6 +1326,9 @@ export const translations: Record<Language, Translations> = {
       profession: 'Profession',
       workplace: 'Workplace',
       placeOfResidence: 'Place of Residence',
+      professionPlaceholder: 'Job role / Profession',
+      workplacePlaceholder: 'Company you are working for',
+      placeOfResidencePlaceholder: 'Place of living',
       worksAt: 'Works at',
       from: 'From',
       prostheticType: 'Prosthesis type',
@@ -1891,6 +1901,8 @@ export const translations: Record<Language, Translations> = {
       myConnections: 'मेरे कनेक्शन',
       findConnections: 'कनेक्शन खोजें',
       searchUsers: 'उपयोगकर्ता खोजें...',
+      noUsersFound: 'कोई उपयोगकर्ता नहीं मिला',
+      typeToMentionUsers: 'उपयोगकर्ता का उल्लेख करने के लिए नाम टाइप करें',
       searchPlaceholder: 'कहानियाँ, चर्चाएँ, विषय खोजें....',
       communityStories: 'सामुदायिक कहानियाँ',
       everyJourneyInspires: 'हर यात्रा प्रेरित करती है, हर आवाज़ महत्वपूर्ण है',
@@ -1993,6 +2005,9 @@ export const translations: Record<Language, Translations> = {
       profession: 'पेशा',
       workplace: 'कार्यस्थल',
       placeOfResidence: 'निवास स्थान',
+      professionPlaceholder: 'नौकरी की भूमिका / पेशा',
+      workplacePlaceholder: 'जिस कंपनी में आप काम करते हैं',
+      placeOfResidencePlaceholder: 'रहने की जगह',
       worksAt: 'में काम करते हैं',
       from: 'से',
       prostheticType: 'कृत्रिम अंग प्रकार',

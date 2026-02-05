@@ -28,6 +28,7 @@ interface Post {
   user_profile_picture: string | null;
   location?: string | null;
   reaction_type?: string | null;
+  mentioned_display_names?: string[] | null;
 }
 
 export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobileProp }: CommunityPageProps) {
@@ -89,6 +90,7 @@ export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobilePr
           created_at,
           location,
           reaction_type,
+          mentioned_display_names,
           user:user_id (
             name,
             first_name,
@@ -112,6 +114,7 @@ export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobilePr
         created_at: post.created_at,
         location: post.location,
         reaction_type: post.reaction_type || null,
+        mentioned_display_names: post.mentioned_display_names || null,
         user_name: post.user?.name || '',
         user_first_name: post.user?.first_name || '',
         user_profile_picture: post.user?.profile_picture_url || null,
@@ -249,7 +252,6 @@ export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobilePr
           searchValue={searchQuery}
           onNotificationClick={() => {
             // TODO: Implement notifications
-            console.log('Notifications clicked');
           }}
           hasNotifications={false}
           isMobile={isMobile}

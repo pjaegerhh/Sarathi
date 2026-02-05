@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import { UserRole } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { toast } from 'sonner';
@@ -367,8 +368,34 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px' }}>
+          <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '380px', position: isMobile ? 'relative' : undefined }}>
             
+            {/* Mobile: Back chevron */}
+            {isMobile && (
+              <button
+                type="button"
+                onClick={() => onNavigate('auth')}
+                aria-label="Back"
+                style={{
+                  position: 'absolute',
+                  top: '24px',
+                  left: '24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '40px',
+                  height: '40px',
+                  padding: 0,
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#192126',
+                }}
+              >
+                <ChevronLeft size={28} strokeWidth={2} />
+              </button>
+            )}
+
             {/* Mobile Logo */}
             {isMobile && (
               <div style={{ 
