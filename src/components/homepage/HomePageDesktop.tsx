@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { DesktopNavigationBar } from '../DesktopNavigationBar';
 import {
   HeroSection,
-  QuoteSectionDesktop,
   ServicesSectionDesktop,
   ProsthesisSectionDesktop,
   HelpCenterFinderSectionDesktop,
@@ -62,9 +61,7 @@ export function HomePageDesktop({ onNavigate, isLoggedIn = false }: HomePageDesk
               </div>
             </section>
 
-            <div style={{ height: '75px' }} />
-
-            {/* 2. QuoteSection */}
+            {/* 2. QuoteSection - commented out (spacer was 75px; removed to avoid double gap)
             <section className="w-full flex justify-center">
               <div className="w-full max-w-[1280px] flex items-center justify-center">
                 <QuoteSectionDesktop />
@@ -72,6 +69,7 @@ export function HomePageDesktop({ onNavigate, isLoggedIn = false }: HomePageDesk
             </section>
 
             <div style={{ height: '75px' }} />
+            */}
 
             {/* 3. ServicesSection */}
             <section className="w-full flex justify-center">
@@ -112,7 +110,7 @@ export function HomePageDesktop({ onNavigate, isLoggedIn = false }: HomePageDesk
             {/* 7. ShareStorySection */}
             <section className="w-full flex justify-center">
               <div className="w-full max-w-[1280px] flex items-center justify-center">
-                <ShareStorySectionDesktop />
+                <ShareStorySectionDesktop onNavigate={onNavigate} isLoggedIn={isLoggedIn} />
               </div>
             </section>
 

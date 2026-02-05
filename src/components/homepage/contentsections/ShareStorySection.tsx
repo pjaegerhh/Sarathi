@@ -10,9 +10,15 @@ import VideoIcon from '../../../assets/svg/video.svg';
 // ===========================================
 // SECTION 7: SHARE STORY
 // ===========================================
-export function ShareStorySectionDesktop() {
+interface ShareStorySectionProps {
+  onNavigate: (page: string) => void;
+  isLoggedIn?: boolean;
+}
+
+export function ShareStorySectionDesktop({ onNavigate, isLoggedIn = false }: ShareStorySectionProps) {
   const { t } = useLanguage();
   const [shareHovered, setShareHovered] = React.useState(false);
+  const handleButtonClick = () => onNavigate(isLoggedIn ? 'profile' : 'auth');
   const [writeHovered, setWriteHovered] = React.useState(false);
   const [microphoneHovered, setMicrophoneHovered] = React.useState(false);
   const [imageHovered, setImageHovered] = React.useState(false);
@@ -54,6 +60,7 @@ export function ShareStorySectionDesktop() {
                 }}
                 onMouseEnter={() => setShareHovered(true)}
                 onMouseLeave={() => setShareHovered(false)}
+                onClick={handleButtonClick}
               >
                 <span 
                   className="text-label text-nowrap leading-[24px] whitespace-pre"
@@ -89,6 +96,7 @@ export function ShareStorySectionDesktop() {
                   }}
                   onMouseEnter={() => setWriteHovered(true)}
                   onMouseLeave={() => setWriteHovered(false)}
+                  onClick={handleButtonClick}
                 >
                   <img 
                     src={WriteIcon} 
@@ -111,6 +119,7 @@ export function ShareStorySectionDesktop() {
                   }}
                   onMouseEnter={() => setMicrophoneHovered(true)}
                   onMouseLeave={() => setMicrophoneHovered(false)}
+                  onClick={handleButtonClick}
                 >
                   <img 
                     src={MicrophoneIcon} 
@@ -133,6 +142,7 @@ export function ShareStorySectionDesktop() {
                   }}
                   onMouseEnter={() => setImageHovered(true)}
                   onMouseLeave={() => setImageHovered(false)}
+                  onClick={handleButtonClick}
                 >
                   <img 
                     src={ImageIcon} 
@@ -155,6 +165,7 @@ export function ShareStorySectionDesktop() {
                   }}
                   onMouseEnter={() => setVideoHovered(true)}
                   onMouseLeave={() => setVideoHovered(false)}
+                  onClick={handleButtonClick}
                 >
                   <img 
                     src={VideoIcon} 
@@ -224,14 +235,15 @@ export function ShareStorySectionDesktop() {
   );
 }
 
-export function ShareStorySectionMobile() {
+export function ShareStorySectionMobile({ onNavigate, isLoggedIn = false }: ShareStorySectionProps) {
   const { t } = useLanguage();
   const [shareHovered, setShareHovered] = React.useState(false);
   const [writeHovered, setWriteHovered] = React.useState(false);
   const [microphoneHovered, setMicrophoneHovered] = React.useState(false);
   const [imageHovered, setImageHovered] = React.useState(false);
   const [videoHovered, setVideoHovered] = React.useState(false);
-  
+  const handleButtonClick = () => onNavigate(isLoggedIn ? 'profile' : 'auth');
+
   return (
     <div className="flex flex-col items-center gap-[24px] w-full" data-name="Story content">
       {/* First Card: Share Story Container */}
@@ -305,6 +317,7 @@ export function ShareStorySectionMobile() {
             }}
             onMouseEnter={() => setShareHovered(true)}
             onMouseLeave={() => setShareHovered(false)}
+            onClick={handleButtonClick}
           >
             <span 
               className="text-label text-nowrap leading-[20px] whitespace-pre"
@@ -342,6 +355,7 @@ export function ShareStorySectionMobile() {
               }}
               onMouseEnter={() => setWriteHovered(true)}
               onMouseLeave={() => setWriteHovered(false)}
+              onClick={handleButtonClick}
             >
               <img 
                 src={WriteIcon} 
@@ -366,6 +380,7 @@ export function ShareStorySectionMobile() {
               }}
               onMouseEnter={() => setMicrophoneHovered(true)}
               onMouseLeave={() => setMicrophoneHovered(false)}
+              onClick={handleButtonClick}
             >
               <img 
                 src={MicrophoneIcon} 
@@ -390,6 +405,7 @@ export function ShareStorySectionMobile() {
               }}
               onMouseEnter={() => setImageHovered(true)}
               onMouseLeave={() => setImageHovered(false)}
+              onClick={handleButtonClick}
             >
               <img 
                 src={ImageIcon} 
@@ -414,6 +430,7 @@ export function ShareStorySectionMobile() {
               }}
               onMouseEnter={() => setVideoHovered(true)}
               onMouseLeave={() => setVideoHovered(false)}
+              onClick={handleButtonClick}
             >
               <img 
                 src={VideoIcon} 

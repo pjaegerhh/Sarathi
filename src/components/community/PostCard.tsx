@@ -25,6 +25,7 @@ interface Post {
   user_profile_picture: string | null;
   location?: string | null;
   reaction_type?: string | null;
+  mentioned_display_names?: string[] | null;
 }
 
 interface PostCardProps {
@@ -347,18 +348,16 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
     return `${diffWeeks}${t.community.weeksAgo}`;
   };
 
-  // Parse and render @mentions in post text
-  const renderPostText = (text: string) => {
-    // Regular expression to match @mentions (FirstName LastName format)
-    // Matches @Word Word followed by a space, punctuation, or end of string
+  // Parse and render @mentions in post text; only bold when mention matches a real user
+  const renderPostText = (text: string, validMentions?: string[] | null) => {
     const mentionRegex = /@(\w+\s+\w+)(?=\s|$|[.,!?;:])/g;
     const parts: (string | JSX.Element)[] = [];
     let lastIndex = 0;
     let match;
     let keyIndex = 0;
+    const validSet = new Set((validMentions || []).map((s) => s.trim().toLowerCase()));
 
     while ((match = mentionRegex.exec(text)) !== null) {
-      // Add text before the mention
       if (match.index > lastIndex) {
         parts.push(
           <span key={`text-${keyIndex++}`} style={{ fontWeight: 'normal' }}>
@@ -366,18 +365,15 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
           </span>
         );
       }
-      
-      // Add the mention without @ and in bold
+      const displayName = match[1].trim();
+      const isResolved = validSet.has(displayName.toLowerCase());
       parts.push(
-        <span key={`mention-${keyIndex++}`} style={{ fontWeight: 'bold' }}>
-          {match[1]}
+        <span key={`mention-${keyIndex++}`} style={{ fontWeight: isResolved ? 'bold' : 'normal' }}>
+          {displayName}
         </span>
       );
-      
       lastIndex = match.index + match[0].length;
     }
-    
-    // Add remaining text after the last mention
     if (lastIndex < text.length) {
       parts.push(
         <span key={`text-${keyIndex++}`} style={{ fontWeight: 'normal' }}>
@@ -385,7 +381,6 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
         </span>
       );
     }
-    
     return parts.length > 0 ? <>{parts}</> : text;
   };
 
@@ -812,7 +807,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
               whiteSpace: 'pre-wrap',
               wordWrap: 'break-word',
             }}>
-              {renderPostText(post.post_text)}
+              {renderPostText(post.post_text, post.mentioned_display_names)}
             </div>
           )}
         </div>
@@ -1094,40 +1089,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
             <MapPin size={20} />
             <span>{currentLocation}</span>
           </button>
-        ) : (
-          // Show "Add Location" button only to author
-          !readOnly && user?.id === post.user_id && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowLocationModal(true);
-              }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontFamily: 'Roboto, sans-serif',
-                fontSize: '16px',
-                color: '#979797',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                transition: 'background 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f8f9fa';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-              }}
-            >
-              <MapPin size={20} />
-              <span>{t.community.addLocation}</span>
-            </button>
-          )
-        )}
+        ) : null}
       </div>
 
       {/* Comments Section */}

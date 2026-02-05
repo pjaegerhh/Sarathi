@@ -65,6 +65,7 @@ interface Post {
   user_profile_picture: string | null;
   location?: string | null;
   reaction_type?: string | null;
+  mentioned_display_names?: string[] | null;
 }
 
 export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewProps) {
@@ -123,9 +124,6 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
 
       if (data) {
         setProfile(data);
-        console.log('👤 User profile loaded:', data);
-        console.log('🎯 Activities:', data.activities);
-        console.log('💪 Challenges:', data.mainChallenge);
 
         // Load profile picture with cache
         if (data.profile_picture_url) {
@@ -167,6 +165,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
           like_count,
           comment_count,
           repost_count,
+          mentioned_display_names,
           sarathi_user!posts_user_id_fkey (
             uuid,
             name,
@@ -203,6 +202,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
             user_profile_picture: user?.profile_picture_url || null,
             location: post.location || null,
             reaction_type: post.reaction_type || null,
+            mentioned_display_names: post.mentioned_display_names || null,
           };
         });
 
@@ -399,8 +399,6 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
       }
 
       if (data) {
-        console.log('📖 User story fetched:', data);
-        console.log('📸 Story media_urls:', data.media_urls);
         setUserStory(data);
         
         // Load signed URL for first media from profile-media bucket

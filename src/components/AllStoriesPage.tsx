@@ -56,8 +56,6 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
     if (!user) return;
 
     try {
-      console.log('🔍 Loading all stories for user:', user.id);
-      
       const { data, error } = await supabase
         .from('user_stories')
         .select(`
@@ -79,16 +77,12 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
         `)
         .order('created_at', { ascending: false });
 
-      console.log('📚 Stories query result:', { data, error });
-
       if (error) {
         console.error('Error loading stories:', error);
         return;
       }
 
       if (data) {
-        console.log(`✅ Found ${data.length} stories`);
-        
         // Transform and get first image + connection status for each story
         const transformedStories = await Promise.all(
           data.map(async (story: any) => {
@@ -149,7 +143,6 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
           })
         );
 
-        console.log('✅ Transformed stories:', transformedStories);
         setStories(transformedStories);
       }
     } catch (error) {

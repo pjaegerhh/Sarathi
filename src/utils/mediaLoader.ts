@@ -79,6 +79,13 @@ export async function loadMediaUrl(mediaPath: string): Promise<string | null> {
     } else if (mediaPath.startsWith('profile-media/')) {
       bucket = 'profile-media';
       cleanPath = mediaPath.replace('profile-media/', '');
+    } else if (
+      // Profile/cover pics are stored in profile-media as {userId}/profile-*.jpg or {userId}/cover-*.jpg
+      /\/profile-/.test(mediaPath) ||
+      /\/cover-/.test(mediaPath)
+    ) {
+      bucket = 'profile-media';
+      cleanPath = mediaPath;
     }
 
     return loadSignedUrl(bucket, cleanPath);
