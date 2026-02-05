@@ -414,10 +414,14 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
         marginBottom: isMobile ? '12px' : '20px',
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
         position: 'relative',
+        width: '100%',
+        minWidth: 0,
+        maxWidth: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* Text Input with Avatar and Mention Support */}
-      <div style={{ display: 'flex', gap: isMobile ? '12px' : '16px', marginBottom: isMobile ? '12px' : '16px' }}>
+      <div style={{ display: 'flex', gap: isMobile ? '12px' : '16px', marginBottom: isMobile ? '12px' : '16px', minWidth: 0 }}>
         {/* User Avatar */}
         <div
           style={{
@@ -449,7 +453,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
         </div>
 
         {/* Text Input Area */}
-        <div style={{ position: 'relative', flex: 1 }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           <textarea
             ref={textareaRef}
             value={postText}
@@ -620,23 +624,23 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
         </div>
       )}
 
-      {/* Actions - Responsive layout */}
+      {/* Actions - single row, smaller buttons, icon-only when mobile */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        gap: isMobile ? '8px' : '12px', 
-        justifyContent: isMobile ? 'space-between' : 'flex-end',
-        flexWrap: isMobile ? 'wrap' : 'nowrap',
+        gap: isMobile ? '6px' : '10px', 
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        minWidth: 0,
+        width: '100%',
       }}>
-        {/* Action buttons container - wraps on mobile */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: isMobile ? '6px' : '12px',
-          flexWrap: isMobile ? 'wrap' : 'nowrap',
-          flex: isMobile ? '1' : 'none',
+          gap: isMobile ? '6px' : '10px',
+          flexWrap: 'wrap',
+          minWidth: 0,
         }}>
-          {/* Add Media Button */}
           <input
             ref={fileInputRef}
             type="file"
@@ -652,175 +656,118 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
             onMouseLeave={() => setHoveredButton(null)}
             disabled={isSubmitting || selectedFiles.length >= 10}
             style={{
-              padding: isMobile ? '8px 12px' : '10px 20px',
+              padding: isMobile ? '6px' : '8px 12px',
+              minWidth: isMobile ? 32 : undefined,
+              minHeight: isMobile ? 32 : undefined,
               background: hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) ? '#388896' : 'transparent',
               border: '1px solid #e0e0e0',
-              borderRadius: '24px',
+              borderRadius: isMobile ? '50%' : '20px',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: isMobile ? '12px' : '14px',
+              fontSize: '12px',
               color: hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) ? '#ffffff' : '#388896',
               cursor: isSubmitting || selectedFiles.length >= 10 ? 'not-allowed' : 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: isMobile ? '4px' : '8px',
+              justifyContent: 'center',
+              gap: '4px',
               opacity: isSubmitting || selectedFiles.length >= 10 ? 0.5 : 1,
-              transform: !isMobile && hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) ? 'scale(1.1)' : 'scale(1)',
-              boxShadow: !isMobile && hoveredButton === 'media' && !(isSubmitting || selectedFiles.length >= 10) 
-                ? '0px 0px 15px rgba(56, 136, 150, 0.5)' 
-                : '0px 0px 10px rgba(221, 221, 221, 1)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
+              boxShadow: '0px 0px 8px rgba(221, 221, 221, 0.8)',
+              transition: 'background 0.2s ease, color 0.2s ease',
             }}
           >
-            <span>📷</span>
-            {!isMobile && 'Media'}
+            <span style={{ fontSize: isMobile ? 14 : 16 }}>📷</span>
+            {!isMobile && <span>Media</span>}
           </button>
 
-          {/* Add Location Button */}
           <button
             onClick={() => setShowLocationModal(true)}
             onMouseEnter={() => !isMobile && setHoveredButton('location')}
             onMouseLeave={() => setHoveredButton(null)}
             disabled={isSubmitting}
             style={{
-              padding: isMobile ? '8px 12px' : '10px 20px',
-              background: hoveredButton === 'location' && !isSubmitting 
-                ? '#388896' 
-                : location ? '#e0ebe3' : 'transparent',
+              padding: isMobile ? '6px' : '8px 12px',
+              minWidth: isMobile ? 32 : undefined,
+              minHeight: isMobile ? 32 : undefined,
+              background: hoveredButton === 'location' && !isSubmitting ? '#388896' : location ? '#e0ebe3' : 'transparent',
               border: '1px solid #e0e0e0',
-              borderRadius: '24px',
+              borderRadius: isMobile ? '50%' : '20px',
               fontFamily: 'Roboto, sans-serif',
-              fontSize: isMobile ? '12px' : '14px',
+              fontSize: '12px',
               color: hoveredButton === 'location' && !isSubmitting ? '#ffffff' : '#388896',
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: isMobile ? '4px' : '8px',
+              justifyContent: 'center',
+              gap: '4px',
               opacity: isSubmitting ? 0.5 : 1,
-              maxWidth: isMobile ? '120px' : '200px',
-              transform: !isMobile && hoveredButton === 'location' && !isSubmitting ? 'scale(1.1)' : 'scale(1)',
-              boxShadow: !isMobile && hoveredButton === 'location' && !isSubmitting 
-                ? '0px 0px 15px rgba(56, 136, 150, 0.5)' 
-                : '0px 0px 10px rgba(221, 221, 221, 1)',
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
+              maxWidth: isMobile ? 32 : 180,
+              minWidth: 0,
+              overflow: 'hidden',
+              boxShadow: '0px 0px 8px rgba(221, 221, 221, 0.8)',
+              transition: 'background 0.2s ease, color 0.2s ease',
             }}
           >
-            <MapPin size={isMobile ? 14 : 16} style={{ 
-              color: hoveredButton === 'location' && !isSubmitting ? '#ffffff' : '#388896',
-              transition: 'color 0.2s ease',
-            }} />
+            <MapPin size={isMobile ? 14 : 16} style={{ flexShrink: 0, color: 'inherit' }} />
             {!isMobile && (
-              <span style={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {location || t.community.addLocation}
               </span>
             )}
-            {location && (
+            {!isMobile && location && (
               <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLocation('');
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  marginLeft: '4px',
-                  color: hoveredButton === 'location' && !isSubmitting ? '#ffffff' : '#388896',
-                  fontSize: isMobile ? '14px' : '16px',
-                  lineHeight: 1,
-                }}
+                onClick={(e) => { e.stopPropagation(); setLocation(''); }}
+                style={{ marginLeft: 2, cursor: 'pointer', lineHeight: 1 }}
               >
                 ×
               </span>
             )}
           </button>
 
-          {/* Add Feeling Button */}
           <div style={{ position: 'relative' }}>
             <button
               onClick={() => setShowFeelingModal(true)}
-              onMouseEnter={() => {
-                if (!isMobile) {
-                  setHoveredButton('feeling');
-                  if (!selectedReaction) setShowFeelingPicker(true);
-                }
-              }}
-              onMouseLeave={() => {
-                setHoveredButton(null);
-                setShowFeelingPicker(false);
-              }}
+              onMouseEnter={() => { if (!isMobile) setHoveredButton('feeling'); if (!selectedReaction) setShowFeelingPicker(true); }}
+              onMouseLeave={() => { setHoveredButton(null); setShowFeelingPicker(false); }}
               disabled={isSubmitting}
               style={{
-                padding: isMobile ? '8px 12px' : '10px 20px',
-                background: hoveredButton === 'feeling' && !isSubmitting 
-                  ? '#388896' 
-                  : selectedReaction ? '#e0ebe3' : 'transparent',
+                padding: isMobile ? '6px' : '8px 12px',
+                minWidth: isMobile ? 32 : undefined,
+                minHeight: isMobile ? 32 : undefined,
+                background: hoveredButton === 'feeling' && !isSubmitting ? '#388896' : selectedReaction ? '#e0ebe3' : 'transparent',
                 border: '1px solid #e0e0e0',
-                borderRadius: '24px',
+                borderRadius: isMobile ? '50%' : '20px',
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: isMobile ? '12px' : '14px',
+                fontSize: '12px',
                 color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: isMobile ? '4px' : '8px',
+                justifyContent: 'center',
+                gap: '4px',
                 opacity: isSubmitting ? 0.5 : 1,
-                transform: !isMobile && hoveredButton === 'feeling' && !isSubmitting ? 'scale(1.1)' : 'scale(1)',
-                boxShadow: !isMobile && hoveredButton === 'feeling' && !isSubmitting 
-                  ? '0px 0px 15px rgba(56, 136, 150, 0.5)' 
-                  : '0px 0px 10px rgba(221, 221, 221, 1)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
+                boxShadow: '0px 0px 8px rgba(221, 221, 221, 0.8)',
+                transition: 'background 0.2s ease, color 0.2s ease',
               }}
             >
               {selectedReaction ? (
                 <>
-                  <span style={{ fontSize: isMobile ? '14px' : '16px' }}>{getReactionEmoji(selectedReaction)}</span>
+                  <span style={{ fontSize: isMobile ? 14 : 16 }}>{getReactionEmoji(selectedReaction)}</span>
                   {!isMobile && <span>{getReactionLabel(selectedReaction, t)}</span>}
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedReaction(null);
-                    }}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      marginLeft: '4px',
-                      color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
-                      fontSize: isMobile ? '14px' : '16px',
-                      lineHeight: 1,
-                    }}
-                  >
-                    ×
-                  </span>
+                  {!isMobile && (
+                    <span onClick={(e) => { e.stopPropagation(); setSelectedReaction(null); }} style={{ marginLeft: 2, cursor: 'pointer' }}>×</span>
+                  )}
                 </>
               ) : (
                 <>
-                  <Smile size={isMobile ? 14 : 16} style={{ 
-                    color: hoveredButton === 'feeling' && !isSubmitting ? '#ffffff' : '#388896',
-                    transition: 'color 0.2s ease',
-                  }} />
+                  <Smile size={isMobile ? 14 : 16} style={{ color: 'inherit' }} />
                   {!isMobile && <span>Feeling</span>}
                 </>
               )}
             </button>
-
             <FeelingPicker
               isOpen={showFeelingModal}
-              onClose={() => {
-                setShowFeelingModal(false);
-                setShowFeelingPicker(false);
-              }}
-              onSelect={(reaction) => {
-                setSelectedReaction(reaction);
-                setShowFeelingModal(false);
-                setShowFeelingPicker(false);
-              }}
+              onClose={() => { setShowFeelingModal(false); setShowFeelingPicker(false); }}
+              onSelect={(reaction) => { setSelectedReaction(reaction); setShowFeelingModal(false); setShowFeelingPicker(false); }}
               currentReaction={selectedReaction}
               mode="modal"
               isMobile={isMobile}
@@ -828,25 +775,19 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
           </div>
         </div>
 
-        {/* Submit Button */}
         <button
           onClick={handleSubmit}
           disabled={isSubmitting || (!postText.trim() && selectedFiles.length === 0)}
           style={{
-            padding: isMobile ? '10px 20px' : '12px 32px',
-            background: isSubmitting || (!postText.trim() && selectedFiles.length === 0)
-              ? '#cccccc'
-              : '#388896',
+            padding: isMobile ? '8px 16px' : '10px 24px',
+            background: isSubmitting || (!postText.trim() && selectedFiles.length === 0) ? '#cccccc' : '#388896',
             border: 'none',
-            borderRadius: '24px',
+            borderRadius: '20px',
             fontFamily: 'Roboto, sans-serif',
-            fontSize: isMobile ? '14px' : '16px',
-            fontWeight: 700,
+            fontSize: isMobile ? '13px' : '14px',
+            fontWeight: 600,
             color: '#ffffff',
-            cursor:
-              isSubmitting || (!postText.trim() && selectedFiles.length === 0)
-                ? 'not-allowed'
-                : 'pointer',
+            cursor: isSubmitting || (!postText.trim() && selectedFiles.length === 0) ? 'not-allowed' : 'pointer',
             flexShrink: 0,
           }}
         >
