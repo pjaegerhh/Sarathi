@@ -280,7 +280,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
       if (selectedFiles.length > 0) {
         setIsUploading(true);
         
-        // Resize images
+        // Resize all images before upload (full size capped at 4MB); only videos are uploaded as-is
         setUploadProgress('Preparing images...');
         const { thumbnails, fulls } = await resizeImages(selectedFiles, (current, total) => {
           setUploadProgress(`Processing image ${current} of ${total}...`);
@@ -384,7 +384,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
 
       if (postError) {
         console.error('Error creating post:', postError);
-        throw new Error('Failed to create post');
+        throw new Error(postError.message || 'Failed to create post');
       }
 
       setPostText('');
@@ -399,7 +399,8 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
       }
     } catch (error) {
       console.error('Error submitting post:', error);
-      setError(t.community.failedToCreatePost);
+      const message = error instanceof Error ? error.message : t.community.failedToCreatePost;
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
