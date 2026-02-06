@@ -1,23 +1,27 @@
 /**
- * Image resizing utilities for creating thumbnails
+ * Image resizing utilities for creating thumbnails and upload-safe full images.
+ * Keeps full-size images well below 5MB for storage/upload limits.
  */
 
 export interface ResizedImages {
   thumbnail: File;  // Small version for fast display in feed
-  full: File;       // Full size for lightbox
+  full: File;       // Full size for lightbox, capped well below 5MB
 }
 
+/** Max full-image size in MB (kept well below 5MB upload/storage limits). */
+const DEFAULT_MAX_FULL_SIZE_MB = 4;
+
 /**
- * Resize an image to two sizes: thumbnail and full
+ * Resize an image to two sizes: thumbnail and full (full capped well below 5MB).
  * @param file Original image file
  * @param maxThumbnailSize Maximum size for thumbnail (KB)
- * @param maxFullSize Maximum size for full image (MB)
+ * @param maxFullSize Maximum size for full image (MB); default 4MB to stay under 5MB
  * @returns Promise with both resized versions
  */
 export async function resizeImage(
   file: File,
   maxThumbnailSize: number = 200, // 200KB for thumbnails
-  maxFullSize: number = 2 // 2MB for full size
+  maxFullSize: number = DEFAULT_MAX_FULL_SIZE_MB
 ): Promise<ResizedImages> {
   // If it's a video, return as-is
   if (file.type.startsWith('video/')) {
@@ -45,7 +49,7 @@ export async function resizeImage(
           0.7 // Lower quality for thumbnail
         );
 
-        // Create full size (max 1920px width for lightbox)
+        // Create full size (max 1920px width, hard cap well below 5MB for uploads)
         const full = await resizeToSize(
           img,
           1920,
@@ -71,8 +75,10 @@ export async function resizeImage(
   });
 }
 
+const MIN_WIDTH = 400;
+
 /**
- * Resize image to target width and file size
+ * Resize image to target width and enforce max file size (never exceed maxSizeBytes).
  */
 async function resizeToSize(
   img: HTMLImageElement,
@@ -80,10 +86,6 @@ async function resizeToSize(
   maxSizeBytes: number,
   initialQuality: number
 ): Promise<File> {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d')!;
-
-  // Calculate dimensions maintaining aspect ratio
   let width = img.width;
   let height = img.height;
 
@@ -92,42 +94,62 @@ async function resizeToSize(
     width = maxWidth;
   }
 
-  canvas.width = width;
-  canvas.height = height;
-
-  // Draw image
-  ctx.drawImage(img, 0, 0, width, height);
-
-  // Try to meet the size requirement by adjusting quality
-  let quality = initialQuality;
   let blob: Blob | null = null;
+  let quality = initialQuality;
 
-  for (let i = 0; i < 5; i++) {
-    blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, 'image/jpeg', quality);
-    });
+  while (width >= MIN_WIDTH) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(img, 0, 0, width, height);
 
-    if (!blob) break;
+    quality = initialQuality;
+    for (let i = 0; i < 8; i++) {
+      blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      });
 
-    // If size is acceptable or quality is already very low, stop
-    if (blob.size <= maxSizeBytes || quality <= 0.3) {
-      break;
+      if (!blob) break;
+      if (blob.size <= maxSizeBytes) break;
+      quality -= 0.1;
     }
 
-    // Reduce quality for next iteration
-    quality -= 0.1;
+    if (blob && blob.size <= maxSizeBytes) break;
+    if (width <= MIN_WIDTH) break;
+
+    width = Math.max(MIN_WIDTH, Math.floor(width * 0.75));
+    height = Math.round((img.height * width) / img.width);
   }
 
   if (!blob) {
     throw new Error('Failed to create image blob');
   }
 
-  // Convert blob to File
-  return new File([blob], 'image.jpg', { type: 'image/jpeg' });
+  // If still over limit (e.g. very dense image), reduce quality further
+  if (blob.size > maxSizeBytes) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(img, 0, 0, width, height);
+    for (let q = 0.4; q >= 0.2; q -= 0.05) {
+      const b = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, 'image/jpeg', q);
+      });
+      if (b && b.size <= maxSizeBytes) {
+        blob = b;
+        break;
+      }
+      if (b) blob = b;
+    }
+  }
+
+  return new File([blob!], 'image.jpg', { type: 'image/jpeg' });
 }
 
 /**
- * Batch resize multiple images
+ * Batch resize multiple images. Every image is resized; full size is capped at 4MB so uploads stay under 5MB.
  */
 export async function resizeImages(
   files: File[],
