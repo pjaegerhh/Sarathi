@@ -15,7 +15,7 @@ import costAccessIcon from '../assets/svg/cost_access.svg';
 import trainingIcon from '../assets/svg/training.svg';
 
 interface AllStoriesPageProps {
-  onNavigate: (page: string, data?: any) => void;
+  onNavigate: (page: string, data?: unknown) => void;
 }
 
 interface UserStory {
@@ -43,13 +43,14 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
   const { user } = useAuth();
   const [stories, setStories] = useState<UserStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStory, setSelectedStory] = useState<any | null>(null);
+  const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
   const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadAllStories();
     }
+   
   }, [user]);
 
   const loadAllStories = async () => {
@@ -85,7 +86,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
       if (data) {
         // Transform and get first image + connection status for each story
         const transformedStories = await Promise.all(
-          data.map(async (story: any) => {
+          data.map(async (story: Record<string, unknown>) => {
             const storyUser = Array.isArray(story.sarathi_user)
               ? story.sarathi_user[0]
               : story.sarathi_user;

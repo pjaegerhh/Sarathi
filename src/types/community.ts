@@ -2,8 +2,6 @@
  * Type definitions for Comments and Reposts
  */
 
-import { Database } from './supabase';
-
 // Comment type
 export interface PostComment {
   id: string;
@@ -21,6 +19,8 @@ export interface PostComment {
   created_at: string;
   updated_at: string;
   mentioned_display_names?: string[] | null;
+  media_urls?: string[] | null;
+  location?: string | null;
 
   // Joined data
   user?: {

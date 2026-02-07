@@ -95,6 +95,10 @@ export interface Translations {
     emailNotVerified: string;
     yourEmailNotVerified: string;
     checkInboxForVerification: string;
+    verifyingAccount: string;
+    verificationFailed: string;
+    verificationFailedDescription: string;
+    goToLogin: string;
     resendVerificationEmail: string;
     tipCheckSpam: string;
     failedToResendVerification: string;
@@ -177,6 +181,12 @@ export interface Translations {
     pleaseSelectLengthUsage: string;
     pleaseLoginFirst: string;
     profileCompletedSuccess: string;
+    prosthesisType: string;
+    usageDuration: string;
+    challengesAndInterests: string;
+    selectAllThatApply: string;
+    mainChallenges: string;
+    activitiesAndInterests: string;
   };
 
   // Registration
@@ -387,6 +397,11 @@ export interface Translations {
     edit: string;
     view: string;
     user: string;
+    step: string;
+    of: string;
+    back: string;
+    complete: string;
+    next: string;
   };
 
   // Community
@@ -553,6 +568,7 @@ export interface Translations {
     connectionRemoved: string;
     pendingRequest: string;
     requestPending: string;
+    connect: string;
     connected: string;
     connectWith: string;
     // Errors
@@ -565,9 +581,9 @@ export interface Translations {
     failedToLoadComments: string;
     failedToCreateComment: string;
     failedToEditComment: string;
-    failedToLoadComments: string;
-    failedToCreateComment: string;
+    failedToReact: string;
     failedToRepost: string;
+    edit: string;
     postTooLong: string;
     commentTooLong: string;
     noContent: string;
@@ -633,6 +649,13 @@ export interface Translations {
     seeAllPosts: string;
     connections: string;
     seeAllConnections: string;
+    loadingProfile: string;
+    profileNotFound: string;
+    message: string;
+    userMediaTitle: string;
+    userStoryTitle: string;
+    seeAllMedia: string;
+    loadMorePosts: string;
     makeAPost: string;
     shareAThought: string;
     photoVideo: string;
@@ -645,27 +668,11 @@ export interface Translations {
     passwordTooShort: string;
     oldPasswordRequired: string;
     // New profile page fields
-    about: string;
-    myStory: string;
-    profession: string;
-    workplace: string;
-    placeOfResidence: string;
     location: string;
-    worksAt: string;
-    from: string;
-    uploads: string;
-    connections: string;
-    makeAPost: string;
-    shareAThought: string;
-    photoVideo: string;
-    seeAllPosts: string;
-    seeAllConnections: string;
-    readMore: string;
     verifiedUser: string;
     coverPicture: string;
     profilePicture: string;
     changePicture: string;
-    latestActivities: string;
     youCommented: string;
     youLiked: string;
     youJoinedGroup: string;
@@ -686,7 +693,6 @@ export interface Translations {
     interestsAndActivities: string;
     challengesFaced: string;
     communityActivities: string;
-    prostheticType: string;
     usageDuration: string;
     addCoverPhoto: string;
     photo: string;
@@ -815,6 +821,10 @@ export const translations: Record<Language, Translations> = {
       emailNotVerified: 'Email Not Verified',
       yourEmailNotVerified: 'Your email {email} has not been verified yet.',
       checkInboxForVerification: 'Please check your inbox and spam folder for the verification email we sent you. Click the link in the email to verify your account.',
+      verifyingAccount: 'Verifying your account...',
+      verificationFailed: 'Verification failed',
+      verificationFailedDescription: 'We could not verify your email. The link may have expired or already been used.',
+      goToLogin: 'Go to Login',
       resendVerificationEmail: 'Resend Verification Email',
       tipCheckSpam: 'Tip: Make sure to check your spam/junk folder if you don\'t see the email in your inbox.',
       failedToResendVerification: 'Failed to resend verification email',
@@ -894,6 +904,12 @@ export const translations: Record<Language, Translations> = {
       pleaseSelectLengthUsage: 'Please select how long you have been using a prosthesis',
       pleaseLoginFirst: 'Please log in first',
       profileCompletedSuccess: 'Profile completed successfully!',
+      prosthesisType: 'Prosthesis Type',
+      usageDuration: 'Usage Duration',
+      challengesAndInterests: 'Your Challenges & Interests',
+      selectAllThatApply: 'Select all that apply (optional)',
+      mainChallenges: 'Main Challenges',
+      activitiesAndInterests: 'Activities & Interests',
     },
     registration: {
       title: 'Create Your Account',
@@ -1092,6 +1108,11 @@ export const translations: Record<Language, Translations> = {
       edit: 'Edit',
       view: 'View',
       user: 'User',
+      step: 'Step',
+      of: 'of',
+      back: 'Back',
+      complete: 'Complete',
+      next: 'Next',
     },
     community: {
       // Feed
@@ -1116,6 +1137,7 @@ export const translations: Record<Language, Translations> = {
       addCurrentLocation: 'Add current location',
       getCurrentLocation: 'Get your current location',
       findNearby: "Find what's around you",
+      nearby: 'Nearby',
       suggested: 'Suggested',
       allLocations: 'All Locations',
       searchResults: 'Search Results',
@@ -1255,8 +1277,9 @@ export const translations: Record<Language, Translations> = {
       connectionRemoved: 'Connection removed',
       pendingRequest: 'Pending',
       requestPending: 'Request pending',
+      connect: 'Connect',
       connected: 'Connected',
-      connectWith: 'Connect',
+      connectWith: 'Connect with',
       // Errors
       failedToLoadPosts: 'Failed to load posts',
       failedToCreatePost: 'Failed to create post',
@@ -1267,7 +1290,9 @@ export const translations: Record<Language, Translations> = {
       failedToLoadComments: 'Failed to load comments',
       failedToCreateComment: 'Failed to create comment',
       failedToEditComment: 'Failed to edit comment',
+      failedToReact: 'Failed to react',
       failedToRepost: 'Failed to repost',
+      edit: 'Edit',
       postTooLong: 'Post is too long (max 5000 characters)',
       commentTooLong: 'Comment is too long (max 2000 characters)',
       noContent: 'Please add some content to your post',
@@ -1336,6 +1361,13 @@ export const translations: Record<Language, Translations> = {
       seeAllPosts: 'See all media',
       connections: 'Connections',
       seeAllConnections: 'See all connections',
+      loadingProfile: 'Loading profile...',
+      profileNotFound: 'Profile not found',
+      message: 'Message',
+      userMediaTitle: "{name}'s Media",
+      userStoryTitle: "{name}'s Story",
+      seeAllMedia: 'See all Media',
+      loadMorePosts: 'Load more posts',
       makeAPost: 'Make a post',
       shareAThought: 'Share a thought..',
       photoVideo: 'Photo / Video',
@@ -1493,6 +1525,10 @@ export const translations: Record<Language, Translations> = {
       emailNotVerified: 'ईमेल सत्यापित नहीं',
       yourEmailNotVerified: 'आपका ईमेल {email} अभी तक सत्यापित नहीं हुआ है।',
       checkInboxForVerification: 'कृपया हमारे भेजे गए सत्यापन ईमेल के लिए अपना इनबॉक्स और स्पैम फ़ोल्डर देखें। खाता सत्यापित करने के लिए ईमेल में दिए लिंक पर क्लिक करें।',
+      verifyingAccount: 'आपका खाता सत्यापित हो रहा है...',
+      verificationFailed: 'सत्यापन विफल',
+      verificationFailedDescription: 'हम आपका ईमेल सत्यापित नहीं कर सके। लिंक समाप्त हो चुका हो सकता है या पहले ही उपयोग किया जा चुका हो सकता है।',
+      goToLogin: 'लॉगिन पर जाएं',
       resendVerificationEmail: 'सत्यापन ईमेल पुनः भेजें',
       tipCheckSpam: 'सुझाव: अगर आपको इनबॉक्स में ईमेल नहीं दिख रहा तो स्पैम/जंक फ़ोल्डर ज़रूर देखें।',
       failedToResendVerification: 'सत्यापन ईमेल पुनः भेजने में विफल',
@@ -1572,6 +1608,12 @@ export const translations: Record<Language, Translations> = {
       pleaseSelectLengthUsage: 'कृपया चुनें कि आप कब से कृत्रिम अंग का उपयोग कर रहे हैं',
       pleaseLoginFirst: 'कृपया पहले लॉग इन करें',
       profileCompletedSuccess: 'प्रोफाइल सफलतापूर्वक पूर्ण हो गया!',
+      prosthesisType: 'प्रोस्थेसिस प्रकार',
+      usageDuration: 'उपयोग की अवधि',
+      challengesAndInterests: 'आपकी चुनौतियाँ और रुचियाँ',
+      selectAllThatApply: 'सभी लागू विकल्प चुनें (वैकल्पिक)',
+      mainChallenges: 'मुख्य चुनौतियाँ',
+      activitiesAndInterests: 'गतिविधियाँ और रुचियाँ',
     },
     registration: {
       title: 'अपना खाता बनाएं',
@@ -1770,6 +1812,11 @@ export const translations: Record<Language, Translations> = {
       edit: 'संपादित करें',
       view: 'देखें',
       user: 'उपयोगकर्ता',
+      step: 'चरण',
+      of: 'का',
+      back: 'वापस',
+      complete: 'पूर्ण करें',
+      next: 'आगे',
     },
     community: {
       // Feed
@@ -1934,6 +1981,7 @@ export const translations: Record<Language, Translations> = {
       connectionRemoved: 'कनेक्शन हटाया गया',
       pendingRequest: 'लंबित',
       requestPending: 'अनुरोध लंबित',
+      connect: 'जुड़ें',
       connected: 'कनेक्ट किया गया',
       connectWith: 'कनेक्ट करें',
       // Errors
@@ -1946,7 +1994,9 @@ export const translations: Record<Language, Translations> = {
       failedToLoadComments: 'टिप्पणियाँ लोड करने में विफल',
       failedToCreateComment: 'टिप्पणी बनाने में विफल',
       failedToEditComment: 'टिप्पणी संपादित करने में विफल',
+      failedToReact: 'रीएक्ट करने में विफल',
       failedToRepost: 'रीपोस्ट करने में विफल',
+      edit: 'संपादित करें',
       postTooLong: 'पोस्ट बहुत लंबी है (अधिकतम 5000 वर्ण)',
       commentTooLong: 'टिप्पणी बहुत लंबी है (अधिकतम 2000 वर्ण)',
       noContent: 'कृपया अपनी पोस्ट में कुछ सामग्री जोड़ें',
@@ -2015,6 +2065,13 @@ export const translations: Record<Language, Translations> = {
       seeAllPosts: 'सभी मीडिया देखें',
       connections: 'कनेक्शन',
       seeAllConnections: 'सभी कनेक्शन देखें',
+      loadingProfile: 'प्रोफ़ाइल लोड हो रहा है...',
+      profileNotFound: 'प्रोफ़ाइल नहीं मिली',
+      message: 'संदेश',
+      userMediaTitle: '{name} का मीडिया',
+      userStoryTitle: '{name} की कहानी',
+      seeAllMedia: 'सभी मीडिया देखें',
+      loadMorePosts: 'और पोस्ट लोड करें',
       makeAPost: 'एक पोस्ट बनाएं',
       shareAThought: 'एक विचार साझा करें..',
       photoVideo: 'फोटो / वीडियो',

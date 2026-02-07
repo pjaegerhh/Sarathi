@@ -30,8 +30,8 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
       await login(loginEmail, loginPassword);
       toast.success(t.common.success);
       onNavigate('home');
-    } catch (error: any) {
-      toast.error(error.message || t.common.error);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t.common.error);
     } finally {
       setLoading(false);
     }
@@ -44,8 +44,8 @@ export function AuthPage({ onNavigate }: AuthPageProps) {
       await signup(signupEmail, signupPassword, signupName);
       toast.success(t.common.success);
       onNavigate('home');
-    } catch (error: any) {
-      toast.error(error.message || t.common.error);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t.common.error);
     } finally {
       setLoading(false);
     }

@@ -14,11 +14,13 @@ import lockIcon from '../assets/svg/lock_pwd.svg';
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
+  /** After successful login, redirect here (e.g. 'profile' when coming from onboarding) */
+  returnTo?: string;
 }
 
-export function LoginPage({ onNavigate }: LoginPageProps) {
+export function LoginPage({ onNavigate, returnTo }: LoginPageProps) {
   const { t } = useLanguage();
-  const { login } = useAuth();
+  const { login, refreshUser } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -72,7 +74,25 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       // User is verified, proceed with login
       await login(email, password);
       toast.success(t.auth.loginSuccess);
-      
+
+      // Post-login redirect to profile (e.g. after onboarding). App effect will do the actual redirect when user is set.
+      const redirectTo = returnTo ?? (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('postLoginRedirect') : null);
+      if (redirectTo === 'profile') {
+        try {
+          // Apply pending onboarding data now; do NOT clear postLoginRedirect – App effect will redirect and clear it
+          const pendingRaw = sessionStorage.getItem('onboardingPendingData');
+          if (pendingRaw && data.user) {
+            try {
+              const updates = JSON.parse(pendingRaw) as Record<string, unknown>;
+              await supabase.from('sarathi_user').update(updates).eq('uuid', data.user.id);
+              sessionStorage.removeItem('onboardingPendingData');
+              await refreshUser();
+            } catch { /* ignore */ }
+          }
+        } catch { /* ignore */ }
+        return;
+      }
+
       // Check if this is the test user - always show onboarding
       const TEST_USER_EMAIL = 'peter@compusys.cc';
       if (email.toLowerCase() === TEST_USER_EMAIL.toLowerCase()) {
@@ -96,19 +116,19 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               // For now, we'll only trigger onboarding for the test user
             }
           }
-        } catch (err) {
+        } catch {
           // Could not check onboarding status
         }
       }
 
       // User has completed onboarding, go to community
       onNavigate('community');
-    } catch (error: any) {
-      // Handle specific error types with helpful messages
-      let errorMessage = error.message || t.auth.invalidCredentials;
-      
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : { message: '', status: undefined };
+      let errorMessage = err.message || t.auth.invalidCredentials;
+
       // Check for CORS errors
-      if (error.message?.includes('CORS') || error.message?.includes('Failed to fetch')) {
+      if (err.message?.includes('CORS') || err.message?.includes('Failed to fetch')) {
         errorMessage = t.auth.connectionError;
         console.error('❌ CORS Error Detected');
         console.error('To fix this issue:');
@@ -122,7 +142,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       }
       
       // Check for 521 error (Supabase service temporarily unavailable)
-      if (error.message?.includes('521') || error.status === 521) {
+      if (err.message?.includes('521') || (error as { status?: number }).status === 521) {
         errorMessage = t.auth.serviceUnavailable;
         console.error('❌ 521 Error: Supabase service is temporarily unavailable');
         console.error('This usually happens when:');
@@ -132,7 +152,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       }
       
       // Check for network errors
-      if (error.message?.includes('network') || error.message?.includes('NetworkError')) {
+      if (err.message?.includes('network') || err.message?.includes('NetworkError')) {
         errorMessage = t.auth.networkError;
       }
       
@@ -154,7 +174,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
       } else {
         toast.success(t.auth.verificationEmailResent);
       }
-    } catch (error) {
+    } catch {
       toast.error(t.auth.failedToResendVerification);
     }
   };

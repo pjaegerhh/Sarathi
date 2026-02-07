@@ -50,7 +50,7 @@ export const RepostButton: React.FC<RepostButtonProps> = ({
       if (data && !error) {
         setIsReposted(true);
       }
-    } catch (err) {
+    } catch {
       // Not reposted
     }
   };

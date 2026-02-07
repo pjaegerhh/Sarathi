@@ -97,8 +97,17 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
   const [storyMediaUrl, setStoryMediaUrl] = useState<string | null>(null);
   const [isStoryMediaVideo, setIsStoryMediaVideo] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const videoRef = useRef<HTMLVideoElement>(null);
   const POSTS_PER_PAGE = 10;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     loadUserProfile();
@@ -510,7 +519,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
             color: '#979797',
           }}
         >
-          Loading profile...
+          {t.profile.loadingProfile}
         </div>
       </div>
     );
@@ -525,7 +534,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
             color: '#979797',
           }}
         >
-          Profile not found
+          {t.profile.profileNotFound}
         </div>
       </div>
     );
@@ -534,14 +543,14 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
   const userInitials = `${profile.first_name.charAt(0)}${profile.name.charAt(0)}`.toUpperCase();
 
   return (
-    <div className="min-h-screen bg-background">
-      <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', position: 'relative' }}>
+    <div className="min-h-screen bg-background" style={{ paddingBottom: isMobile ? '100px' : '0' }}>
+      <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', position: 'relative', overflowX: 'hidden' }}>
         {/* Back Button */}
         <div
           style={{
             position: 'absolute',
-            top: '40px',
-            left: '34px',
+            top: isMobile ? '12px' : '40px',
+            left: isMobile ? '12px' : '34px',
             zIndex: 10,
           }}
         >
@@ -551,8 +560,8 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
             onMouseLeave={() => setIsHoveringBack(false)}
             style={{
               background: isHoveringBack ? '#388896' : '#fff',
-              width: '48px',
-              height: '48px',
+              width: isMobile ? '40px' : '48px',
+              height: isMobile ? '40px' : '48px',
               borderRadius: '50%',
               border: 'none',
               boxShadow: isHoveringBack
@@ -562,12 +571,12 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              padding: '10px',
+              padding: isMobile ? '8px' : '10px',
               transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
               transform: isHoveringBack ? 'scale(1.1)' : 'scale(1)',
             }}
           >
-            <ChevronLeft size={24} color={isHoveringBack ? '#ffffff' : '#505050'} />
+            <ChevronLeft size={isMobile ? 20 : 24} color={isHoveringBack ? '#ffffff' : '#505050'} />
           </button>
         </div>
 
@@ -575,7 +584,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         <div
           style={{
             width: '100%',
-            height: '420px',
+            height: isMobile ? '280px' : '420px',
             background: coverPicUrl ? `url(${coverPicUrl}) center/cover` : 'linear-gradient(135deg, #8AC0AD 0%, #388896 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
@@ -587,12 +596,12 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         <div
           style={{
             position: 'absolute',
-            top: '328px',
-            left: '120px',
-            width: '180px',
-            height: '180px',
+            top: isMobile ? '212px' : '328px',
+            left: isMobile ? '20px' : '120px',
+            width: isMobile ? '120px' : '180px',
+            height: isMobile ? '120px' : '180px',
             borderRadius: '50%',
-            border: '6px solid #fff',
+            border: isMobile ? '4px solid #fff' : '6px solid #fff',
             background: profilePicUrl
               ? `url(${profilePicUrl}) center/cover`
               : 'linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%), linear-gradient(180deg, rgba(105, 181, 124, 1) 0%, rgba(56, 136, 150, 1) 100%)',
@@ -606,7 +615,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
               style={{
                 fontFamily: 'Roboto, sans-serif',
                 fontWeight: 700,
-                fontSize: '48px',
+                fontSize: isMobile ? '32px' : '48px',
                 color: '#ffffff',
               }}
             >
@@ -615,24 +624,26 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
           )}
         </div>
 
-        {/* Name and Location - 10px below cover picture (430px) */}
+        {/* Name and Location */}
         <div
           style={{
-            position: 'absolute',
-            left: '320px', // 120px (profile left) + 186px (profile width) + 14px (gap)
-            top: '430px',
+            position: isMobile ? 'relative' : 'absolute',
+            left: isMobile ? 'auto' : '320px',
+            top: isMobile ? 'auto' : '430px',
+            marginTop: isMobile ? '80px' : '0',
+            padding: isMobile ? '0 20px' : '0',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: isMobile ? '8px' : '12px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '12px' }}>
             <h1
               style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '32px',
+                fontSize: isMobile ? '24px' : '32px',
                 fontWeight: 500,
-                lineHeight: '40px',
+                lineHeight: isMobile ? '32px' : '40px',
                 color: '#192126',
                 margin: 0,
               }}
@@ -640,7 +651,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
               {profile.first_name} {profile.name}
             </h1>
             {/* Verified badge */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="10" fill="#388896" />
               <path
                 d="M9 12l2 2 4-4"
@@ -652,13 +663,13 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
             </svg>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img src={locationIcon} alt="location" width="20" height="20" />
+            <img src={locationIcon} alt="location" width={isMobile ? '16' : '20'} height={isMobile ? '16' : '20'} />
             <span
               style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: '18px',
+                fontSize: isMobile ? '14px' : '18px',
                 fontWeight: 500,
-                lineHeight: '28px',
+                lineHeight: isMobile ? '22px' : '28px',
                 color: '#192126',
               }}
             >
@@ -671,11 +682,13 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         {connectionStatus !== 'self' && (
           <div
             style={{
-              position: 'absolute',
-              right: '80px',
-              top: '458px',
+              position: isMobile ? 'relative' : 'absolute',
+              right: isMobile ? 'auto' : '80px',
+              top: isMobile ? 'auto' : '458px',
+              marginTop: isMobile ? '16px' : '0',
+              padding: isMobile ? '0 20px' : '0',
               display: 'flex',
-              gap: '18px',
+              gap: isMobile ? '12px' : '18px',
             }}
           >
             <button
@@ -688,10 +701,10 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 color: connectionStatus === 'none' ? (isHoveringConnect ? '#ffffff' : '#388896') : '#b0b0b0',
                 border: 'none',
                 borderRadius: '24px',
-                padding: '12px 24px',
+                padding: isMobile ? '10px 20px' : '12px 24px',
                 fontFamily: 'Roboto, sans-serif',
                 fontWeight: 700,
-                fontSize: '16px',
+                fontSize: isMobile ? '14px' : '16px',
                 lineHeight: '24px',
                 cursor: connectionStatus === 'none' ? 'pointer' : 'not-allowed',
                 boxShadow: connectionStatus === 'none' && isHoveringConnect
@@ -700,9 +713,10 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease',
                 transform: connectionStatus === 'none' && isHoveringConnect ? 'scale(1.1)' : 'scale(1)',
                 opacity: connectionStatus === 'none' ? 1 : 0.6,
+                flex: isMobile ? 1 : 'none',
               }}
             >
-              {connectionStatus === 'accepted' ? 'Connected' : connectionStatus === 'pending' ? 'Pending' : 'Connect'}
+              {connectionStatus === 'accepted' ? t.community.connected : connectionStatus === 'pending' ? t.community.pendingRequest : t.community.connect}
             </button>
             <button
               style={{
@@ -710,16 +724,17 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 color: '#388896',
                 border: 'none',
                 borderRadius: '20px',
-                padding: '8px 24px',
+                padding: isMobile ? '10px 20px' : '8px 24px',
                 fontFamily: 'Roboto, sans-serif',
                 fontWeight: 700,
-                fontSize: '16px',
+                fontSize: isMobile ? '14px' : '16px',
                 lineHeight: '24px',
                 cursor: 'pointer',
                 boxShadow: '0px 0px 10px rgba(221, 221, 221, 1)',
+                flex: isMobile ? 1 : 'none',
               }}
             >
-              Message
+              {t.profile.message}
             </button>
           </div>
         )}
@@ -727,11 +742,10 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         {/* Divider */}
         <div
           style={{
+            width: isMobile ? 'calc(100% - 40px)' : 'calc(100% - 160px)',
             height: '1px',
             background: '#d9d9d9',
-            marginTop: '132px',
-            marginLeft: '80px',
-            marginRight: '80px',
+            margin: isMobile ? '20px 20px 0 20px' : '132px 80px 0 80px',
           }}
         />
 
@@ -739,28 +753,28 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '538px 1fr',
-            gap: '40px',
-            padding: '21px 80px',
+            gridTemplateColumns: isMobile ? '1fr' : '538px 1fr',
+            gap: isMobile ? '16px' : '40px',
+            padding: isMobile ? '16px 16px 40px 16px' : '21px 80px',
           }}
         >
           {/* Left Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '20px', minWidth: 0, overflow: 'hidden' }}>
             {/* Prosthesis Details */}
             <div
               style={{
                 background: '#fff',
                 border: '1px solid #f2f2f7',
-                borderRadius: '30px',
-                padding: '20px',
+                borderRadius: isMobile ? '20px' : '30px',
+                padding: isMobile ? '16px' : '20px',
               }}
             >
               <div>
                 <p
                   style={{
                     fontFamily: 'Roboto, sans-serif',
-                    fontSize: '18px',
-                    lineHeight: '28px',
+                    fontSize: isMobile ? '14px' : '18px',
+                    lineHeight: isMobile ? '22px' : '28px',
                     margin: '0 0 12px 0',
                     color: '#192126',
                   }}
@@ -768,19 +782,19 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                   <span
                     style={{
                       fontWeight: 400,
-                      fontSize: '22px',
-                      lineHeight: '32px',
+                      fontSize: isMobile ? '16px' : '22px',
+                      lineHeight: isMobile ? '24px' : '32px',
                     }}
                   >
-                    Prosthesis type:
+                    {t.profile.prostheticType}:
                   </span>{' '}
                   <span style={{ fontWeight: 500 }}>{profile.prosthesisType || 'Below knee'}</span>
                 </p>
                 <p
                   style={{
                     fontFamily: 'Roboto, sans-serif',
-                    fontSize: '18px',
-                    lineHeight: '28px',
+                    fontSize: isMobile ? '14px' : '18px',
+                    lineHeight: isMobile ? '22px' : '28px',
                     margin: 0,
                     color: '#192126',
                   }}
@@ -788,11 +802,11 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                   <span
                     style={{
                       fontWeight: 400,
-                      fontSize: '22px',
-                      lineHeight: '32px',
+                      fontSize: isMobile ? '16px' : '22px',
+                      lineHeight: isMobile ? '24px' : '32px',
                     }}
                   >
-                    Usage Duration:
+                    {t.profile.usageDuration}:
                   </span>{' '}
                   <span style={{ fontWeight: 500 }}>{profile.lengthUsage || 'More than 1 year'}</span>
                 </p>
@@ -804,32 +818,32 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
               style={{
                 background: '#fff',
                 border: '1px solid #f2f2f7',
-                borderRadius: '30px',
-                padding: '20px',
+                borderRadius: isMobile ? '20px' : '30px',
+                padding: isMobile ? '16px' : '20px',
               }}
             >
               <h2
                 style={{
                   fontFamily: 'Roboto, sans-serif',
                   fontWeight: 400,
-                  fontSize: '22px',
-                  lineHeight: '32px',
-                  margin: '0 0 20px 0',
+                  fontSize: isMobile ? '18px' : '22px',
+                  lineHeight: isMobile ? '26px' : '32px',
+                  margin: isMobile ? '0 0 12px 0' : '0 0 20px 0',
                   color: '#192126',
                 }}
               >
-                About
+                {t.profile.about}
               </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '8px' : '12px' }}>
                 {profile.profession && (
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'start' }}>
-                    <img src={achievementIcon} alt="" style={{ width: '24px', height: '24px' }} />
+                  <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'start' }}>
+                    <img src={achievementIcon} alt="" style={{ width: '24px', height: '24px', flexShrink: 0 }} />
                     <p
                       style={{
                         fontFamily: 'Roboto, sans-serif',
                         fontWeight: 500,
-                        fontSize: '18px',
-                        lineHeight: '28px',
+                        fontSize: isMobile ? '14px' : '18px',
+                        lineHeight: isMobile ? '22px' : '28px',
                         margin: 0,
                         color: '#192126',
                       }}
@@ -839,36 +853,36 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                   </div>
                 )}
                 {profile.workplace && (
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'start' }}>
-                    <img src={workIcon} alt="" style={{ width: '24px', height: '24px' }} />
+                  <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'start' }}>
+                    <img src={workIcon} alt="" style={{ width: '24px', height: '24px', flexShrink: 0 }} />
                     <p
                       style={{
                         fontFamily: 'Roboto, sans-serif',
                         fontWeight: 500,
-                        fontSize: '18px',
-                        lineHeight: '28px',
+                        fontSize: isMobile ? '14px' : '18px',
+                        lineHeight: isMobile ? '22px' : '28px',
                         margin: 0,
                         color: '#192126',
                       }}
                     >
-                      Works at {profile.workplace}
+                      {t.profile.worksAt} {profile.workplace}
                     </p>
                   </div>
                 )}
                 {profile.place_of_residence && (
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                    <img src={locationIcon} alt="" style={{ width: '24px', height: '24px' }} />
+                  <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', alignItems: 'center' }}>
+                    <img src={locationIcon} alt="" style={{ width: '24px', height: '24px', flexShrink: 0 }} />
                     <p
                       style={{
                         fontFamily: 'Roboto, sans-serif',
                         fontWeight: 500,
-                        fontSize: '18px',
-                        lineHeight: '28px',
+                        fontSize: isMobile ? '14px' : '18px',
+                        lineHeight: isMobile ? '22px' : '28px',
                         margin: 0,
                         color: '#192126',
                       }}
                     >
-                      From {profile.place_of_residence}
+                      {t.profile.from} {profile.place_of_residence}
                     </p>
                   </div>
                 )}
@@ -881,8 +895,8 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 style={{
                   background: '#fff',
                   border: '1px solid #f2f2f7',
-                  borderRadius: '30px',
-                  padding: '20px',
+                  borderRadius: isMobile ? '20px' : '30px',
+                  padding: isMobile ? '16px' : '20px',
                 }}
               >
                 <div
@@ -890,20 +904,22 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: '26px',
+                    marginBottom: isMobile ? '16px' : '26px',
+                    flexWrap: 'wrap',
+                    gap: '8px',
                   }}
                 >
                   <h2
                     style={{
                       fontFamily: 'Roboto, sans-serif',
                       fontWeight: 400,
-                      fontSize: '22px',
-                      lineHeight: '32px',
+                      fontSize: isMobile ? '18px' : '22px',
+                      lineHeight: isMobile ? '26px' : '32px',
                       margin: 0,
                       color: '#192126',
                     }}
                   >
-                    {profile.first_name}'s Media
+                    {t.profile.userMediaTitle.replace('{name}', profile.first_name)}
                   </h2>
                   <button
                     onClick={() => {
@@ -911,38 +927,42 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                       setLightboxOpen(true);
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#388896';
-                      e.currentTarget.style.color = '#ffffff';
-                      e.currentTarget.style.transform = 'scale(1.1)';
+                      if (!isMobile) {
+                        e.currentTarget.style.background = '#388896';
+                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#fff';
-                      e.currentTarget.style.color = '#388896';
-                      e.currentTarget.style.transform = 'scale(1)';
+                      if (!isMobile) {
+                        e.currentTarget.style.background = '#fff';
+                        e.currentTarget.style.color = '#388896';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }
                     }}
                     style={{
                       background: '#fff',
                       border: 'none',
-                      padding: '8px 24px',
+                      padding: isMobile ? '6px 12px' : '8px 24px',
                       borderRadius: '20px',
                       boxShadow: '0px 0px 10px rgba(221, 221, 221, 1)',
                       fontFamily: 'Roboto, sans-serif',
                       fontWeight: 700,
-                      fontSize: '16px',
+                      fontSize: isMobile ? '13px' : '16px',
                       color: '#388896',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    See all Media
+                    {t.profile.seeAllMedia}
                   </button>
                 </div>
                 <div style={{ 
                   display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '20px' 
+                  gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', 
+                  gap: isMobile ? '12px' : '20px' 
                 }}>
-                  {userMedia.slice(0, 9).map((url, index) => {
+                  {userMedia.slice(0, isMobile ? 6 : 9).map((url, index) => {
                     const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
                     return (
                       <div
@@ -954,7 +974,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                         style={{
                           width: '100%',
                           aspectRatio: '1/1',
-                          borderRadius: '30px',
+                          borderRadius: isMobile ? '15px' : '30px',
                           border: '1px solid #f2f2f7',
                           overflow: 'hidden',
                           cursor: 'pointer',
@@ -993,26 +1013,26 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 style={{
                   background: '#fff',
                   border: '1px solid #f2f2f7',
-                  borderRadius: '30px',
-                  padding: '20px',
+                  borderRadius: isMobile ? '20px' : '30px',
+                  padding: isMobile ? '16px' : '20px',
                 }}
               >
                 <h2
                   style={{
                     fontFamily: 'Roboto, sans-serif',
                     fontWeight: 400,
-                    fontSize: '22px',
-                    lineHeight: '32px',
-                    margin: '0 0 24px 0',
+                    fontSize: isMobile ? '18px' : '22px',
+                    lineHeight: isMobile ? '26px' : '32px',
+                    margin: isMobile ? '0 0 16px 0' : '0 0 24px 0',
                     color: '#192126',
                   }}
                 >
-                  Connections
+                  {t.profile.connections}
                 </h2>
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '20px' 
+                  gap: isMobile ? '12px' : '20px' 
                 }}>
                   {connections.map((connection) => {
                     const initials = `${connection.first_name?.[0] || ''}${connection.name?.[0] || ''}`.toUpperCase();
@@ -1029,15 +1049,15 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          gap: '12px',
+                          gap: isMobile ? '8px' : '12px',
                           cursor: 'pointer',
                         }}
                       >
                         {/* Avatar */}
                         <div
                           style={{
-                            width: '80px',
-                            height: '80px',
+                            width: isMobile ? '60px' : '80px',
+                            height: isMobile ? '60px' : '80px',
                             borderRadius: '50%',
                             overflow: 'hidden',
                             background: connection.profile_picture_url 
@@ -1063,7 +1083,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                             <span
                               style={{
                                 fontFamily: 'Roboto, sans-serif',
-                                fontSize: '24px',
+                                fontSize: isMobile ? '18px' : '24px',
                                 fontWeight: 600,
                                 color: '#ffffff',
                               }}
@@ -1078,10 +1098,10 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                           style={{
                             textAlign: 'center',
                             fontFamily: 'Roboto, sans-serif',
-                            fontSize: '14px',
+                            fontSize: isMobile ? '12px' : '14px',
                             fontWeight: 500,
                             color: '#192126',
-                            lineHeight: '20px',
+                            lineHeight: isMobile ? '16px' : '20px',
                           }}
                         >
                           {connection.first_name} {connection.name}
@@ -1099,23 +1119,23 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 style={{
                   background: '#fff',
                   border: '1px solid #f2f2f7',
-                  borderRadius: '30px',
-                  padding: '28px',
+                  borderRadius: isMobile ? '20px' : '30px',
+                  padding: isMobile ? '16px' : '28px',
                 }}
               >
                 <h2
                   style={{
                     fontFamily: 'Roboto, sans-serif',
                     fontWeight: 400,
-                    fontSize: '22px',
-                    lineHeight: '32px',
-                    margin: '0 0 24px 0',
+                    fontSize: isMobile ? '18px' : '22px',
+                    lineHeight: isMobile ? '26px' : '32px',
+                    margin: isMobile ? '0 0 16px 0' : '0 0 24px 0',
                     color: '#192126',
                   }}
                 >
                   {t.profile.interestsAndActivities}
                 </h2>
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '10px' : '24px', flexWrap: 'wrap' }}>
                   {profile.activities.map((activity, index) => (
                     <div
                       key={index}
@@ -1124,18 +1144,18 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                         display: 'flex',
                         gap: '8px',
                         alignItems: 'center',
-                        padding: '8px',
+                        padding: isMobile ? '6px 8px' : '8px',
                         borderRadius: '15px',
                         boxShadow: '0px 0px 10px rgba(221, 221, 221, 1)',
                       }}
                     >
-                      <img src={getActivityIcon(activity)} alt="" style={{ width: '24px', height: '24px' }} />
+                      <img src={getActivityIcon(activity)} alt="" style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px' }} />
                       <span
                         style={{
                           fontFamily: 'Roboto, sans-serif',
                           fontWeight: 500,
-                          fontSize: '14px',
-                          lineHeight: '20px',
+                          fontSize: isMobile ? '12px' : '14px',
+                          lineHeight: isMobile ? '18px' : '20px',
                           color: '#192126',
                         }}
                       >
@@ -1153,23 +1173,23 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                 style={{
                   background: '#fff',
                   border: '1px solid #f2f2f7',
-                  borderRadius: '30px',
-                  padding: '28px',
+                  borderRadius: isMobile ? '20px' : '30px',
+                  padding: isMobile ? '16px' : '28px',
                 }}
               >
                 <h2
                   style={{
                     fontFamily: 'Roboto, sans-serif',
                     fontWeight: 400,
-                    fontSize: '22px',
-                    lineHeight: '32px',
+                    fontSize: isMobile ? '18px' : '22px',
+                    lineHeight: isMobile ? '26px' : '32px',
                     margin: '0 0 8px 0',
                     color: '#192126',
                   }}
                 >
                   {t.profile.challengesFaced}
                 </h2>
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '12px' : '24px', flexWrap: 'wrap' }}>
                   {profile.main_challenge.map((challenge, index) => (
                     <div
                       key={index}
@@ -1178,13 +1198,13 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '8px',
-                        width: '131px',
+                        width: isMobile ? '90px' : '131px',
                       }}
                     >
                       <div
                         style={{
-                          width: '45px',
-                          height: '45px',
+                          width: isMobile ? '38px' : '45px',
+                          height: isMobile ? '38px' : '45px',
                           borderRadius: '36px',
                           background: '#ffffff',
                           display: 'flex',
@@ -1193,14 +1213,14 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                           boxShadow: '0px 0px 10px 0px #dddddd',
                         }}
                       >
-                        <img src={getChallengeIcon(challenge)} alt="" style={{ width: '24px', height: '24px' }} />
+                        <img src={getChallengeIcon(challenge)} alt="" style={{ width: isMobile ? '20px' : '24px', height: isMobile ? '20px' : '24px' }} />
                       </div>
                       <p
                         style={{
                           fontFamily: 'Roboto, sans-serif',
                           fontWeight: 400,
-                          fontSize: '14px',
-                          lineHeight: '22px',
+                          fontSize: isMobile ? '12px' : '14px',
+                          lineHeight: isMobile ? '18px' : '22px',
                           color: '#505050',
                           textAlign: 'center',
                           margin: 0,
@@ -1216,31 +1236,31 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
           </div>
 
           {/* Right Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '20px', minWidth: 0, overflow: 'hidden' }}>
             {/* User Story */}
             {(userStory || profile.my_story) && (
               <div
                 style={{
                   background: '#fff',
                   border: '1px solid #f2f2f7',
-                  borderRadius: '30px',
-                  padding: '20px',
+                  borderRadius: isMobile ? '20px' : '30px',
+                  padding: isMobile ? '16px' : '20px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '20px',
+                  gap: isMobile ? '12px' : '20px',
                 }}
               >
                 <h2
                   style={{
                     fontFamily: 'Roboto, sans-serif',
                     fontWeight: 400,
-                    fontSize: '22px',
-                    lineHeight: '32px',
+                    fontSize: isMobile ? '18px' : '22px',
+                    lineHeight: isMobile ? '26px' : '32px',
                     margin: 0,
                     color: '#192126',
                   }}
                 >
-                  {profile.first_name}'s Story
+                  {t.profile.userStoryTitle.replace('{name}', profile.first_name)}
                 </h2>
                 
                 {/* Story media preview */}
@@ -1248,8 +1268,8 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                   <div
                     style={{
                       width: '100%',
-                      height: '357px',
-                      borderRadius: '20px',
+                      height: isMobile ? '220px' : '357px',
+                      borderRadius: isMobile ? '12px' : '20px',
                       overflow: 'hidden',
                       background: '#000000',
                       position: 'relative',
@@ -1339,22 +1359,26 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
                   <button
                     onClick={() => setViewStoryModalOpen(true)}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#388896';
-                      e.currentTarget.style.color = '#ffffff';
-                      e.currentTarget.style.transform = 'scale(1.1)';
+                      if (!isMobile) {
+                        e.currentTarget.style.background = '#388896';
+                        e.currentTarget.style.color = '#ffffff';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#ffffff';
-                      e.currentTarget.style.color = '#388896';
-                      e.currentTarget.style.transform = 'scale(1)';
+                      if (!isMobile) {
+                        e.currentTarget.style.background = '#ffffff';
+                        e.currentTarget.style.color = '#388896';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }
                     }}
                     style={{
                       background: '#ffffff',
                       border: 'none',
                       borderRadius: '24px',
-                      padding: '8px 24px',
+                      padding: isMobile ? '8px 16px' : '8px 24px',
                       fontFamily: 'Roboto, sans-serif',
-                      fontSize: '16px',
+                      fontSize: isMobile ? '14px' : '16px',
                       fontWeight: 700,
                       color: '#388896',
                       cursor: 'pointer',
@@ -1372,7 +1396,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
             {/* User Posts */}
             {posts.length > 0 && (
               <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '30px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '24px', marginTop: isMobile ? '8px' : '30px' }}>
                   {posts.map((post) => (
                     <PostCard
                       key={post.id}
@@ -1387,38 +1411,38 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
 
                 {/* Load More Button */}
                 {hasMorePosts && (
-                  <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                  <div style={{ textAlign: 'center', marginTop: isMobile ? '16px' : '24px' }}>
                     <button
                       onClick={handleLoadMorePosts}
                       disabled={isLoadingPosts}
                       onMouseEnter={(e) => {
-                        if (!isLoadingPosts) {
+                        if (!isLoadingPosts && !isMobile) {
                           e.currentTarget.style.background = '#388896';
                           e.currentTarget.style.color = '#ffffff';
                           e.currentTarget.style.borderColor = '#388896';
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!isLoadingPosts) {
+                        if (!isLoadingPosts && !isMobile) {
                           e.currentTarget.style.background = 'transparent';
                           e.currentTarget.style.color = '#388896';
                           e.currentTarget.style.borderColor = '#e0e0e0';
                         }
                       }}
                       style={{
-                        padding: '12px 32px',
+                        padding: isMobile ? '10px 24px' : '12px 32px',
                         background: isLoadingPosts ? '#cccccc' : 'transparent',
                         border: isLoadingPosts ? '1px solid #cccccc' : '1px solid #e0e0e0',
                         borderRadius: '24px',
                         fontFamily: 'Roboto, sans-serif',
-                        fontSize: '16px',
+                        fontSize: isMobile ? '14px' : '16px',
                         fontWeight: 600,
                         color: isLoadingPosts ? '#ffffff' : '#388896',
                         cursor: isLoadingPosts ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s ease',
                       }}
                     >
-                      {isLoadingPosts ? t.common.loading : 'Load more posts'}
+                      {isLoadingPosts ? t.common.loading : t.profile.loadMorePosts}
                     </button>
                   </div>
                 )}

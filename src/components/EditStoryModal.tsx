@@ -3,8 +3,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { loadSignedUrl } from '../utils/mediaLoader';
 import { toast } from 'sonner';
-import imageIcon from '../assets/svg/image.svg';
-import videoIcon from '../assets/svg/video.svg';
 
 interface EditStoryModalProps {
   isOpen: boolean;
@@ -68,11 +66,57 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
     return 'U';
   };
 
+  const loadSignedUrls = async () => {
+    const urls: { [key: string]: string } = {};
+    const validUrls: string[] = [];
+
+    for (const path of existingMediaUrls) {
+      try {
+        const signedUrl = await loadSignedUrl('profile-media', path);
+
+        if (signedUrl) {
+          urls[path] = signedUrl;
+          validUrls.push(path);
+        } else {
+          console.warn('File not found in storage, will be removed:', path);
+        }
+      } catch {
+        console.warn('Error loading file, will be removed:', path);
+      }
+    }
+
+    if (validUrls.length !== existingMediaUrls.length) {
+      setExistingMediaUrls(validUrls);
+
+      if (existingStory?.id) {
+        try {
+          const { error } = await supabase
+            .from('user_stories')
+            .update({
+              media_urls: validUrls.length > 0 ? validUrls : null,
+            })
+            .eq('id', existingStory.id);
+
+          if (error) {
+            console.error('Failed to clean up database:', error);
+          } else {
+            onSave();
+          }
+        } catch (err) {
+          console.error('Error cleaning up database:', err);
+        }
+      }
+    }
+
+    setMediaSignedUrls(urls);
+  };
+
   // Load signed URLs for existing media
   useEffect(() => {
     if (isOpen && existingMediaUrls.length > 0) {
       loadSignedUrls();
     }
+   
   }, [isOpen, existingMediaUrls]);
 
   // Update story text and media when existingStory changes
@@ -83,68 +127,18 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
       } else {
         setStoryText('');
       }
-      
+
       if (existingStory?.media_urls) {
         setExistingMediaUrls(existingStory.media_urls);
       } else {
         setExistingMediaUrls([]);
       }
-      
-      // Reset other states when modal opens
+
       setMediaFiles([]);
       setFilesToDelete([]);
       setMediaSignedUrls({});
     }
   }, [isOpen, existingStory]);
-
-  const loadSignedUrls = async () => {
-    const urls: { [key: string]: string } = {};
-    const validUrls: string[] = [];
-    
-    for (const path of existingMediaUrls) {
-      try {
-        // Use cache
-        const signedUrl = await loadSignedUrl('profile-media', path);
-
-        if (signedUrl) {
-          urls[path] = signedUrl;
-          validUrls.push(path);
-        } else {
-          console.warn('File not found in storage, will be removed:', path);
-        }
-      } catch (err) {
-        console.warn('Error loading file, will be removed:', path);
-      }
-    }
-
-    // Update existingMediaUrls to only include valid files
-    if (validUrls.length !== existingMediaUrls.length) {
-      setExistingMediaUrls(validUrls);
-      
-      // Auto-save to database to clean up orphaned references
-      if (existingStory?.id) {
-        try {
-          const { error } = await supabase
-            .from('user_stories')
-            .update({
-              media_urls: validUrls.length > 0 ? validUrls : null,
-            })
-            .eq('id', existingStory.id);
-          
-          if (error) {
-            console.error('Failed to clean up database:', error);
-          } else {
-            // Refresh the story data in parent to prevent stale data on next open
-            onSave();
-          }
-        } catch (err) {
-          console.error('Error cleaning up database:', err);
-        }
-      }
-    }
-    
-    setMediaSignedUrls(urls);
-  };
 
   if (!isOpen) return null;
 
@@ -248,7 +242,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
     
     if (error) {
       console.error('Error deleting file from bucket:', error);
-      toast.error(t.profile.errorDeletingMedia || 'Failed to delete media file');
+      toast.error((t.profile as Record<string, string>).errorDeletingMedia || 'Failed to delete media file');
     }
   };
 
@@ -495,7 +489,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                 margin: 0,
               }}
             >
-              {t.profile.shareYourStory || 'Share Your Story'}
+              {(t.profile as Record<string, string>).shareYourStory || 'Share Your Story'}
             </h2>
             <p
               style={{
@@ -507,7 +501,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                 margin: '0',
               }}
             >
-              {t.profile.inspireOthers || 'Inspire others. Connect through shared journeys'}
+              {(t.profile as Record<string, string>).inspireOthers || 'Inspire others. Connect through shared journeys'}
             </p>
           </div>
           <button
@@ -853,7 +847,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                     textAlign: 'center',
                   }}
                 >
-                  {t.profile.addMore || 'Add more photos/videos'}
+                  {(t.profile as Record<string, string>).addMore || 'Add more photos/videos'}
                 </p>
                 <p
                   style={{
@@ -897,7 +891,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                     textAlign: 'center',
                   }}
                 >
-                  {t.profile.addPhotosVideos || 'Add photos/videos'}
+                  {(t.profile as Record<string, string>).addPhotosVideos || 'Add photos/videos'}
                 </p>
                 <p
                   style={{
@@ -910,7 +904,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                     textAlign: 'center',
                   }}
                 >
-                  {t.profile.orDragAndDrop || 'or drag and drop'}
+                  {(t.profile as Record<string, string>).orDragAndDrop || 'or drag and drop'}
                 </p>
               </div>
             )}
@@ -1011,7 +1005,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                 minWidth: '200px',
               }}
             >
-              {t.profile.saveDraft || 'Save Draft'}
+              {(t.profile as Record<string, string>).saveDraft || 'Save Draft'}
             </button>
             <button
               onClick={handleSave}
@@ -1032,7 +1026,7 @@ export function EditStoryModal({ isOpen, onClose, userId, existingStory, onSave,
                 minWidth: '200px',
               }}
             >
-              {uploading ? t.profile.saving : (t.profile.publishStory || 'Publish Story')}
+              {uploading ? t.profile.saving : ((t.profile as Record<string, string>).publishStory || 'Publish Story')}
             </button>
           </div>
         </div>

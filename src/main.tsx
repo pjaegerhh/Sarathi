@@ -4,5 +4,6 @@
   import "./index.css";
   import "./styles/design-system.css";
 
-  createRoot(document.getElementById("root")!).render(<App />);
+  const rootEl = document.getElementById("root") ?? document.body;
+  createRoot(rootEl).render(<App />);
   

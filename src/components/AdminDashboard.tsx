@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth, User } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -24,36 +24,9 @@ interface AdminUser {
 
 export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const { t } = useLanguage();
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Check if user has admin or superadmin access
-  if (!user || (user.userType !== 'admin' && user.userType !== 'superadmin')) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center text-destructive">
-              {t.common.error}
-            </CardTitle>
-            <CardDescription className="text-center">
-              Forbidden: Admin or Superadmin access required
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button onClick={() => onNavigate('home')}>
-              Go to Home
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -76,13 +49,40 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       }));
 
       setUsers(mappedUsers);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching users:', error);
-      toast.error(error.message || 'Failed to fetch users');
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch users');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Check if user has admin or superadmin access (after all hooks)
+  if (!user || (user.userType !== 'admin' && user.userType !== 'superadmin')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center text-destructive">
+              {t.common.error}
+            </CardTitle>
+            <CardDescription className="text-center">
+              Forbidden: Admin or Superadmin access required
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center">
+            <Button onClick={() => onNavigate('home')}>
+              Go to Home
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const changeUserRole = async (userId: string, newRole: string) => {
     try {
@@ -97,9 +97,9 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
       toast.success('Role updated successfully');
       fetchUsers();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating user role:', error);
-      toast.error(error.message || 'Failed to update user role');
+      toast.error(error instanceof Error ? error.message : 'Failed to update user role');
     }
   };
 

@@ -1,6 +1,5 @@
  import {
   HeroSectionMobile,
-  QuoteSectionMobile,
   ServicesSectionMobile,
   ProsthesisSectionMobile,
   ServiceCentersSectionMobile,

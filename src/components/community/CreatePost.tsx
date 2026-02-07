@@ -38,7 +38,7 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
   const [showMediaUploadModal, setShowMediaUploadModal] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState<ReactionType | null>(null);
   const [showFeelingModal, setShowFeelingModal] = useState(false);
-  const [showFeelingPicker, setShowFeelingPicker] = useState(false);
+  const [_showFeelingPicker, setShowFeelingPicker] = useState(false);
   const [hoveredButton, setHoveredButton] = useState<'media' | 'location' | 'feeling' | null>(null);
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState<string>('');
@@ -266,7 +266,8 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
     try {
       // Moderate content before posting
       if (postText.trim()) {
-        const moderationResult = await moderateContent(postText, t.language as 'en' | 'hi');
+        const lang = (t as { language?: string }).language ?? 'en';
+        const moderationResult = await moderateContent(postText, lang === 'hi' ? 'hi' : 'en');
         if (!moderationResult.isApproved) {
           setError(t.community.inappropriateContent);
           setIsSubmitting(false);
@@ -687,8 +688,9 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
             disabled={isSubmitting}
             style={{
               padding: isMobile ? '6px' : '8px 12px',
-              minWidth: isMobile ? 32 : undefined,
+              minWidth: isMobile ? 32 : 0,
               minHeight: isMobile ? 32 : undefined,
+              maxWidth: isMobile ? 32 : 180,
               background: hoveredButton === 'location' && !isSubmitting ? '#388896' : location ? '#e0ebe3' : 'transparent',
               border: '1px solid #e0e0e0',
               borderRadius: isMobile ? '50%' : '20px',
@@ -701,8 +703,6 @@ export function CreatePost({ onPostCreated, isMobile = false }: CreatePostProps)
               justifyContent: 'center',
               gap: '4px',
               opacity: isSubmitting ? 0.5 : 1,
-              maxWidth: isMobile ? 32 : 180,
-              minWidth: 0,
               overflow: 'hidden',
               boxShadow: '0px 0px 8px rgba(221, 221, 221, 0.8)',
               transition: 'background 0.2s ease, color 0.2s ease',

@@ -8,7 +8,7 @@ import backgroundImage from '../assets/images/Background_login.png';
 import sarathiLogo from '../assets/svg/sarathi_login.svg';
 
 interface RegistrationPageProps {
-  onNavigate: (page: string, data?: any) => void;
+  onNavigate: (page: string, data?: unknown) => void;
 }
 
 export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
@@ -59,7 +59,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
   // Loading state
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -209,9 +209,9 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       
       toast.success(t.registration.accountCreatedSuccess);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
-      toast.error(error.message || t.registration.registrationFailed);
+      toast.error(error instanceof Error ? error.message : t.registration.registrationFailed);
     } finally {
       setLoading(false);
     }

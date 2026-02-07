@@ -34,7 +34,7 @@ function AppContent() {
     }
     return 'home';
   });
-  const [pageData, setPageData] = useState<any>(null);
+  const [pageData, setPageData] = useState<unknown>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showEmailVerificationModal, setShowEmailVerificationModal] = useState(false);
   const { user, loading } = useAuth();
@@ -52,7 +52,8 @@ function AppContent() {
         currentPage === 'home' ? '/' : `/${currentPage}`
       );
     }
-  }, []); // Run only once on mount
+   
+  }, []);
 
   useEffect(() => {
     // Detect if mobile based on screen width
@@ -104,7 +105,25 @@ function AppContent() {
     if (!loading && !user && protectedPages.includes(currentPage)) {
       setCurrentPage('auth');
     }
+   
   }, [user, loading, currentPage]);
+
+  // After login: if we're on auth and user is now set, honor post-login redirect (e.g. to profile after onboarding)
+  useEffect(() => {
+    if (loading || !user || currentPage !== 'auth') return;
+    const redirectTo =
+      (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('postLoginRedirect')) ||
+      pageData?.returnTo;
+    if (redirectTo === 'profile') {
+      try {
+        sessionStorage.removeItem('postLoginRedirect');
+      } catch { /* ignore */ }
+      setCurrentPage('profile');
+      setPageData(null);
+      window.history.pushState({ page: 'profile', data: null }, '', '/profile');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [user, loading, currentPage, pageData?.returnTo]);
 
   // Handle browser back/forward buttons
   useEffect(() => {
@@ -168,7 +187,7 @@ function AppContent() {
     };
   }, []);
 
-  const handleNavigate = (page: string, data?: any) => {
+  const handleNavigate = (page: string, data?: unknown) => {
     // Check if page requires authentication
     if (!user && protectedPages.includes(page as Page)) {
       setCurrentPage('auth');
@@ -205,7 +224,7 @@ function AppContent() {
           <HomePageDesktop onNavigate={handleNavigate} isLoggedIn={!!user} />
         );
       case 'auth':
-        return <LoginPage onNavigate={handleNavigate} />;
+        return <LoginPage onNavigate={handleNavigate} returnTo={pageData?.returnTo} />;
       case 'forgot-password':
         return <ForgotPasswordPage onNavigate={handleNavigate} />;
       case 'register':

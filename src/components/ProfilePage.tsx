@@ -16,15 +16,12 @@ import locationIcon from '../assets/svg/location.svg';
 import locationPrimaryIcon from '../assets/svg/location_primary.svg';
 import achievementIcon from '../assets/svg/achievement.svg';
 import workIcon from '../assets/svg/work.svg';
-import videoIcon from '../assets/svg/video.svg';
-import imageIcon from '../assets/svg/image.svg';
 import rehabIcon from '../assets/svg/rehab.svg';
 import emotionsIcon from '../assets/svg/emotions.svg';
 import sociallifeIcon from '../assets/svg/sociallife.svg';
 import fitComfortIcon from '../assets/svg/fit_comfort.svg';
 import mobilityIcon from '../assets/svg/mobility.svg';
 import emotionalIcon from '../assets/svg/emotional.svg';
-import heartIcon from '../assets/svg/heart.svg';
 import communityIcon from '../assets/svg/community.svg';
 import costAccessIcon from '../assets/svg/cost_access.svg';
 import trainingIcon from '../assets/svg/training.svg';
@@ -41,7 +38,7 @@ import defaultProfilePic from '../assets/images/default_profile_pic.png';
 import fotoIcon from '../assets/svg/foto.svg';
 
 interface ProfilePageProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, data?: unknown) => void;
 }
 
 export function ProfilePage({ onNavigate }: ProfilePageProps) {
@@ -66,13 +63,15 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
     workplace: user?.workplace || '',
     place_of_residence: user?.place_of_residence || '',
     my_story: user?.my_story || '',
-    prosthesisType: (user as any)?.prosthesisType || '',
-    lengthUsage: (user as any)?.lengthUsage || '',
-    activities: (user as any)?.activities || [],
-    mainChallenge: (user as any)?.mainChallenge || [],
+    userType: (user as Record<string, unknown>)?.userType || '',
+    prosthesisType: (user as Record<string, unknown>)?.prosthesisType || '',
+    lengthUsage: (user as Record<string, unknown>)?.lengthUsage || '',
+    activities: (user as Record<string, unknown>)?.activities || [],
+    mainChallenge: (user as Record<string, unknown>)?.mainChallenge || [],
   });
   const [activitiesModalOpen, setActivitiesModalOpen] = useState(false);
   const [challengesModalOpen, setChallengesModalOpen] = useState(false);
+  const [userTypeModalOpen, setUserTypeModalOpen] = useState(false);
 
   // Media state
   const [userMedia, setUserMedia] = useState<string[]>([]);
@@ -147,10 +146,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         workplace: user.workplace || '',
         place_of_residence: user.place_of_residence || '',
         my_story: user.my_story || '',
-        prosthesisType: (user as any)?.prosthesisType || '',
-        lengthUsage: (user as any)?.lengthUsage || '',
-        activities: (user as any)?.activities || [],
-        mainChallenge: (user as any)?.mainChallenge || [],
+        userType: (user as Record<string, unknown>)?.userType || '',
+        prosthesisType: (user as Record<string, unknown>)?.prosthesisType || '',
+        lengthUsage: (user as Record<string, unknown>)?.lengthUsage || '',
+        activities: (user as Record<string, unknown>)?.activities || [],
+        mainChallenge: (user as Record<string, unknown>)?.mainChallenge || [],
       });
     }
   }, [user]);
@@ -187,12 +187,14 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   // Fetch user story
   useEffect(() => {
     fetchUserStory();
+   
   }, [user?.id]);
 
   // Fetch user media from posts
   useEffect(() => {
     fetchUserMedia();
     loadUserPosts(); // Load user's posts
+   
   }, [user?.id]);
 
   const fetchUserMedia = async () => {
@@ -227,7 +229,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 if (signedUrl) {
                   allMedia.push(signedUrl);
                 }
-              } catch (err) {
+              } catch {
                 // Skip failed media URLs
               }
             }
@@ -238,7 +240,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       } else {
         setUserMedia([]);
       }
-    } catch (error) {
+    } catch {
       // Silently fail
     } finally {
       setLoadingMedia(false);
@@ -282,7 +284,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       }
 
       if (data) {
-        const transformedPosts = data.map((post: any) => {
+        const transformedPosts = data.map((post: Record<string, unknown>) => {
           const postUser = Array.isArray(post.sarathi_user)
             ? post.sarathi_user[0]
             : post.sarathi_user;
@@ -339,18 +341,20 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 is "no rows returned" - which is fine
-        console.error('Error fetching user story:', error);
+      // 406 / PGRST116: new user or no story yet - show empty state without logging
+      if (error) {
+        if (error.code !== 'PGRST116' && error.code !== '406') {
+          console.warn('Error fetching user story:', error instanceof Error ? error.message : String(error));
+        }
+        setUserStory(null);
+        setStoryMediaUrl(null);
         return;
       }
 
       if (data) {
         setUserStory(data);
-        
-        // Load signed URL for first media
         if (data.media_urls && data.media_urls.length > 0) {
           loadStoryMediaUrl(data.media_urls[0]);
         }
@@ -358,8 +362,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         setUserStory(null);
         setStoryMediaUrl(null);
       }
-    } catch (error) {
-      // Silently fail
+    } catch {
+      setUserStory(null);
+      setStoryMediaUrl(null);
     }
   };
 
@@ -480,9 +485,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       
       setHasUnsavedChanges(true);
       toast.success(t.profile.coverPhotoUploaded);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading cover photo:', error);
-      toast.error(error.message || 'Failed to upload cover photo');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload cover photo');
     } finally {
       setSaving(false);
     }
@@ -520,9 +525,9 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       
       setHasUnsavedChanges(true);
       toast.success(t.profile.profilePhotoUploaded);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error uploading profile photo:', error);
-      toast.error(error.message || 'Failed to upload profile photo');
+      toast.error(error instanceof Error ? error.message : 'Failed to upload profile photo');
     } finally {
       setSaving(false);
     }
@@ -539,17 +544,18 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         workplace: editData.workplace || null,
         place_of_residence: editData.place_of_residence || null,
         my_story: editData.my_story || null,
-        prosthesis_type: editData.prosthesisType || null,
-        length_usage: editData.lengthUsage || null,
-        activities: editData.activities || [],
-        main_challenge: editData.mainChallenge || [],
-      } as any);
+        user_type: editData.userType || null,
+        prosthesis_type: editData.userType === 'amputee' ? (editData.prosthesisType || null) : null,
+        length_usage: editData.userType === 'amputee' ? (editData.lengthUsage || null) : null,
+        activities: editData.userType === 'amputee' ? (editData.activities || []) : [],
+        main_challenge: editData.userType === 'amputee' ? (editData.mainChallenge || []) : [],
+      } as Record<string, unknown>);
       setHasUnsavedChanges(false);
       setIsEditing(false);
       toast.success(t.profile.profileSaved);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving profile:', error);
-      toast.error(error.message || 'Failed to save profile');
+      toast.error(error instanceof Error ? error.message : 'Failed to save profile');
     } finally {
       setSaving(false);
     }
@@ -563,10 +569,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         workplace: user.workplace || '',
         place_of_residence: user.place_of_residence || '',
         my_story: user.my_story || '',
-        prosthesisType: (user as any)?.prosthesisType || '',
-        lengthUsage: (user as any)?.lengthUsage || '',
-        activities: (user as any)?.activities || [],
-        mainChallenge: (user as any)?.mainChallenge || [],
+        userType: (user as Record<string, unknown>)?.userType || '',
+        prosthesisType: (user as Record<string, unknown>)?.prosthesisType || '',
+        lengthUsage: (user as Record<string, unknown>)?.lengthUsage || '',
+        activities: (user as Record<string, unknown>)?.activities || [],
+        mainChallenge: (user as Record<string, unknown>)?.mainChallenge || [],
       });
     }
     setHasUnsavedChanges(false);
@@ -626,10 +633,11 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
         editData.workplace !== (user.workplace || '') ||
         editData.place_of_residence !== (user.place_of_residence || '') ||
         editData.my_story !== (user.my_story || '') ||
-        editData.prosthesisType !== ((user as any)?.prosthesisType || '') ||
-        editData.lengthUsage !== ((user as any)?.lengthUsage || '') ||
-        JSON.stringify(editData.activities || []) !== JSON.stringify((user as any)?.activities || []) ||
-        JSON.stringify(editData.mainChallenge || []) !== JSON.stringify((user as any)?.mainChallenge || []);
+        editData.userType !== ((user as Record<string, unknown>)?.userType || '') ||
+        editData.prosthesisType !== ((user as Record<string, unknown>)?.prosthesisType || '') ||
+        editData.lengthUsage !== ((user as Record<string, unknown>)?.lengthUsage || '') ||
+        JSON.stringify(editData.activities || []) !== JSON.stringify((user as Record<string, unknown>)?.activities || []) ||
+        JSON.stringify(editData.mainChallenge || []) !== JSON.stringify((user as Record<string, unknown>)?.mainChallenge || []);
       setHasUnsavedChanges(hasChanges);
     }
   }, [editData, isEditing, user]);
@@ -734,7 +742,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
   };
 
   // Mock data for uploads and activities (to be replaced with real data later)
-  const activities = [
+  const _activities = [
     { type: 'like', text: 'Ravi liked your comment on "Running with a Below-Knee Prosthetic"', detail: '"Great stretching routine! I\'ve been trying…" — 3 hrs ago' },
     { type: 'comment', text: 'You Commented on "Running with a Below-Knee Prosthetic"', detail: '"Great stretching routine! I\'ve been trying…" — 3 hrs ago' },
     { type: 'group', text: 'You Joined group: "Adaptive sport India"', detail: '- 2 days ago' },
@@ -1002,7 +1010,58 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               overflow: 'hidden',
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {user.userType === 'amputee' ? (
+                {/* User Type - always shown; in edit mode clickable to open modal */}
+                {isEditing ? (
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setUserTypeModalOpen(true)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setUserTypeModalOpen(true); } }}
+                    style={{
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '18px',
+                      fontWeight: 500,
+                      lineHeight: '28px',
+                      color: '#192126',
+                      padding: '10px 12px',
+                      borderRadius: '12px',
+                      border: '1px solid #d9d9d9',
+                      cursor: 'pointer',
+                      background: '#fff',
+                    }}
+                  >
+                    <span style={{ fontWeight: 400 }}>{t.profile.userType}:</span>
+                    <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                      {editData.userType === 'caregiver' ? t.onboarding.iAmCaregiver :
+                       editData.userType === 'volunteer' ? t.onboarding.iAmVolunteer :
+                       editData.userType === 'doctor' ? t.onboarding.iAmDoctor :
+                       editData.userType === 'practitioner' ? t.onboarding.iAmPractitioner :
+                       editData.userType === 'amputee' ? t.onboarding.iAmAmputee :
+                       editData.userType || '—'}
+                    </span>
+                  </div>
+                ) : (
+                  <p style={{
+                    fontFamily: 'Roboto, sans-serif',
+                    fontSize: '18px',
+                    fontWeight: 500,
+                    lineHeight: '28px',
+                    color: '#192126',
+                    margin: 0,
+                  }}>
+                    <span style={{ fontWeight: 400 }}>{t.profile.userType}:</span>
+                    <span style={{ fontWeight: 500, marginLeft: '8px' }}>
+                      {user.userType === 'caregiver' ? t.onboarding.iAmCaregiver :
+                       user.userType === 'volunteer' ? t.onboarding.iAmVolunteer :
+                       user.userType === 'doctor' ? t.onboarding.iAmDoctor :
+                       user.userType === 'practitioner' ? t.onboarding.iAmPractitioner :
+                       user.userType === 'amputee' ? t.onboarding.iAmAmputee :
+                       (user as Record<string, unknown>).userType}
+                    </span>
+                  </p>
+                )}
+
+                {(isEditing ? editData.userType : user.userType) === 'amputee' && (
                   <>
                     {isEditing ? (
                       <select
@@ -1079,24 +1138,6 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                       )
                     )}
                   </>
-                ) : (
-                  <p style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontSize: '18px',
-                    fontWeight: 500,
-                    lineHeight: '28px',
-                    color: '#192126',
-                    margin: 0,
-                  }}>
-                    <span style={{ fontWeight: 400 }}>{t.profile.userType}:</span>
-                    <span style={{ fontWeight: 500, marginLeft: '8px' }}>
-                      {user.userType === 'caregiver' ? t.onboarding.iAmCaregiver :
-                       user.userType === 'volunteer' ? t.onboarding.iAmVolunteer :
-                       user.userType === 'doctor' ? t.onboarding.iAmDoctor :
-                       user.userType === 'practitioner' ? t.onboarding.iAmPractitioner :
-                       user.userType}
-                    </span>
-                  </p>
                 )}
               </div>
             </div>
@@ -1380,7 +1421,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 }}>
                   {t.profile.connections}
                 </h2>
-                <ConnectionsList />
+                <ConnectionsList onNavigate={onNavigate} />
               </div>
               
               {/* Add Connection Search */}
@@ -1411,7 +1452,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 style={{ display: 'flex', gap: isMobile ? '8px' : '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default' }}
                 onClick={() => isEditing && setActivitiesModalOpen(true)}
               >
-                {(isEditing ? editData.activities : (user as any)?.activities || []).map((activityId: string) => (
+                {(isEditing ? editData.activities : (user as Record<string, unknown>)?.activities || []).map((activityId: string) => (
                   <div
                     key={activityId}
                     style={{
@@ -1478,7 +1519,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 style={{ display: 'flex', gap: isMobile ? '12px' : '24px', flexWrap: 'wrap', cursor: isEditing ? 'pointer' : 'default', justifyContent: isMobile ? 'space-around' : 'flex-start' }}
                 onClick={() => isEditing && setChallengesModalOpen(true)}
               >
-                {(isEditing ? editData.mainChallenge : (user as any)?.mainChallenge || []).map((challengeId: string) => (
+                {(isEditing ? editData.mainChallenge : (user as Record<string, unknown>)?.mainChallenge || []).map((challengeId: string) => (
                   <div
                     key={challengeId}
                     style={{
@@ -1815,9 +1856,6 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               borderRadius: isMobile ? '20px' : '30px',
               padding: isMobile ? '10px 12px' : '11px 20px',
               overflow: 'hidden',
-              width: '100%',
-              minWidth: 0,
-              boxSizing: 'border-box',
             }}>
               <h2 style={{
                 fontFamily: 'Roboto, sans-serif',
@@ -2301,8 +2339,118 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               >
                 {saving ? t.profile.saving : t.profile.save}
               </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* User Type Modal - same options as onboarding */}
+      {userTypeModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }} onClick={() => setUserTypeModalOpen(false)}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              padding: '24px',
+              maxWidth: '420px',
+              width: '90%',
+              maxHeight: '85vh',
+              overflow: 'auto',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '20px',
+              fontWeight: 600,
+              margin: '0 0 8px 0',
+              color: '#192126',
+            }}>
+              {t.onboarding.whoAreYou}
+            </h3>
+            <p style={{
+              fontFamily: 'Roboto, sans-serif',
+              fontSize: '14px',
+              color: '#505050',
+              margin: '0 0 20px 0',
+            }}>
+              {t.onboarding.whoAreYouDescription}
+            </p>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)',
+              gap: '12px',
+            }}>
+              {[
+                { id: 'amputee', label: t.onboarding.iAmAmputee, icon: '🦿' },
+                { id: 'caregiver', label: t.onboarding.iAmCaregiver, icon: '👨‍⚕️' },
+                { id: 'volunteer', label: t.onboarding.iAmVolunteer, icon: '🤝' },
+                { id: 'doctor', label: t.onboarding.iAmDoctor, icon: '⚕️' },
+                { id: 'practitioner', label: t.onboarding.iAmPractitioner, icon: '🩺' },
+              ].map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => {
+                    const isSwitchingToNonAmputee = type.id !== 'amputee';
+                    setEditData((prev) => ({
+                      ...prev,
+                      userType: type.id,
+                      ...(isSwitchingToNonAmputee ? {
+                        prosthesisType: '',
+                        lengthUsage: '',
+                        mainChallenge: [],
+                        activities: [],
+                      } : {}),
+                    }));
+                    setUserTypeModalOpen(false);
+                  }}
+                  style={{
+                    padding: isMobile ? '12px' : '16px',
+                    border: `2px solid ${editData.userType === type.id ? '#388896' : '#E8E8E8'}`,
+                    borderRadius: '16px',
+                    background: editData.userType === type.id ? '#F0F9FF' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ fontSize: isMobile ? '24px' : '28px', marginBottom: '4px' }}>{type.icon}</div>
+                  <div style={{
+                    fontSize: isMobile ? '12px' : '14px',
+                    fontWeight: 500,
+                    color: '#192126',
+                    fontFamily: 'Roboto, sans-serif',
+                  }}>
+                    {type.label}
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <button
+                onClick={() => setUserTypeModalOpen(false)}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #d9d9d9',
+                  borderRadius: '20px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                  fontFamily: 'Roboto, sans-serif',
+                }}
+              >
+                {t.profile.cancel}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
