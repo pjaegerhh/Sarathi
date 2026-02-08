@@ -2460,6 +2460,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           isOpen={viewStoryModalOpen}
           onClose={() => setViewStoryModalOpen(false)}
           story={userStory}
+          authorFirstName={user?.firstName ?? undefined}
         />
       )}
 

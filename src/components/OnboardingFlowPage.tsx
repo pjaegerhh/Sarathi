@@ -658,14 +658,18 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             width: '100%',
             position: 'relative',
             pointerEvents: 'none',
+            overflow: 'hidden',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
           }}>
-            {/* Image Container - Background Image */}
+            {/* Image container: extend past edges with negative margin so image fills edge-to-edge */}
             <div style={{
               position: 'absolute',
-              left: 0,
+              left: '-2%',
               top: 0,
-              width: '100%',
-              height: isMobile ? '300px' : '408px',
+              width: '104%',
+              height: '100%',
+              marginLeft: 0,
               borderTopLeftRadius: isMobile ? '20px' : '30px',
               borderTopRightRadius: isMobile ? '20px' : '30px',
               overflow: 'hidden',
@@ -676,11 +680,16 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 src={ageScreenImage}
                 alt=""
                 style={{
+                  display: 'block',
                   width: '100%',
                   height: '100%',
+                  minWidth: '100%',
+                  minHeight: '100%',
                   objectFit: 'cover',
                   objectPosition: 'center',
                   pointerEvents: 'none',
+                  transform: 'scale(1.08)',
+                  transformOrigin: 'center center',
                 }}
               />
               {/* Gradient Overlay - matching Figma */}

@@ -310,6 +310,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
   const [realStories, setRealStories] = useState<UserStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
+  const [selectedStoryAuthorFirstName, setSelectedStoryAuthorFirstName] = useState('');
   const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
   const storiesPerPage = 5;
 
@@ -440,10 +441,18 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
       return;
     }
     
-    // Fetch the full story data from Supabase
+    // Fetch the full story data with author (so modal shows author's name, not logged-in user)
     const { data, error } = await supabase
       .from('user_stories')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        story_text,
+        media_urls,
+        created_at,
+        updated_at,
+        sarathi_user!user_stories_user_id_fkey ( first_name, name )
+      `)
       .eq('id', storyId)
       .single();
 
@@ -455,7 +464,18 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
     }
 
     if (data) {
-      setSelectedStory(data);
+      const userRow = Array.isArray(data.sarathi_user) ? data.sarathi_user[0] : data.sarathi_user;
+      const storyForModal = {
+        id: data.id,
+        user_id: data.user_id,
+        story_text: data.story_text,
+        media_urls: data.media_urls,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        user: userRow ? { first_name: userRow.first_name, name: userRow.name } : undefined,
+      };
+      setSelectedStory(storyForModal);
+      setSelectedStoryAuthorFirstName(userRow?.first_name ?? '');
       setViewStoryModalOpen(true);
     }
   };
@@ -619,6 +639,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
           isOpen={viewStoryModalOpen}
           onClose={() => setViewStoryModalOpen(false)}
           story={selectedStory}
+          authorFirstName={selectedStoryAuthorFirstName || undefined}
         />
       )}
     </div>

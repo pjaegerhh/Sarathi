@@ -12,12 +12,18 @@ interface ViewStoryModalProps {
     media_urls: string[] | null;
     created_at: string;
     updated_at: string;
+    /** When story is loaded with author info (e.g. from API join), use this for the subtitle instead of logged-in user. */
+    user?: { first_name?: string; name?: string };
   };
+  /** Display name (e.g. first name) of the story author. When viewing another user's story, pass this so the subtitle shows their name instead of the logged-in user's. */
+  authorFirstName?: string;
 }
 
-export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) {
+export function ViewStoryModal({ isOpen, onClose, story, authorFirstName }: ViewStoryModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  // Prefer explicit prop, then author on story (from API), then only fall back to logged-in user for "my story"
+  const displayName = authorFirstName ?? story.user?.first_name ?? user?.firstName ?? '';
   const [mediaUrls, setMediaUrls] = useState<{ [key: string]: string }>({});
   const [isCloseHovered, setIsCloseHovered] = useState(false);
 
@@ -97,7 +103,7 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
             >
               {t.profile.myStoryTitle}
             </h2>
-            {user?.firstName && (
+            {displayName && (
               <p
                 style={{
                   fontFamily: 'Roboto, sans-serif',
@@ -107,7 +113,7 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
                   margin: '4px 0 0 0',
                 }}
               >
-                {user.firstName}{t.profile.journey}
+                {displayName}{t.profile.journey}
               </p>
             )}
           </div>

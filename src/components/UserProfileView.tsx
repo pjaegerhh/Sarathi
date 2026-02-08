@@ -1458,6 +1458,7 @@ export function UserProfileView({ userId, onBack, onNavigate }: UserProfileViewP
           isOpen={viewStoryModalOpen}
           onClose={() => setViewStoryModalOpen(false)}
           story={userStory}
+          authorFirstName={profile.first_name}
         />
       )}
 

@@ -588,6 +588,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
           isOpen={viewStoryModalOpen}
           onClose={() => setViewStoryModalOpen(false)}
           story={selectedStory}
+          authorFirstName={selectedStory?.user?.first_name ?? ''}
         />
       )}
     </div>
