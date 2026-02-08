@@ -45,6 +45,13 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
   const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -224,7 +231,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0 80px 24px 80px',
+          padding: isMobile ? '0 8px 24px 8px' : '0 80px 24px 80px',
         }}
       >
         {/* Back Button */}
@@ -303,7 +310,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(353px, 1fr))',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(353px, 1fr))',
               gap: '24px',
             }}
           >
@@ -311,7 +318,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
               <div
                 key={story.id}
                 style={{
-                  width: '353px',
+                  width: isMobile ? '100%' : '353px',
                   minHeight: '518px',
                   background: '#ffffff',
                   borderRadius: '30px',
