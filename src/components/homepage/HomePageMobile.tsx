@@ -61,7 +61,7 @@ export function HomePageMobile({ onNavigate, isLoggedIn = false }: HomePageMobil
 
       <div style={{ height: '50px' }} />
 
-      <FooterSectionMobile />
+      <FooterSectionMobile onNavigate={onNavigate} />
     </div>
   );
 }

@@ -19,10 +19,11 @@ import { AllStoriesPage } from './components/AllStoriesPage';
 import { AdminDashboard } from './components/AdminDashboard';
 import { OnboardingPage } from './components/OnboardingPage';
 import { OnboardingFlowPage } from './components/OnboardingFlowPage';
+import { AboutPage } from './components/AboutPage';
 import { Toaster } from './components/ui/sonner';
 import { supabase } from './lib/supabase';
 
-type Page = 'home' | 'auth' | 'forgot-password' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'user-profile' | 'all-stories' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
+type Page = 'home' | 'about' | 'auth' | 'forgot-password' | 'register' | 'profile-selection' | 'profile-complete' | 'profile-verified' | 'profile-onboarding' | 'onboarding-flow' | 'community' | 'stories' | 'profile' | 'user-profile' | 'all-stories' | 'daily-tips' | 'help-center' | 'tutorial' | 'admin';
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState<Page>(() => {
@@ -31,6 +32,12 @@ function AppContent() {
     const hash = window.location.hash;
     if (path === '/profile-verified' || hash.includes('type=email_confirmation')) {
       return 'profile-verified';
+    }
+    if (path === '/about') return 'about';
+    if (path === '/' || path === '') return 'home';
+    const page = path.replace(/^\//, '');
+    if (['auth', 'forgot-password', 'register', 'community', 'stories', 'profile', 'all-stories', 'admin'].includes(page)) {
+      return page as Page;
     }
     return 'home';
   });
@@ -223,6 +230,8 @@ function AppContent() {
         ) : (
           <HomePageDesktop onNavigate={handleNavigate} isLoggedIn={!!user} />
         );
+      case 'about':
+        return <AboutPage onNavigate={handleNavigate} />;
       case 'auth':
         return <LoginPage onNavigate={handleNavigate} returnTo={pageData?.returnTo} />;
       case 'forgot-password':

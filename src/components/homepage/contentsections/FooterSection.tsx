@@ -5,7 +5,11 @@ import heartIcon from '../../../assets/svg/heart.svg';
 // ===========================================
 // SECTION 10: FOOTER
 // ===========================================
-export function FooterSectionDesktop() {
+interface FooterSectionProps {
+  onNavigate?: (page: string) => void;
+}
+
+export function FooterSectionDesktop({ onNavigate }: FooterSectionProps) {
   const { t } = useLanguage();
   
   return (
@@ -35,14 +39,23 @@ export function FooterSectionDesktop() {
           </div>
         </div>
         <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-[#505050] text-[18px]" style={{ flex: '0 0 auto', maxWidth: '400px', textAlign: 'right' }}>
-          <p className="leading-[28px] whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{t.footer.about} • {t.footer.contact} • {t.footer.privacy} • {t.footer.exploreStories}</p>
+          <p className="leading-[28px] whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+            {onNavigate ? (
+              <>
+                <button type="button" onClick={() => onNavigate('about')} className="text-[#8AC0AD] hover:underline cursor-pointer bg-transparent border-0 p-0 font-inherit">{t.footer.about}</button>
+                {' • '}{t.footer.contact} • {t.footer.privacy} • {t.footer.exploreStories}
+              </>
+            ) : (
+              <>{t.footer.about} • {t.footer.contact} • {t.footer.privacy} • {t.footer.exploreStories}</>
+            )}
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-export function FooterSectionMobile() {
+export function FooterSectionMobile({ onNavigate }: FooterSectionProps) {
   const { t } = useLanguage();
   
   return (
@@ -68,7 +81,16 @@ export function FooterSectionMobile() {
           </div>
         </div>
         <div className="flex flex-col justify-center leading-[0] relative shrink-0 text-[#505050] text-[18px] text-center">
-          <p className="leading-[28px]">{t.footer.about} • {t.footer.contact} • {t.footer.privacy} • {t.footer.exploreStories}</p>
+          <p className="leading-[28px]">
+            {onNavigate ? (
+              <>
+                <button type="button" onClick={() => onNavigate('about')} className="text-[#8AC0AD] hover:underline cursor-pointer bg-transparent border-0 p-0 font-inherit">{t.footer.about}</button>
+                {' • '}{t.footer.contact} • {t.footer.privacy} • {t.footer.exploreStories}
+              </>
+            ) : (
+              <>{t.footer.about} • {t.footer.contact} • {t.footer.privacy} • {t.footer.exploreStories}</>
+            )}
+          </p>
         </div>
       </div>
     </div>

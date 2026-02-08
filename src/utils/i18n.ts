@@ -360,6 +360,23 @@ export interface Translations {
     privacy: string;
     exploreStories: string;
   };
+
+  // About page
+  aboutPage: {
+    meetTheBrains: string;
+    paulineName: string;
+    paulineRole: string;
+    peterName: string;
+    peterRole: string;
+    sharikaName: string;
+    sharikaRole: string;
+    sarveshName: string;
+    sarveshRole: string;
+    paragraph1: string;
+    paragraph2: string;
+    paragraph3: string;
+    backToHome: string;
+  };
   
   // User roles
   roles: {
@@ -1077,6 +1094,21 @@ export const translations: Record<Language, Translations> = {
       privacy: 'Privacy',
       exploreStories: 'Explore Stories',
     },
+    aboutPage: {
+      meetTheBrains: 'Meet The Brains Behind SARATHI!',
+      paulineName: 'Pauline Reinecke',
+      paulineRole: 'Academic expert, Researcher',
+      peterName: 'Peter Jaeger',
+      peterRole: 'Project Manager, Developer',
+      sharikaName: 'Sharika Nandan',
+      sharikaRole: 'Senior UX/UI Designer',
+      sarveshName: 'Sarvesh Kumar Singh',
+      sarveshRole: 'Junior UX/UI Designer',
+      paragraph1: 'We are a small, interdisciplinary team of designers, researchers, and technologists who believe that access to the right information can change lives. This platform is created with and for the people living with amputation in India, to help reduce information gaps and make the rehabilitation journey a little less isolating.',
+      paragraph2: 'Our work is driven by conversations with amputees, caregivers, and rehabilitation professionals. We listen closely to lived experiences, challenges, small wins, frustrations, and hopes and translate them into thoughtful, accessible design. From peer connections and shared stories to practical training tips and verified help centers, every feature is shaped by real needs.',
+      paragraph3: 'We see this platform not just as a product, but as a growing community. One that supports learning, recovery, and confidence at your own pace, in your own context.',
+      backToHome: 'Back to Home',
+    },
     roles: {
       admin: 'Admin',
       contentModerator: 'Content Moderator',
@@ -1780,6 +1812,21 @@ export const translations: Record<Language, Translations> = {
       contact: 'संपर्क करें',
       privacy: 'गोपनीयता',
       exploreStories: 'कहानियों का अन्वेषण करें',
+    },
+    aboutPage: {
+      meetTheBrains: 'सारथी के पीछे की टीम से मिलें!',
+      paulineName: 'पॉलिन रेनेके',
+      paulineRole: 'अकादमिक विशेषज्ञ, शोधकर्ता',
+      peterName: 'पीटर जेगर',
+      peterRole: 'प्रोजेक्ट मैनेजर, डेवलपर',
+      sharikaName: 'शारिका नंदन',
+      sharikaRole: 'सीनियर UX/UI डिज़ाइनर',
+      sarveshName: 'सर्वेश कुमार सिंह',
+      sarveshRole: 'जूनियर UX/UI डिज़ाइनर',
+      paragraph1: 'हम डिज़ाइनरों, शोधकर्ताओं और तकनीशियनों की एक छोटी, अंतःविषय टीम हैं जो मानते हैं कि सही जानकारी तक पहुंच जीवन बदल सकती है। यह प्लेटफॉर्म भारत में विच्छेदन के साथ जीवन व्यतीत कर रहे लोगों के साथ और उनके लिए बनाया गया है, ताकि जानकारी के अंतर को कम करने और पुनर्वास यात्रा को थोड़ा कम अलग-थलग करने में मदद मिल सके।',
+      paragraph2: 'हमारा काम विच्छेदित लोगों, देखभाल करने वालों और पुनर्वास पेशेवरों के साथ बातचीत से प्रेरित है। हम जीवित अनुभवों, चुनौतियों, छोटी जीत, निराशाओं और उम्मीदों को ध्यान से सुनते हैं और उन्हें विचारशील, सुलभ डिज़ाइन में अनुवाद करते हैं। साथियों से जुड़ाव और साझा कहानियों से लेकर व्यावहारिक प्रशिक्षण टिप्स और सत्यापित सहायता केंद्रों तक, हर फीचर वास्तविक जरूरतों से आकार लेता है।',
+      paragraph3: 'हम इस प्लेटफॉर्म को सिर्फ एक उत्पाद के रूप में नहीं, बल्कि एक बढ़ते समुदाय के रूप में देखते हैं। जो आपकी अपनी गति से, आपके अपने संदर्भ में सीखने, स्वास्थ्यलाभ और आत्मविश्वास का समर्थन करता है।',
+      backToHome: 'होम पर वापस',
     },
     roles: {
       admin: 'व्यवस्थापक',
