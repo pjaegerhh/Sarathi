@@ -2,6 +2,7 @@
  * Timer: pings Supabase every 2 hours.
  * HTTP GET: manual health check at /api/supabase-ping.
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY; optional SUPABASE_PING_TABLE.
+ * (Sarathi production scheduler)
  */
 
 import { app, HttpRequest, HttpResponseInit, InvocationContext, Timer } from '@azure/functions'
