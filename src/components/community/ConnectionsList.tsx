@@ -16,7 +16,11 @@ interface Connection {
   created_at: string;
 }
 
-export function ConnectionsList() {
+interface ConnectionsListProps {
+  onNavigate?: (page: string, data?: any) => void;
+}
+
+export function ConnectionsList({ onNavigate }: ConnectionsListProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -366,77 +370,90 @@ export function ConnectionsList() {
                     overflow: 'hidden',
                   }}
                 >
-                  {/* Profile Picture */}
+                  {/* Profile Picture + User Info: clickable to open profile */}
                   <div
+                    role={onNavigate ? 'button' : undefined}
+                    onClick={() => onNavigate?.('user-profile', { userId: connection.user_id, previousPage: 'profile' })}
                     style={{
-                      width: isMobile ? '32px' : '40px',
-                      height: isMobile ? '32px' : '40px',
-                      borderRadius: '50%',
-                      background: '#e0e0e0',
-                      marginRight: isMobile ? '6px' : '10px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: isMobile ? '12px' : '14px',
-                      fontWeight: 600,
-                      color: '#979797',
-                      flexShrink: 0,
+                      flex: 1,
+                      minWidth: 0,
                       overflow: 'hidden',
+                      cursor: onNavigate ? 'pointer' : 'default',
                     }}
                   >
-                    {profilePictureUrls[connection.user_id] ? (
-                      <img
-                        src={profilePictureUrls[connection.user_id]}
-                        alt=""
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    ) : (
-                      [(connection.first_name || connection.name || '?')[0].toUpperCase()]
-                    )}
-                  </div>
-
-                  {/* User Info */}
-                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                     <div
                       style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontSize: isMobile ? '12px' : '13px',
+                        width: isMobile ? '32px' : '40px',
+                        height: isMobile ? '32px' : '40px',
+                        borderRadius: '50%',
+                        background: '#e0e0e0',
+                        marginRight: isMobile ? '6px' : '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: isMobile ? '12px' : '14px',
                         fontWeight: 600,
-                        color: '#192126',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {[connection.first_name, connection.name].filter(Boolean).join(' ') || t.common.user}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: 'Roboto, sans-serif',
-                        fontSize: isMobile ? '10px' : '11px',
                         color: '#979797',
+                        flexShrink: 0,
                         overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {connection.user_type}
+                      {profilePictureUrls[connection.user_id] ? (
+                        <img
+                          src={profilePictureUrls[connection.user_id]}
+                          alt=""
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      ) : (
+                        [(connection.first_name || connection.name || '?')[0].toUpperCase()]
+                      )}
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: isMobile ? '12px' : '13px',
+                          fontWeight: 600,
+                          color: '#192126',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {[connection.first_name, connection.name].filter(Boolean).join(' ') || t.common.user}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: 'Roboto, sans-serif',
+                          fontSize: isMobile ? '10px' : '11px',
+                          color: '#979797',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {connection.user_type}
+                      </div>
                     </div>
                   </div>
 
                   {/* Remove Button */}
                   <button
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setConfirmModal({
                         type: 'remove',
                         connectionId: connection.id,
                         fullName: [connection.first_name, connection.name].filter(Boolean).join(' ') || t.common.user,
-                      })
-                    }
+                      });
+                    }}
                     disabled={actionLoading[connection.id]}
                     style={{
                       padding: isMobile ? '4px 8px' : '6px 12px',

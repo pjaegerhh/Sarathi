@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import { loadSignedUrl } from '../utils/mediaLoader';
 
 interface ViewStoryModalProps {
@@ -13,29 +12,27 @@ interface ViewStoryModalProps {
     media_urls: string[] | null;
     created_at: string;
     updated_at: string;
+    /** When story is loaded with author info (e.g. from API join), use this for the subtitle instead of logged-in user. */
+    user?: { first_name?: string; name?: string };
   };
+  /** Display name (e.g. first name) of the story author. When viewing another user's story, pass this so the subtitle shows their name instead of the logged-in user's. */
+  authorFirstName?: string;
 }
 
-export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) {
+export function ViewStoryModal({ isOpen, onClose, story, authorFirstName }: ViewStoryModalProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  // Prefer explicit prop, then author on story (from API), then only fall back to logged-in user for "my story"
+  const displayName = authorFirstName ?? story.user?.first_name ?? user?.firstName ?? '';
   const [mediaUrls, setMediaUrls] = useState<{ [key: string]: string }>({});
   const [isCloseHovered, setIsCloseHovered] = useState(false);
-
-  // Load signed URLs for all media when modal opens
-  useEffect(() => {
-    if (isOpen && story.media_urls) {
-      loadMediaUrls();
-    }
-  }, [isOpen, story.media_urls]);
 
   const loadMediaUrls = async () => {
     if (!story.media_urls) return;
 
     const urls: { [key: string]: string } = {};
-    
+
     for (const path of story.media_urls) {
-      // Use cache
       const signedUrl = await loadSignedUrl('profile-media', path);
 
       if (signedUrl) {
@@ -45,6 +42,13 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
 
     setMediaUrls(urls);
   };
+
+  useEffect(() => {
+    if (isOpen && story.media_urls) {
+      loadMediaUrls();
+    }
+   
+  }, [isOpen, story.media_urls]);
 
   if (!isOpen) return null;
 
@@ -99,7 +103,7 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
             >
               {t.profile.myStoryTitle}
             </h2>
-            {user?.firstName && (
+            {displayName && (
               <p
                 style={{
                   fontFamily: 'Roboto, sans-serif',
@@ -109,7 +113,7 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
                   margin: '4px 0 0 0',
                 }}
               >
-                {user.firstName}{t.profile.journey}
+                {displayName}{t.profile.journey}
               </p>
             )}
           </div>
@@ -161,8 +165,8 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
                       borderRadius: '20px',
                       overflow: 'hidden',
                       background: '#000000',
-                      aspectRatio: story.media_urls.length === 1 ? undefined : '1/1',
-                      minHeight: story.media_urls.length === 1 ? '400px' : undefined,
+                      aspectRatio: (story.media_urls?.length ?? 0) === 1 ? undefined : '1/1',
+                      minHeight: (story.media_urls?.length ?? 0) === 1 ? '400px' : undefined,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -175,7 +179,7 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: story.media_urls.length === 1 ? 'contain' : 'cover',
+                          objectFit: (story.media_urls?.length ?? 0) === 1 ? 'contain' : 'cover',
                         }}
                       />
                     ) : (
@@ -185,7 +189,7 @@ export function ViewStoryModal({ isOpen, onClose, story }: ViewStoryModalProps) 
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: story.media_urls.length === 1 ? 'contain' : 'cover',
+                          objectFit: (story.media_urls?.length ?? 0) === 1 ? 'contain' : 'cover',
                         }}
                       />
                     )}

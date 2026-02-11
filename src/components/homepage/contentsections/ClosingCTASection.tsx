@@ -75,6 +75,7 @@ export function ClosingCTASectionDesktop({ onNavigate, isLoggedIn = false }: Clo
 export function ClosingCTASectionMobile({ onNavigate, isLoggedIn = false }: ClosingCTASectionProps) {
   const [registerHovered, setRegisterHovered] = React.useState(false);
   const [loginHovered, setLoginHovered] = React.useState(false);
+  const [aboutHovered, setAboutHovered] = React.useState(false);
   const { t } = useLanguage();
   
   return (
@@ -85,10 +86,10 @@ export function ClosingCTASectionMobile({ onNavigate, isLoggedIn = false }: Clos
       <div className="flex flex-col text-h3 justify-center leading-[0] relative shrink-0 text-body-color text-center w-full">
         <p className="leading-[32px]">{t.home.closingSubtext}</p>
       </div>
-      <div className="flex gap-[18px] items-center relative shrink-0" data-name="Buttons">
+      <div className="flex flex-wrap gap-[18px] items-center justify-center relative shrink-0" data-name="Buttons">
         <button 
           type="button"
-          className="box-border flex gap-2 h-[48px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
+          className="box-border flex gap-2 h-[50px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
           style={{ 
             backgroundColor: registerHovered ? '#388896' : '#ffffff',
             transition: 'background-color 300ms'
@@ -126,6 +127,27 @@ export function ClosingCTASectionMobile({ onNavigate, isLoggedIn = false }: Clos
             }}
           >
             <p className="leading-[24px] whitespace-pre">{t.auth.login}</p>
+          </div>
+        </button>
+        <button 
+          type="button"
+          className="box-border flex gap-2 h-[50px] items-center justify-center px-6 py-2 relative rounded-[26px] shadow-[0px_0px_10px_0px_#dddddd] shrink-0 w-[160px] cursor-pointer transition-colors"
+          style={{ 
+            backgroundColor: aboutHovered ? '#388896' : '#ffffff',
+            transition: 'background-color 300ms'
+          }}
+          onMouseEnter={() => setAboutHovered(true)}
+          onMouseLeave={() => setAboutHovered(false)}
+          onClick={() => onNavigate?.('about')}
+        >
+          <div 
+            className="flex flex-col text-label justify-center leading-[0] relative shrink-0 text-nowrap"
+            style={{ 
+              color: aboutHovered ? '#ffffff' : '#388896',
+              transition: 'color 300ms'
+            }}
+          >
+            <p className="leading-[24px] whitespace-pre">{t.footer.about}</p>
           </div>
         </button>
       </div>

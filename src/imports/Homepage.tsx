@@ -86,7 +86,7 @@ function QuoteAuthor() {
   );
 }
 
-function QuoteSection() {
+function _QuoteSection() {
   return (
     <div className="absolute content-stretch flex flex-col gap-[8px] items-center left-1/2 top-[522px] translate-x-[-50%]" data-name="Quote section">
       <div className="flex flex-col font-['Roboto:Regular',_sans-serif] font-normal justify-center leading-[0] relative shrink-0 text-[#505050] text-[12px] text-center tracking-[0.4px] w-[349px]" style={{ fontVariationSettings: "'wdth' 100" }}>

@@ -21,7 +21,7 @@ interface UserStory {
   isMockup?: boolean;  // Flag to identify mockup stories
 }
 
-interface RealUserStory {
+interface _RealUserStory {
   id: string;
   user_id: string;
   story_text: string | null;
@@ -125,23 +125,15 @@ interface UserStoryCardProps {
 const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
   const [profilePicUrl, setProfilePicUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (story.profilePictureUrl) {
-      loadProfilePicture();
-    }
-  }, [story.profilePictureUrl]);
-
   const loadProfilePicture = async () => {
     if (!story.profilePictureUrl) return;
 
     try {
-      // If it's already a full URL (signed URL), use it directly
       if (story.profilePictureUrl.startsWith('http')) {
         setProfilePicUrl(story.profilePictureUrl);
         return;
       }
 
-      // Otherwise, create a signed URL from the file path with cache
       const signedUrl = await loadSignedUrl('profile-media', story.profilePictureUrl);
 
       if (signedUrl) {
@@ -151,6 +143,12 @@ const UserStoryCard: React.FC<UserStoryCardProps> = ({ story, onClick }) => {
       console.error('Error loading profile picture:', error);
     }
   };
+
+  useEffect(() => {
+    if (story.profilePictureUrl) {
+      loadProfilePicture();
+    }
+  }, [story.profilePictureUrl]);
 
   return (
     <div
@@ -312,6 +310,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
   const [realStories, setRealStories] = useState<UserStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedStory, setSelectedStory] = useState<any | null>(null);
+  const [selectedStoryAuthorFirstName, setSelectedStoryAuthorFirstName] = useState('');
   const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
   const storiesPerPage = 5;
 
@@ -337,7 +336,11 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error loading user stories:', error);
+        // Graceful handling: 406 / RLS / new user may have no access; show empty stories
+        if (error.code !== '406' && error.code !== 'PGRST116') {
+          console.warn('User stories load failed:', error.message);
+        }
+        setRealStories([]);
         setIsLoading(false);
         return;
       }
@@ -387,7 +390,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
                     if (signedUrl) {
                       imageUrl = signedUrl;
                     }
-                  } catch (err) {
+                  } catch {
                     // Skip failed media URLs
                   }
                 }
@@ -406,8 +409,9 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
 
         setRealStories(transformedStories);
       }
-    } catch (error) {
-      // Silently fail
+    } catch {
+      // Graceful degradation: show empty/mock stories (e.g. new user, 406, network)
+      setRealStories([]);
     } finally {
       setIsLoading(false);
     }
@@ -415,7 +419,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
 
   // Combine real stories with mockup data
   const allStories = [...realStories, ...mockupStories];
-  const totalPages = Math.ceil(allStories.length / storiesPerPage);
+  const _totalPages = Math.ceil(allStories.length / storiesPerPage);
 
   const handlePrevious = () => {
     setCurrentPage((prev) => Math.max(0, prev - 1));
@@ -437,26 +441,47 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
       return;
     }
     
-    // Fetch the full story data from Supabase
+    // Fetch the full story data with author (so modal shows author's name, not logged-in user)
     const { data, error } = await supabase
       .from('user_stories')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        story_text,
+        media_urls,
+        created_at,
+        updated_at,
+        sarathi_user!user_stories_user_id_fkey ( first_name, name )
+      `)
       .eq('id', storyId)
       .single();
 
     if (error) {
-      console.error('Error loading story:', error);
+      if (error.code !== '406' && error.code !== 'PGRST116') {
+        console.warn('Story load failed:', error.message);
+      }
       return;
     }
 
     if (data) {
-      setSelectedStory(data);
+      const userRow = Array.isArray(data.sarathi_user) ? data.sarathi_user[0] : data.sarathi_user;
+      const storyForModal = {
+        id: data.id,
+        user_id: data.user_id,
+        story_text: data.story_text,
+        media_urls: data.media_urls,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        user: userRow ? { first_name: userRow.first_name, name: userRow.name } : undefined,
+      };
+      setSelectedStory(storyForModal);
+      setSelectedStoryAuthorFirstName(userRow?.first_name ?? '');
       setViewStoryModalOpen(true);
     }
   };
 
   const startIndex = currentPage * storiesPerPage;
-  const visibleStories = allStories.slice(startIndex, startIndex + storiesPerPage);
+  const _visibleStories = allStories.slice(startIndex, startIndex + storiesPerPage);
 
   // Only show mockup stories if we have less than 10 real stories
   const shouldShowMockup = realStories.length < 10;
@@ -614,6 +639,7 @@ export const UserStoriesPreview: React.FC<UserStoriesPreviewProps> = ({ onNaviga
           isOpen={viewStoryModalOpen}
           onClose={() => setViewStoryModalOpen(false)}
           story={selectedStory}
+          authorFirstName={selectedStoryAuthorFirstName || undefined}
         />
       )}
     </div>

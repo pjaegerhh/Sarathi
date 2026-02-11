@@ -15,7 +15,7 @@ import costAccessIcon from '../assets/svg/cost_access.svg';
 import trainingIcon from '../assets/svg/training.svg';
 
 interface AllStoriesPageProps {
-  onNavigate: (page: string, data?: any) => void;
+  onNavigate: (page: string, data?: unknown) => void;
 }
 
 interface UserStory {
@@ -43,13 +43,21 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
   const { user } = useAuth();
   const [stories, setStories] = useState<UserStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedStory, setSelectedStory] = useState<any | null>(null);
+  const [selectedStory, setSelectedStory] = useState<UserStory | null>(null);
   const [viewStoryModalOpen, setViewStoryModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (user) {
       loadAllStories();
     }
+   
   }, [user]);
 
   const loadAllStories = async () => {
@@ -85,7 +93,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
       if (data) {
         // Transform and get first image + connection status for each story
         const transformedStories = await Promise.all(
-          data.map(async (story: any) => {
+          data.map(async (story: Record<string, unknown>) => {
             const storyUser = Array.isArray(story.sarathi_user)
               ? story.sarathi_user[0]
               : story.sarathi_user;
@@ -223,7 +231,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0 80px 24px 80px',
+          padding: isMobile ? '0 8px 24px 8px' : '0 80px 24px 80px',
         }}
       >
         {/* Back Button */}
@@ -302,7 +310,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(353px, 1fr))',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(353px, 1fr))',
               gap: '24px',
             }}
           >
@@ -310,7 +318,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
               <div
                 key={story.id}
                 style={{
-                  width: '353px',
+                  width: isMobile ? '100%' : '353px',
                   minHeight: '518px',
                   background: '#ffffff',
                   borderRadius: '30px',
@@ -587,6 +595,7 @@ export function AllStoriesPage({ onNavigate }: AllStoriesPageProps) {
           isOpen={viewStoryModalOpen}
           onClose={() => setViewStoryModalOpen(false)}
           story={selectedStory}
+          authorFirstName={selectedStory?.user?.first_name ?? ''}
         />
       )}
     </div>

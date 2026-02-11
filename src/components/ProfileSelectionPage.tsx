@@ -12,7 +12,7 @@ interface ProfileSelectionPageProps {
 }
 
 export function ProfileSelectionPage({ onNavigate, userName = 'User' }: ProfileSelectionPageProps) {
-  const { t } = useLanguage();
+  const { t: _t } = useLanguage();
   const { user } = useAuth();
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export function ProfileSelectionPage({ onNavigate, userName = 'User' }: ProfileS
     
     try {
       // Update user_type in sarathi_user table
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from('sarathi_user')
         .update({ user_type: selectedProfile })
         .eq('uuid', user.id)
@@ -57,9 +57,9 @@ export function ProfileSelectionPage({ onNavigate, userName = 'User' }: ProfileS
       
       // Navigate to complete page
       onNavigate('profile-complete');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Exception updating profile:', error);
-      toast.error(`Error: ${error.message || 'Failed to save'}`);
+      toast.error(`Error: ${error instanceof Error ? error.message : 'Failed to save'}`);
       setLoading(false);
     }
   };

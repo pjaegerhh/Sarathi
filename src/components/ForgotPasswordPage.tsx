@@ -61,9 +61,10 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setCode(Array(CODE_LENGTH).fill(''));
       setTimeout(() => inputRefs.current[0]?.focus(), 100);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : { message: '' };
       const message =
-        error?.message === 'RATE_LIMIT_OTP' ? t.auth.rateLimitOtp : error?.message || t.common.error;
+        err.message === 'RATE_LIMIT_OTP' ? t.auth.rateLimitOtp : err.message || t.common.error;
       toast.error(message);
     } finally {
       setLoading(false);
@@ -77,9 +78,10 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
       await sendPasswordResetCode(email);
       toast.success(t.auth.codeSent);
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : { message: '' };
       const message =
-        error?.message === 'RATE_LIMIT_OTP' ? t.auth.rateLimitOtp : error?.message || t.common.error;
+        err.message === 'RATE_LIMIT_OTP' ? t.auth.rateLimitOtp : err.message || t.common.error;
       toast.error(message);
     } finally {
       setLoading(false);
@@ -127,8 +129,8 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
       setStep(3);
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error: any) {
-      toast.error(error.message || t.auth.invalidCode);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : t.auth.invalidCode);
     } finally {
       setLoading(false);
     }
@@ -153,9 +155,10 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
       } else {
         onNavigate('home');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : { message: '' };
       const message =
-        error?.message === 'PASSWORD_SAME_AS_OLD' ? t.auth.passwordSameAsOld : error?.message || t.common.error;
+        err.message === 'PASSWORD_SAME_AS_OLD' ? t.auth.passwordSameAsOld : err.message || t.common.error;
       toast.error(message);
     } finally {
       setLoading(false);
@@ -192,9 +195,9 @@ export function ForgotPasswordPage({ onNavigate }: ForgotPasswordPageProps) {
     backgroundColor: 'white',
     borderRadius: (isMobile ? 20 : 30) as number,
     boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-    overflow: 'hidden' as const,
+    overflow: 'hidden',
     display: 'flex',
-    flexDirection: (isMobile ? 'column' : 'row') as const,
+    flexDirection: (isMobile ? 'column' : 'row') as 'column' | 'row',
     minHeight: isMobile ? undefined : 600,
     flexShrink: 0,
     boxSizing: 'border-box' as const,

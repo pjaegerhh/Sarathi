@@ -8,7 +8,7 @@ import backgroundImage from '../assets/images/Background_login.png';
 import sarathiLogo from '../assets/svg/sarathi_login.svg';
 
 interface RegistrationPageProps {
-  onNavigate: (page: string, data?: any) => void;
+  onNavigate: (page: string, data?: unknown) => void;
 }
 
 export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
@@ -18,6 +18,9 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
   // Password visibility state
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Date of birth: when focused, show input so user can type; when blurred and empty, show hint
+  const [dateOfBirthFocused, setDateOfBirthFocused] = useState(false);
 
   // Password match state
   const [passwordsMatch, setPasswordsMatch] = useState<boolean | null>(null);
@@ -59,7 +62,7 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
   // Loading state
   const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -209,9 +212,9 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
       
       toast.success(t.registration.accountCreatedSuccess);
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration error:', error);
-      toast.error(error.message || t.registration.registrationFailed);
+      toast.error(error instanceof Error ? error.message : t.registration.registrationFailed);
     } finally {
       setLoading(false);
     }
@@ -544,50 +547,92 @@ export function RegistrationPage({ onNavigate }: RegistrationPageProps) {
                 />
               </div>
 
-              {/* Date of Birth */}
-              <div style={{ marginBottom: '16px', position: 'relative' }}>
-                <div 
+              {/* Date of Birth – "Date of birth" hint inside box like email placeholder */}
+              <div style={{ marginBottom: '16px' }}>
+                <div
                   style={{
-                    position: 'absolute',
-                    left: '16px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: '#8AC0AD',
-                    cursor: 'pointer',
-                    zIndex: 10
-                  }}
-                  onClick={() => {
-                    const input = document.getElementById('dateOfBirthInput') as HTMLInputElement;
-                    if (input) input.showPicker?.();
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                  </svg>
-                </div>
-                <input
-                  id="dateOfBirthInput"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                  placeholder={t.registration.enterDateOfBirth}
-                  style={{
-                    width: '100%',
+                    position: 'relative',
                     height: '52px',
-                    padding: '0 16px 0 48px',
                     border: '1px solid #E8E8E8',
                     borderRadius: '10px',
-                    fontSize: '14px',
-                    outline: 'none',
                     backgroundColor: '#FAFAFA',
-                    colorScheme: 'light'
                   }}
-                />
+                >
+                  {/* Hint text: same position as email placeholder, on top so it’s always visible when empty */}
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '48px',
+                      right: '16px',
+                      top: 0,
+                      height: '52px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      pointerEvents: 'none',
+                      fontFamily: 'Roboto, sans-serif',
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      color: '#9CA3AF',
+                      zIndex: 10,
+                      visibility: formData.dateOfBirth || dateOfBirthFocused ? 'hidden' : 'visible',
+                    }}
+                  >
+                    {t.registration.dateOfBirth || 'Date of birth'}
+                  </span>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: '16px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: '#8AC0AD',
+                      cursor: 'pointer',
+                      zIndex: 3,
+                    }}
+                    onClick={() => {
+                      const input = document.getElementById('dateOfBirthInput') as HTMLInputElement;
+                      if (input) {
+                        input.focus();
+                        input.showPicker?.();
+                      }
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
+                  <input
+                    id="dateOfBirthInput"
+                    type="date"
+                    value={formData.dateOfBirth}
+                    onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                    onFocus={() => setDateOfBirthFocused(true)}
+                    onBlur={() => setDateOfBirthFocused(false)}
+                    aria-label={t.registration.dateOfBirth}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      padding: '0 16px 0 48px',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      backgroundColor: 'transparent',
+                      colorScheme: 'light',
+                      color: formData.dateOfBirth || dateOfBirthFocused ? '#192126' : 'transparent',
+                      zIndex: 1,
+                      opacity: formData.dateOfBirth || dateOfBirthFocused ? 1 : 0,
+                    }}
+                  />
+                </div>
               </div>
 
               {/* Phone Number */}

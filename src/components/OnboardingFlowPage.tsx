@@ -36,7 +36,7 @@ import aboveKneeIcon from '../assets/svg/aboveknee_icon.svg';
 import belowKneeIcon from '../assets/svg/belowknee_icon.svg';
 
 interface OnboardingFlowPageProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, data?: unknown) => void;
 }
 
 // The combined onboarding flow:
@@ -77,50 +77,6 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Lock body/html scroll on mobile when onboarding is shown (avoids vertical move in PWA)
-  useEffect(() => {
-    if (!isMobile) return;
-    const scrollY = window.scrollY;
-    const html = document.documentElement;
-    const prevHtmlOverflow = html.style.overflow;
-    const prevHtmlHeight = html.style.height;
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevBodyTouchAction = document.body.style.touchAction;
-    const prevBodyPosition = document.body.style.position;
-    const prevBodyTop = document.body.style.top;
-    const prevBodyWidth = document.body.style.width;
-    html.style.overflow = 'hidden';
-    html.style.height = '100%';
-    document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-    return () => {
-      html.style.overflow = prevHtmlOverflow;
-      html.style.height = prevHtmlHeight;
-      document.body.style.overflow = prevBodyOverflow;
-      document.body.style.touchAction = prevBodyTouchAction;
-      document.body.style.position = prevBodyPosition;
-      document.body.style.top = prevBodyTop;
-      document.body.style.width = prevBodyWidth;
-      window.scrollTo(0, scrollY);
-    };
-  }, [isMobile]);
-
-  // Prevent default on touchmove (vertical scroll) so mobile cannot drag page up/down.
-  // Allow touchmove inside elements with data-touch-scroll="allow" (e.g. Step 11 activities list).
-  useEffect(() => {
-    if (!isMobile) return;
-    const preventVerticalScroll = (e: TouchEvent) => {
-      const allowScroll = (e.target as Element)?.closest?.('[data-touch-scroll="allow"]');
-      if (allowScroll) return;
-      e.preventDefault();
-    };
-    document.addEventListener('touchmove', preventVerticalScroll, { passive: false });
-    return () => document.removeEventListener('touchmove', preventVerticalScroll);
-  }, [isMobile]);
-
   // Form data
   const [formData, setFormData] = useState({
     ageInput: '', // Direct age input from user
@@ -139,7 +95,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
       try {
         const { data: userData, error } = await supabase
           .from('sarathi_user')
-          .select('age, user_type, prosthesis_type, length_usage, main_challenge, activities')
+          .select('age, user_type, prosthesis_type, length_usage, main_challenge, activities, onboarding_completed')
           .eq('uuid', user.id)
           .single();
 
@@ -149,9 +105,10 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
         }
 
         if (userData) {
+          const completed = (userData as Record<string, unknown>).onboarding_completed === true;
           setFormData({
             ageInput: userData.age ? userData.age.toString() : '',
-            userType: userData.user_type || '',
+            userType: completed ? (userData.user_type || '') : '',
             prosthesisType: userData.prosthesis_type || '',
             lengthUsage: userData.length_usage || '',
             mainChallenge: userData.main_challenge || [],
@@ -184,7 +141,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     return age;
   };
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -254,6 +211,24 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
   const handleSubmit = async () => {
     if (!user) {
+      // On final step ("Explore Sarathi"): no user yet - save onboarding to apply after login, then redirect
+      if (currentStep === 12) {
+        try {
+          sessionStorage.setItem('postLoginRedirect', 'profile');
+          const pendingData: Record<string, unknown> = {
+            age: getAgeFromInput() || null,
+            user_type: formData.userType || null,
+            onboarding_completed: true,
+            prosthesis_type: formData.userType === 'amputee' ? (formData.prosthesisType || null) : null,
+            length_usage: formData.userType === 'amputee' ? (formData.lengthUsage || null) : null,
+            main_challenge: formData.userType === 'amputee' ? (formData.mainChallenge || null) : null,
+            activities: formData.userType === 'amputee' ? (formData.activities || null) : null,
+          };
+          sessionStorage.setItem('onboardingPendingData', JSON.stringify(pendingData));
+        } catch { /* ignore */ }
+        onNavigate('auth', { returnTo: 'profile' });
+        return;
+      }
       toast.error(t.onboarding.pleaseLoginFirst);
       return;
     }
@@ -261,7 +236,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
     setLoading(true);
 
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         age: getAgeFromInput(),
         user_type: formData.userType,
         onboarding_completed: true,
@@ -285,12 +260,15 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
       await updateProfile(updateData);
 
       toast.success(t.onboarding.profileCompletedSuccess);
-      
-      // Navigate to home page
-      onNavigate('home');
-    } catch (error: any) {
+
+      // Navigate to login so user can sign in and get a real session, then go to profile
+      try {
+        sessionStorage.setItem('postLoginRedirect', 'profile');
+      } catch { /* ignore */ }
+      onNavigate('auth', { returnTo: 'profile' });
+    } catch (error: unknown) {
       console.error('❌ Error saving onboarding data:', error);
-      toast.error(`Failed to complete profile: ${error.message}`);
+      toast.error(`Failed to complete profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -680,14 +658,18 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             width: '100%',
             position: 'relative',
             pointerEvents: 'none',
+            overflow: 'hidden',
+            borderTopLeftRadius: isMobile ? '20px' : '30px',
+            borderTopRightRadius: isMobile ? '20px' : '30px',
           }}>
-            {/* Image Container - Background Image */}
+            {/* Image container: extend past edges with negative margin so image fills edge-to-edge */}
             <div style={{
               position: 'absolute',
-              left: 0,
+              left: '-2%',
               top: 0,
-              width: '100%',
-              height: isMobile ? '300px' : '408px',
+              width: '104%',
+              height: '100%',
+              marginLeft: 0,
               borderTopLeftRadius: isMobile ? '20px' : '30px',
               borderTopRightRadius: isMobile ? '20px' : '30px',
               overflow: 'hidden',
@@ -698,11 +680,16 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
                 src={ageScreenImage}
                 alt=""
                 style={{
+                  display: 'block',
                   width: '100%',
                   height: '100%',
+                  minWidth: '100%',
+                  minHeight: '100%',
                   objectFit: 'cover',
                   objectPosition: 'center',
                   pointerEvents: 'none',
+                  transform: 'scale(1.08)',
+                  transformOrigin: 'center center',
                 }}
               />
               {/* Gradient Overlay - matching Figma */}
@@ -820,7 +807,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
 
   // Helper function to render tutorial screens 2-5
   const renderTutorialScreen = (
-    screenNumber: number,
+    _screenNumber: number,
     image: string,
     title: string,
     description: string
@@ -1802,18 +1789,15 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             </div>
           </div>
 
-          {/* Content - data-touch-scroll allows vertical scroll inside this area on mobile */}
-          <div
-            data-touch-scroll="allow"
-            style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              padding: isMobile ? '16px 12px 70px' : '24px 50px 60px',
-              overflow: 'auto',
-            }}
-          >
+          {/* Content */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            padding: isMobile ? '16px 12px 70px' : '24px 50px 60px',
+            overflow: 'auto',
+          }}>
 
             {/* Question Text */}
             <h3 style={{
@@ -1898,7 +1882,7 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
         height: isMobile ? 'auto' : '339px',
         minHeight: isMobile ? '300px' : 'auto',
       }}>
-        {/* Pop-Up Background */}
+        {/* Pop-Up Background - white card (back button lives inside here) */}
         <div style={{
           position: isMobile ? 'relative' : 'absolute',
           backgroundColor: 'white',
@@ -1909,8 +1893,45 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
           top: isMobile ? '0' : '69px',
           width: isMobile ? '100%' : '400px',
           paddingTop: isMobile ? '80px' : '0',
-          paddingBottom: isMobile ? '24px' : '0',
+          paddingBottom: isMobile ? '56px' : '0',
         }}>
+          {/* Back button - inside the white card, bottom-left */}
+          <button
+            onClick={handlePrevious}
+            style={{
+              position: 'absolute',
+              bottom: isMobile ? 16 : 20,
+              left: isMobile ? 16 : 20,
+              width: isMobile ? 40 : 48,
+              height: isMobile ? 40 : 48,
+              backgroundColor: '#F2F2F7',
+              border: 'none',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0px 2px 8px rgba(0,0,0,0.1)',
+              transition: 'background-color 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (!isMobile) {
+                e.currentTarget.style.backgroundColor = '#388896';
+                const svg = e.currentTarget.querySelector('path');
+                if (svg) svg.setAttribute('stroke', 'white');
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#F2F2F7';
+              const svg = e.currentTarget.querySelector('path');
+              if (svg) svg.setAttribute('stroke', '#388896');
+            }}
+          >
+            <svg width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="#388896" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
           {/* Pop-Up Content */}
           <div style={{
             position: isMobile ? 'relative' : 'absolute',
@@ -2011,43 +2032,6 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
             }} 
           />
         </div>
-
-        {/* Previous Chevron - Only in bottom left */}
-        <button
-          onClick={handlePrevious}
-          style={{
-            position: 'absolute',
-            bottom: isMobile ? '-60px' : '26px',
-            left: isMobile ? '16px' : '26px',
-            width: isMobile ? '40px' : '48px',
-            height: isMobile ? '40px' : '48px',
-            backgroundColor: '#F2F2F7',
-            border: 'none',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: '0px 2px 8px rgba(0,0,0,0.1)',
-            transition: 'background-color 0.3s ease',
-          }}
-          onMouseEnter={(e) => {
-            if (!isMobile) {
-              e.currentTarget.style.backgroundColor = '#388896';
-              const svg = e.currentTarget.querySelector('path');
-              if (svg) svg.setAttribute('stroke', 'white');
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#F2F2F7';
-            const svg = e.currentTarget.querySelector('path');
-            if (svg) svg.setAttribute('stroke', '#388896');
-          }}
-        >
-          <svg width={isMobile ? '20' : '24'} height={isMobile ? '20' : '24'} viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="#388896" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
       </div>
     );
   };
@@ -2076,26 +2060,11 @@ export function OnboardingFlowPage({ onNavigate }: OnboardingFlowPageProps) {
   return (
     <div style={{
       width: '100%',
-      ...(isMobile
-        ? {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: '100dvh',
-            maxHeight: '100vh',
-            overflow: 'hidden',
-            touchAction: 'pan-x',
-            overscrollBehavior: 'none',
-          }
-        : {
-            minHeight: '100vh',
-            position: 'relative',
-          }),
+      minHeight: '100vh',
       backgroundColor: 'white',
-      borderRadius: isMobile ? 0 : '8px',
+      borderRadius: '8px',
       overflow: 'hidden',
+      position: 'relative',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

@@ -9,7 +9,7 @@ import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from 
 import { LocationModal } from './LocationModal';
 import { MediaUploadModal } from './MediaUploadModal';
 import { Lightbox } from './Lightbox';
-import { MessageCircle, Smile, MapPin, Image as ImageIcon, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { MessageCircle, MapPin, Image as ImageIcon, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 
 interface Post {
   id: string;
@@ -351,7 +351,7 @@ export function PostCard({ post, onPostDeleted, onPostUpdated, onNavigate, readO
   // Parse and render @mentions in post text; only bold when mention matches a real user
   const renderPostText = (text: string, validMentions?: string[] | null) => {
     const mentionRegex = /@(\w+\s+\w+)(?=\s|$|[.,!?;:])/g;
-    const parts: (string | JSX.Element)[] = [];
+    const parts: (string | React.ReactElement)[] = [];
     let lastIndex = 0;
     let match;
     let keyIndex = 0;

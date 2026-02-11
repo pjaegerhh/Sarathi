@@ -1,5 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- Figma-generated components, some unused */
 import svgPaths from "./svg-ct38agi6v1";
 import imgImage from '/src/assets/4038b380ca66816e136f836132bca1b8cc0db251.png';
+
+function InformationFrame() {
+  return <div data-name="InformationFrame" />;
+}
+
+function SarathiCoIn() {
+  return <div data-name="SarathiCoIn" />;
+}
 import imgRectangle31 from '/src/assets/dc47787b499eb83f6a39d48d318b9dac108c4c7d.png';
 import imgRectangle33 from '/src/assets/617b3f3d9b67780e89a5c8d624b5d8b0f13ea0bf.png';
 import imgRectangle34 from '/src/assets/14532ada289a40c010c9ed2d41fc6fc11a3aae7f.png';
@@ -9,7 +18,7 @@ import imgRectangle72 from '/src/assets/16c794c6e6a2fd5ee8632dc15dc85640607f1b9a
 import imgImage1 from '/src/assets/9e46f3be7b5472cd8a3b304c1ba73356f2cd2099.png';
 import imgImage2 from '/src/assets/8fb8fc34b439a14d915eca2570a2d283a90cabb5.png';
 
-function Icon() {
+function _Icon() {
   return (
     <div className="mr-[-12px] relative shrink-0 size-[40px]" data-name="Icon">
       <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 40 40">
@@ -27,7 +36,7 @@ function Icon() {
   );
 }
 
-function Overview() {
+function _Overview() {
   return (
     <div className="box-border flex items-center pl-0 pr-[12px] py-0 relative shrink-0" data-name="Overview">
       <div className="bg-clip-text bg-gradient-to-b flex flex-col text-h1 from-[#69b57c] justify-center leading-[0] mr-[-12px] relative shrink-0 text-center to-[#388896] w-[134px]">
@@ -81,7 +90,7 @@ function OnboardingOption() {
   );
 }
 
-function Icon1() {
+function _Icon1() {
   return (
     <div className="relative shrink-0 size-[24px]" data-name="Icon">
       <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
@@ -117,17 +126,18 @@ function Footer() {
 
 function AuthorDetail() {
   return (
-    <div className="flex flex-col text-body-lg gap-2 items-center leading-[0] relative shrink-0 text-center">
+    <>
+      <div className="flex flex-col text-body-lg gap-2 items-center leading-[0] relative shrink-0 text-center">
         <p className="leading-[28px]">Dr. Pooja Mukul, MD</p>
       </div>
       <div className="flex flex-col justify-center min-w-full relative shrink-0 text-tertiary w-[min-content]" style={{ fontVariationSettings: "'wdth' 100" }}>
         <p className="leading-[28px]">B.M.V.S.S, Jaipur</p>
       </div>
-    </div>
+    </>
   );
 }
 
-function IntroductoryQuote() {
+function _IntroductoryQuote() {
   return (
     <div className="absolute flex flex-col gap-3 items-center left-[calc(50%-0.5px)] top-[calc(12.5%+328.625px)] translate-x-[-50%] translate-y-[-50%]" data-name="Introductory Quote">
       <div className="flex flex-col text-h3 justify-center leading-[0] relative shrink-0 text-body-color text-center w-[967px]">

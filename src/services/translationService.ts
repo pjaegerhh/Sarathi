@@ -164,7 +164,7 @@ async function saveToCache(
  * Translate using LibreTranslate (FREE)
  * Self-hosted or public instance
  */
-async function translateWithLibreTranslate(
+async function _translateWithLibreTranslate(
   text: string,
   sourceLanguage: SupportedLanguage,
   targetLanguage: SupportedLanguage
@@ -190,7 +190,7 @@ async function translateWithLibreTranslate(
  * Translate using Google Translate API
  * FREE: 500K chars/month, then $20 per 1M chars
  */
-async function translateWithGoogle(
+async function _translateWithGoogle(
   text: string,
   targetLanguage: SupportedLanguage
 ): Promise<string> {
@@ -220,7 +220,7 @@ async function translateWithGoogle(
  * Translate using Bing Translator
  * FREE: 2M chars/month
  */
-async function translateWithBing(
+async function _translateWithBing(
   text: string,
   sourceLanguage: SupportedLanguage,
   targetLanguage: SupportedLanguage

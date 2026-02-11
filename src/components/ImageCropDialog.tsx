@@ -42,7 +42,7 @@ export function ImageCropDialog({
     }
   }, [open]);
 
-  const onCropCompleteInternal = useCallback((_croppedArea: any, croppedAreaPixels: CroppedArea) => {
+  const onCropCompleteInternal = useCallback((_croppedArea: unknown, croppedAreaPixels: CroppedArea) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 

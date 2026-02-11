@@ -38,6 +38,8 @@ interface AuthContextType {
   loginWithProvider: (provider: 'google' | 'facebook' | 'apple') => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<SarathiUser>) => Promise<void>;
+  /** Refetch current user from DB (e.g. after applying pending onboarding data). */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,17 +95,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mapSupabaseUserToUser = async (supabaseUser: SupabaseUser): Promise<User | null> => {
     try {
       // Add a timeout for the database query - reduced to 5 seconds for faster recovery
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const { data: userData, error } = await supabase
+      const queryPromise = supabase
         .from('sarathi_user')
         .select('uuid, name, first_name, email, telephone, user_type, prosthesis_type, length_usage, main_challenge, activities, created_at, updated_at, date_of_birth, age, onboarding_completed, profession, workplace, place_of_residence, my_story, cover_picture_url, profile_picture_url')
         .eq('uuid', supabaseUser.id)
-        .single()
-        .abortSignal(controller.signal);
-      
-      clearTimeout(timeoutId);
+        .single();
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('aborted')), 5000)
+      );
+      const { data: userData, error } = await Promise.race([queryPromise, timeoutPromise]).catch(() => ({
+        data: null,
+        error: { message: 'timeout', code: 'TIMEOUT' },
+      })) as { data: any; error: any };
 
       if (error) {
         console.error('❌ Error fetching user profile:', error);
@@ -456,9 +459,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const mappedUser = await mapSupabaseUserToUser(session.user);
+        setUser(mappedUser);
+      }
+    } catch (e) {
+      console.warn('Refresh user failed:', e);
+    }
+  };
+
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, login, signup, sendPasswordResetCode, verifyPasswordResetCode, updatePassword, loginWithProvider, logout, updateProfile }}
+      value={{ user, session, loading, login, signup, sendPasswordResetCode, verifyPasswordResetCode, updatePassword, loginWithProvider, logout, updateProfile, refreshUser }}
     >
       {children}
     </AuthContext.Provider>
