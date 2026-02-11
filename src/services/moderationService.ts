@@ -60,7 +60,7 @@ export async function moderateContent(
  * Basic profanity check using simple word list
  * This should always run before AI moderation for fast rejection
  */
-async function basicProfanityCheck(text: string): Promise<boolean> {
+async function basicProfanityCheck(_text: string): Promise<boolean> {
   // TODO: Install bad-words package: npm install bad-words
   // import Filter from 'bad-words';
   // const filter = new Filter();
@@ -80,7 +80,7 @@ async function basicProfanityCheck(text: string): Promise<boolean> {
  * This function exposes API keys in client-side code.
  * If you want to use Perspective API, create a Supabase Edge Function for it.
  */
-async function moderateWithPerspectiveAPI_INSECURE_DO_NOT_USE(text: string): Promise<ModerationResult> {
+async function _moderateWithPerspectiveAPI_INSECURE_DO_NOT_USE(_text: string): Promise<ModerationResult> {
   // ❌ SECURITY VULNERABILITY: Same issue as OpenAI - API keys exposed in client code
   // Use a backend/edge function instead
   
@@ -125,7 +125,7 @@ async function moderateWithBackend(
     }
 
     return data as ModerationResult;
-  } catch (error) {
+  } catch {
     // On error, approve content (don't block users due to API issues)
     // In dev mode, this is expected if Edge Function is not deployed
     return { isApproved: true };
@@ -137,7 +137,7 @@ async function moderateWithBackend(
  * This function exposes API keys in client-side code. Use moderateWithBackend() instead.
  * Keeping this here as a reference for what NOT to do.
  */
-async function moderateWithOpenAI_INSECURE_DO_NOT_USE(text: string): Promise<ModerationResult> {
+async function _moderateWithOpenAI_INSECURE_DO_NOT_USE(_text: string): Promise<ModerationResult> {
   // ❌ SECURITY VULNERABILITY: API keys in client-side code can be stolen!
   // ❌ Anyone can view your compiled JavaScript and extract the key
   // ❌ Anyone can open DevTools and see the key in network requests
@@ -160,10 +160,10 @@ async function moderateWithOpenAI_INSECURE_DO_NOT_USE(text: string): Promise<Mod
  * Log moderation result to database
  */
 export async function logModerationResult(
-  contentType: 'post' | 'comment' | 'repost_comment',
-  contentId: string,
-  result: ModerationResult,
-  originalText: string
+  _contentType: 'post' | 'comment' | 'repost_comment',
+  _contentId: string,
+  _result: ModerationResult,
+  _originalText: string
 ) {
   // TODO: Implement database logging
   // This helps track false positives and improve the system

@@ -9,7 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PostComment } from '../../types/community';
 import { loadSignedUrl } from '../../utils/mediaLoader';
-import { moderateContent, logModerationResult } from '../../services/moderationService';
+import { moderateContent } from '../../services/moderationService';
 
 interface MentionUser {
   uuid: string;
@@ -19,13 +19,13 @@ interface MentionUser {
 import { FeelingPicker, ReactionType, getReactionEmoji, getReactionLabel } from './FeelingPicker';
 import { LocationModal } from './LocationModal';
 import { Lightbox } from './Lightbox';
-import { Heart, Send, MoreVertical, Trash2, Smile, MapPin, Image as ImageIcon, Video } from 'lucide-react';
+import { Heart, Send, Smile, MapPin, Image as ImageIcon, Video } from 'lucide-react';
 
 interface CommentsProps {
   postId: string;
   initialComments?: PostComment[];
   onCommentCountChange?: (count: number) => void;
-  onNavigate?: (page: string, data?: any) => void;
+  onNavigate?: (page: string, data?: unknown) => void;
   isMobile?: boolean;
 }
 
@@ -43,7 +43,7 @@ export const Comments: React.FC<CommentsProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyInputs, setReplyInputs] = useState<{ [key: string]: string }>({});
+  const [_replyInputs, _setReplyInputs] = useState<{ [key: string]: string }>({});
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteConfirmRepliesCount, setDeleteConfirmRepliesCount] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +62,7 @@ export const Comments: React.FC<CommentsProps> = ({
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [newCommentReaction, setNewCommentReaction] = useState<ReactionType | null>(null);
   const [showNewCommentFeelingModal, setShowNewCommentFeelingModal] = useState(false);
-  const [showNewCommentFeelingPicker, setShowNewCommentFeelingPicker] = useState(false);
+  const [_showNewCommentFeelingPicker, setShowNewCommentFeelingPicker] = useState(false);
   const [newCommentMedia, setNewCommentMedia] = useState<File[]>([]);
   const [newCommentMediaPreviews, setNewCommentMediaPreviews] = useState<string[]>([]);
   const [showLightbox, setShowLightbox] = useState(false);
@@ -79,6 +79,7 @@ export const Comments: React.FC<CommentsProps> = ({
   // Load comments
   useEffect(() => {
     loadComments();
+   
   }, [postId]);
 
   const loadComments = async () => {
@@ -629,7 +630,7 @@ export const Comments: React.FC<CommentsProps> = ({
     }
   };
 
-  const handleTranslate = async (commentId: string) => {
+  const _handleTranslate = async (commentId: string) => {
     const comment = comments.find(c => c.id === commentId);
     if (!comment) return;
 
@@ -644,7 +645,7 @@ export const Comments: React.FC<CommentsProps> = ({
     }
 
     // Check if translation already exists
-    const targetLang = language === 'en' ? 'hi' : 'en';
+    const _targetLang = language === 'en' ? 'hi' : 'en';
     const cachedTranslation = language === 'en' 
       ? comment.translated_text_hi 
       : comment.translated_text_en;
@@ -765,7 +766,7 @@ export const Comments: React.FC<CommentsProps> = ({
   // Parse and render @mentions in comment text; only bold when mention matches a real user
   const renderCommentText = (text: string, validMentions?: string[] | null) => {
     const mentionRegex = /@(\w+\s+\w+)(?=\s|$|[.,!?;:])/g;
-    const parts: (string | JSX.Element)[] = [];
+    const parts: (string | React.ReactElement)[] = [];
     let lastIndex = 0;
     let match;
     let keyIndex = 0;
@@ -964,7 +965,7 @@ export const Comments: React.FC<CommentsProps> = ({
             {/* Media Display */}
             {comment.media_urls && comment.media_urls.length > 0 && (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                {comment.media_urls.map((url, index) => {
+                {comment.media_urls!.map((url: string, index: number) => {
                   const isVideo = url.includes('.mp4') || url.includes('.webm') || url.includes('.mov');
                   return (
                     <div 

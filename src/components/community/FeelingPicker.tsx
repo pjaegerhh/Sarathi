@@ -56,7 +56,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
   mode = 'modal',
   isMobile = false
 }) => {
-  const { t, language } = useLanguage();
+  const { t, language: _language } = useLanguage();
   const [hoveredFeeling, setHoveredFeeling] = useState<ReactionType | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const pickerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +80,7 @@ export const FeelingPicker: React.FC<FeelingPickerProps> = ({
 
   // Get label for a feeling
   const getLabel = (type: ReactionType): string => {
-    return t.community[`reaction${type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`] || type;
+    return (t.community as Record<string, string>)[`reaction${type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`] || type;
   };
 
   const filteredFeelings = FEELING_OPTIONS.filter(f =>
@@ -522,5 +522,5 @@ export const getReactionEmoji = (type: ReactionType): string => {
 
 // Helper function to get label for a reaction type
 export const getReactionLabel = (type: ReactionType, t: any): string => {
-  return t.community[`reaction${type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`] || type;
+  return (t.community as Record<string, string>)[`reaction${type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`] || type;
 };

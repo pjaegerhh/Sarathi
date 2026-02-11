@@ -35,7 +35,7 @@ export function ProfileOnboardingPage({ onNavigate }: ProfileOnboardingPageProps
     activities: [] as string[],
   });
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -85,7 +85,7 @@ export function ProfileOnboardingPage({ onNavigate }: ProfileOnboardingPageProps
     setLoading(true);
 
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         user_type: formData.userType,
       };
 
@@ -116,9 +116,9 @@ export function ProfileOnboardingPage({ onNavigate }: ProfileOnboardingPageProps
       
       // Navigate to home page
       onNavigate('home');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Error updating profile:', error);
-      toast.error(`Failed to complete profile: ${error.message}`);
+      toast.error(`Failed to complete profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -470,7 +470,7 @@ export function ProfileOnboardingPage({ onNavigate }: ProfileOnboardingPageProps
   };
 
   // Determine which step to show based on user type
-  const getEffectiveStep = () => {
+  const _getEffectiveStep = () => {
     if (formData.userType !== 'amputee') {
       // For non-amputees, skip steps 2 and 3
       if (currentStep === 2 || currentStep === 3) {

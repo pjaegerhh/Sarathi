@@ -6,13 +6,13 @@ import { NearbyCitiesModal } from './NearbyCitiesModal';
 import { MapLocationPicker } from './MapLocationPicker';
 
 interface LocationModalProps {
-  isOpen: boolean;
+  isOpen?: boolean;
   onClose: () => void;
   onSelectLocation: (location: string) => void;
   currentLocation?: string;
 }
 
-export function LocationModal({ isOpen, onClose, onSelectLocation, currentLocation }: LocationModalProps) {
+export function LocationModal({ isOpen = true, onClose, onSelectLocation }: LocationModalProps) {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredLocations, setFilteredLocations] = useState(indiaLocations);

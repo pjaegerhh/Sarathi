@@ -55,6 +55,7 @@ export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobilePr
     if (user) {
       loadPosts();
     }
+   
   }, [user]);
 
   // Scroll to post when scrollToPostId is provided
@@ -103,7 +104,7 @@ export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobilePr
       if (error) throw error;
 
       // Transform data
-      const transformedPosts: Post[] = (data || []).map((post: any) => ({
+      const transformedPosts: Post[] = (data || []).map((post: Record<string, unknown>) => ({
         id: post.id,
         user_id: post.user_id,
         post_text: post.post_text,
@@ -235,9 +236,10 @@ export function CommunityPage({ onNavigate, scrollToPostId, isMobile: isMobilePr
       style={{
         minHeight: '100vh',
         background: '#f8f9fa',
-        padding: isMobile ? '12px' : '20px',
         paddingTop: isMobile ? '70px' : '61px',
+        paddingRight: isMobile ? '12px' : '20px',
         paddingBottom: '100px',
+        paddingLeft: isMobile ? '12px' : '20px',
       }}
     >
       <div

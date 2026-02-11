@@ -39,7 +39,7 @@ class MediaCacheService {
           }
         });
       }
-    } catch (error) {
+    } catch {
       // Silently fail - cache is optional
     }
   }
@@ -54,7 +54,7 @@ class MediaCacheService {
         cache[key] = value;
       });
       localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
-    } catch (error) {
+    } catch {
       // Silently fail - cache is optional
     }
   }

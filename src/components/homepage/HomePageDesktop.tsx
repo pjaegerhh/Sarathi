@@ -137,7 +137,7 @@ export function HomePageDesktop({ onNavigate, isLoggedIn = false }: HomePageDesk
             {/* 10. FooterSection */}
             <section className="w-full flex justify-center">
               <div className="w-full max-w-[1280px] flex items-center justify-center">
-                <FooterSectionDesktop />
+                <FooterSectionDesktop onNavigate={onNavigate} />
               </div>
             </section>
           </div>

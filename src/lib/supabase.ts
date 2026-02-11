@@ -26,7 +26,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: window.localStorage,
     storageKey: 'sarathi-auth-token',
-    flowType: 'pkce', // Use PKCE flow for better security and CORS handling
+    flowType: 'implicit', // Tokens in URL hash so they survive when query params are stripped (e.g. some hosts)
   },
 });
 
@@ -45,6 +45,12 @@ export interface SarathiUser {
   main_challenge: string[] | null; // Array of: fit_comfort, mobility, community, cost_access, training, emotional
   activities: string[] | null; // Array of: rehabilitation, social_life, emotions, pain_relief, work, independence, education, confidence, training, sports, guidance, community, maintenance
   onboarding_completed: boolean | null; // Whether onboarding has been completed
+  cover_picture_url: string | null;
+  profile_picture_url: string | null;
+  profession: string | null;
+  workplace: string | null;
+  place_of_residence: string | null;
+  my_story: string | null;
   created_at: string;
   updated_at: string;
 }

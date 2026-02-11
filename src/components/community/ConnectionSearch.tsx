@@ -44,8 +44,9 @@ export function ConnectionSearch() {
   }, [searchQuery]);
 
   const searchUsers = async () => {
-    if (!user) return;
+    if (!user?.id) return;
 
+    const currentUserId = String(user.id).toLowerCase().trim();
     setIsSearching(true);
 
     try {
@@ -53,18 +54,19 @@ export function ConnectionSearch() {
         .from('sarathi_user')
         .select('uuid, name, first_name, email, user_type, profile_picture_url')
         .or(`name.ilike.%${searchQuery}%,first_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
-        .neq('uuid', user.id)
-        .limit(20);
+        .limit(25);
 
       if (error) throw error;
 
-      setSearchResults(data || []);
+      // Exclude current user (client-side; avoids Supabase .neq ordering/type issues)
+      const filtered = (data || []).filter((u) => String(u?.uuid ?? '').toLowerCase().trim() !== currentUserId);
+      setSearchResults(filtered);
 
       // Load profile picture signed URLs for search results
-      if (data && data.length > 0) {
+      if (filtered.length > 0) {
         const urls: Record<string, string> = {};
         await Promise.all(
-          data
+          filtered
             .filter((u) => u.profile_picture_url && !String(u.profile_picture_url).startsWith('http'))
             .map(async (u) => {
               const path = String(u.profile_picture_url).startsWith('profile-media/')
@@ -84,15 +86,16 @@ export function ConnectionSearch() {
       }
       
       // Check connection status for each user
-      if (data) {
+      if (filtered.length > 0) {
         const statuses: { [key: string]: ConnectionStatus } = {};
-        
-        for (const searchUser of data) {
+        for (const searchUser of filtered) {
           const status = await getConnectionStatus(searchUser.uuid);
           statuses[searchUser.uuid] = status;
         }
-        
         setConnectionStatuses(statuses);
+      } else {
+        setConnectionStatuses({});
+        setProfilePictureUrls({});
       }
     } catch (error) {
       console.error('Error searching users:', error);
@@ -124,7 +127,7 @@ export function ConnectionSearch() {
       }
 
       return { status: 'pending_received', connectionId: data.id };
-    } catch (error) {
+    } catch {
       return { status: 'none' };
     }
   };
@@ -275,7 +278,13 @@ export function ConnectionSearch() {
 
       {!isSearching && searchResults.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {searchResults.map((searchUser) => {
+          {searchResults
+            .filter((searchUser) => {
+              const uid = String(searchUser?.uuid ?? '').toLowerCase().trim();
+              const myId = String(user?.id ?? '').toLowerCase().trim();
+              return uid && myId && uid !== myId;
+            })
+            .map((searchUser) => {
             const connectionStatus = connectionStatuses[searchUser.uuid];
             const isLoading = actionLoading[searchUser.uuid];
 
